@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import usersService from '../services/usersApi';
 import { UserFormData } from '../schemas/userSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendUserSnippet } from '@/types';
 
 // Clé de requête de base pour les utilisateurs

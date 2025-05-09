@@ -1,48 +1,43 @@
 
-"use client"; // Ce layout aura besoin de client-side logic pour l'auth check
+import { cookies } from "next/headers";
 
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-// import DashboardSidebar from "@/components/layouts/DashboardSidebar"; // Exemple
-// import DashboardHeader from "@/components/layouts/DashboardHeader"; // Exemple
-// import { LoadingSpinner } from "@/components/shared/LoadingSpinner"; // Composant à créer
+import { AppSidebar } from "@/components/layouts/app-sidebar";
+import { NavHeader } from "@/components/layouts/nav-header";
+import { ModeSwitcher } from "@/components/shared/ModeSwitcher";
+import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ClientGuard } from "@/features/auth/components/client-guard";
 
-export default function DashboardLayout({
+export default  async function DashboardLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const { isAuthenticated, isLoading } = useAuth();
-	const router = useRouter();
 
-	useEffect(() => {
-		// Si le chargement est terminé et l'utilisateur N'EST PAS authentifié, rediriger vers login
-		if (!isLoading && !isAuthenticated) {
-			console.log("DashboardLayout: User not authenticated, redirecting to login.");
-			router.replace("/login"); // Use replace to avoid adding dashboard to history
-		}
-	}, [isLoading, isAuthenticated, router]);
-
-	// Afficher un loader pendant la vérification initiale ou si la redirection est en cours
-	if (isLoading || !isAuthenticated) {
-		return (
-			<div className="flex items-center justify-center h-screen">
-				{/* <LoadingSpinner size={48} /> */}
-			</div>
-		);
-	}
-
-	// Si authentifié, afficher le layout et les enfants
+	const cookieStore = await cookies();
+	const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
+	
 	return (
-		<div className="flex h-screen bg-muted/40">
-			{/* <DashboardSidebar /> */} {/* Votre sidebar */}
-			<div className="flex flex-col flex-1">
-				{/* <DashboardHeader /> */} {/* Votre header */}
-				<main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-					{children} {/* Le contenu de la page actuelle (ex: /properties, /contracts) */}
-				</main>
-			</div>
-		</div>
-	);
+	<SidebarProvider defaultOpen={defaultOpen}>
+		<AppSidebar />
+		<SidebarInset>
+			<header className="bg-background sticky inset-x-0 top-0 isolate z-10 flex shrink-0 items-center gap-2 border-b">
+				<div className="flex h-14 w-full items-center gap-2 px-4">
+					<SidebarTrigger className="-ml-1.5" />
+					<Separator
+						orientation="vertical"
+						className="mr-2 data-[orientation=vertical]:h-4"
+					/>
+					<NavHeader />
+					<div className="ml-auto flex items-center gap-2">
+						{/* <ThemeSelector /> */}
+						{/* <Notification /> */}
+						<ModeSwitcher />
+					</div>
+				</div>
+			</header>
+				<ClientGuard>{children}</ClientGuard>
+		</SidebarInset>
+	</SidebarProvider>
+	)
 }

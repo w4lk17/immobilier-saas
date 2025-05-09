@@ -18,8 +18,16 @@ api.interceptors.response.use(
 	(response) => response, // Retourne la réponse si succès
 	(error) => {
 		// Gérer les erreurs globales ici (ex: erreur 401 non autorisée, etc.)
+		if (error.response?.status === 401 && error.response?.data?.message === 'No auth token') {
+			console.info('Error: No auth token');	
+		} else if (error.response?.status === 401 && error.response?.data?.message === 'jwt expired') {
+			// Gérer le cas ou le token est expire
+			// Vous pouvez rediriger vers la page de login
+			// ou autre action appropriée si besoin (voir useAuth) 
+			console.info('Info: Token expired');
+		}
 		// Vous pourriez vouloir déclencher un logout global ici si 401
-		console.log('API Error:', error.response?.data || error.message);
+		// console.log('API Error:', error.response?.data || error.message);
 		// Rejeter l'erreur pour que les appels spécifiques puissent la gérer aussi
 		return Promise.reject(error);
 	}

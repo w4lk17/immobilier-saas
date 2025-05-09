@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import expensesService from '../services/expensesApi';
 import { ExpenseFormData, ExpenseUpdateFormData } from '../schemas/expenseSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendExpense, ExpenseWithRelations } from '@/types';
 
 export const EXPENSES_QUERY_KEY = ['expenses'];

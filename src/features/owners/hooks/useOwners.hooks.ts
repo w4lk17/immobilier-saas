@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ownersService from '../services/ownersApi';
 import { OwnerFormData, OwnerUpdateFormData } from '../schemas/ownerSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendOwner } from '@/types';
 
 export const OWNERS_QUERY_KEY = ['owners'];

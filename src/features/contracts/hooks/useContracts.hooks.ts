@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import contractsService from '../services/contractsApi';
 import { ContractFormData, ContractUpdateFormData } from '../schemas/contractSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendContract, ContractWithRelations } from '@/types';
 
 export const CONTRACTS_QUERY_KEY = ['contracts'];

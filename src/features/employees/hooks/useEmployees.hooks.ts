@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import employeesService from '../services/employeesApi';
 import { EmployeeFormData, EmployeeUpdateFormData } from '../schemas/employeeSchemas'; // Importer les types de formulaire
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendEmployee } from '@/types';
 
 export const EMPLOYEES_QUERY_KEY = ['employees'];

@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import paymentsService from '../services/paymentsApi';
 import { PaymentFormData, UpdatePaymentFormData } from '../schemas/paymentSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendPayment, PaymentWithRelations } from '@/types';
 
 export const PAYMENTS_QUERY_KEY = ['payments'];

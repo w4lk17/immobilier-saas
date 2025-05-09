@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'; // Importez le store
 import { LoginCredentials, RegisterCredentials } from '../schemas/authSchemas'; // Importez les types Zod (à créer)
 import { useRouter } from 'next/navigation';
 import authService from '../services/authApi'; // Importez les fonctions API (à créer)
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 
 export function useAuth() {
 	const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuthStore();
@@ -16,7 +16,7 @@ export function useAuth() {
 			const loggedInUser = await authService.login(credentials); // L'API login retourne le profil user si succès
 			setUser(loggedInUser); // Mettre à jour le store
 			toast.success('Connexion réussie !');
-			router.push('/'); // Rediriger vers le dashboard ou autre page
+			router.push('/accueil'); // Rediriger vers le dashboard ou autre page
 		} catch (error: any) {
 			console.error('Login failed:', error);
 			setUser(null); // Assurer que l'utilisateur est null en cas d'échec
@@ -49,13 +49,13 @@ export function useAuth() {
 			await authService.logout(); // Appeler l'API logout (qui clear les cookies côté serveur/client)
 			setUser(null); // Mettre à jour le store
 			toast.success('Déconnexion réussie.');
-			router.push('/login'); 
+			router.push('/login');
 		} catch (error: any) {
 			console.error('Logout failed:', error);
 			// Même si l'API échoue, on déconnecte côté client
 			setUser(null);
 			toast.error('Erreur lors de la déconnexion.');
-			router.push('/login'); 
+			router.push('/login');
 		} finally {
 			// setLoading(false);
 		}

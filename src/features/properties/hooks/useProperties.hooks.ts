@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import propertiesService from '../services/propertiesApi';
 import { PropertyFormData, PropertyUpdateFormData } from '../schemas/propertySchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendProperty, PropertyWithRelations } from '@/types';
 
 export const PROPERTIES_QUERY_KEY = ['properties'];

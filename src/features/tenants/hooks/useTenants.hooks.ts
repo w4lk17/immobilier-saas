@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import tenantsService from '../services/tenantsApi';
 import { TenantFormData, TenantUpdateFormData } from '../schemas/tenantSchemas';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import { FrontendTenant } from '@/types';
 
 export const TENANTS_QUERY_KEY = ['tenants'];
