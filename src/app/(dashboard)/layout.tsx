@@ -7,6 +7,7 @@ import { ModeSwitcher } from "@/components/shared/ModeSwitcher";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ClientGuard } from "@/features/auth/components/client-guard";
+import { Notification } from "@/components/shared/Notifications";
 
 export default  async function DashboardLayout({
 	children,
@@ -31,8 +32,8 @@ export default  async function DashboardLayout({
 					<NavHeader />
 					<div className="ml-auto flex items-center gap-2">
 						{/* <ThemeSelector /> */}
-						{/* <Notification /> */}
 						<ModeSwitcher />
+						<Notification/>
 					</div>
 				</div>
 			</header>

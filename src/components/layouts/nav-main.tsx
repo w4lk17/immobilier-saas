@@ -9,6 +9,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 
@@ -20,10 +21,6 @@ export function NavMain({
 		url: string
 		icon?: LucideIcon
 		isActive?: boolean
-		items?: {
-			title: string
-			url: string
-		}[]
 	}[]
 }) {
 	return (
@@ -38,6 +35,7 @@ export function NavMain({
 									<span>{item.title}</span>
 								</Link>
 							</SidebarMenuButton>
+							{item.title === "Documentation" && (<SidebarMenuBadge>5</SidebarMenuBadge>)}
 						</SidebarMenuItem>
 					))}
 				</SidebarMenu>

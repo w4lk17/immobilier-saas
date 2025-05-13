@@ -26,19 +26,5 @@ export function ClientGuard({ children }: { children: React.ReactNode }) {
 			</div>
 		);
 	}
-
-	// Si authentifié, afficher le layout et les enfants
-	// return (
-	// 	<div className="flex h-screen bg-muted/40">
-	// 		{/* <DashboardSidebar /> */} {/* Votre sidebar */}
-	// 		<div className="flex flex-col flex-1">
-	// 			{/* <DashboardHeader /> */} {/* Votre header */}
-	// 			<main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-	// 				{children} {/* Le contenu de la page actuelle (ex: /properties, /contracts) */}
-	// 			</main>
-	// 		</div>
-	// 	</div>
-	// );
-
 	return <>{children}</>;
 }

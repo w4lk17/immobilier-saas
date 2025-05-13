@@ -4,9 +4,23 @@ import * as React from "react"
 import {
 	BookOpen,
 	Bot,
+	Building2,
 	Command,
+	Contact,
+	CreditCard,
+	FileBox,
+	FileChartColumn,
+	FileText,
+	Hourglass,
+	House,
 	LayoutDashboard,
+	Mail,
+	ReceiptTextIcon,
 	Settings2,
+	User,
+	UserPlus,
+	UserRoundCog,
+	Users,
 } from "lucide-react"
 import {
 	Sidebar,
@@ -36,73 +50,81 @@ const data = {
 			title: "Tableau de bord",
 			url: "/accueil",
 			icon: LayoutDashboard,
-			isActive: true,
-			items: [
-				{
-					title: "History",
-					url: "#",
-				},
-				{
-					title: "Starred",
-					url: "#",
-				},
-				{
-					title: "Settings",
-					url: "#",
-				},
-			],
+			isActive: true
 		},
 		{
-			title: "Models",
-			url: "#",
-			icon: Bot,
+			title: "Employee",
+			url: "/employees",
+			icon: UserRoundCog,
+			isActive: false
 		},
 		{
-			title: "Documentation",
-			url: "#",
-			icon: BookOpen,
-			items: [
-				{
-					title: "Introduction",
-					url: "#",
-				},
-				{
-					title: "Get Started",
-					url: "#",
-				},
-				{
-					title: "Tutorials",
-					url: "#",
-				},
-				{
-					title: "Changelog",
-					url: "#",
-				},
-			],
+			title: "Propretaire",
+			url: "/owners",
+			icon: User,
+			isActive: false
 		},
 		{
-			title: "Settings",
-			url: "#",
-			icon: Settings2,
-			items: [
-				{
-					title: "General",
-					url: "#",
-				},
-				{
-					title: "Team",
-					url: "#",
-				},
-				{
-					title: "Billing",
-					url: "#",
-				},
-				{
-					title: "Limits",
-					url: "#",
-				},
-			],
+			title: "Locataire",
+			url: "/tenants",
+			icon: Contact,
+			isActive: false
 		},
+		{
+			title: "Biens",
+			url: "/properties",
+			icon: Building2,
+			isActive: false
+		},
+		{
+			title: "Locative",
+			url: "/rentals",
+			icon: House,
+			isActive: false
+		},
+		{
+			title: "Contrat",
+			url: "/contracts",
+			icon: FileText,
+			isActive: false
+		},
+		{
+			title: "Payement",
+			url: "/payments",
+			icon: CreditCard,
+			isActive: false
+		},
+		{
+			title: "Payement a venir",
+			url: "/rentals",
+			icon: ReceiptTextIcon,
+			isActive: false
+		},
+		{
+			title: "Depenses",
+			url: "/expenses",
+			icon: Hourglass,
+			isActive: false
+		},
+		{
+			title: "Fichiers",
+			url: "/rentals",
+			icon: FileBox,
+			isActive: false
+		},
+		{
+			title: "Messages",
+			url: "/rentals",
+			icon: Mail,
+			isActive: false
+		},
+		{
+			title: "Rapports",
+			url: "/rentals",
+			icon: FileChartColumn,
+			isActive: false
+		},
+		
 	],
 }
 
@@ -129,8 +151,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarGroup> */}
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
-				<NavMain items={data.navMain} />
 				<NavMain items={data.navMain} />
 			</SidebarContent>
 			<SidebarFooter>
