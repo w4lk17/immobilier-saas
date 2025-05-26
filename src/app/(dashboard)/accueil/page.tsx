@@ -4,7 +4,7 @@ import { KPICard } from "@/components/shared/KPICard";
 import { SmallCard } from "@/components/shared/SmallCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, CheckCheck, DollarSign, FileClock, FileText, Hourglass, House, Users, XCircle } from "lucide-react";
+import { Check, CheckCheck, DollarSign, FileClock, FileText, Hourglass, House, Users } from "lucide-react";
 
 export default function DashboardHomePage() {
 	return (
@@ -16,12 +16,12 @@ export default function DashboardHomePage() {
 				<div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
 					<KPICard
 						title="Factures Générées (Août)"
-						value="120 000,0"
-						description="Total facturé ce mois"
+						value={"120 000,0"}
+						description={"Total facturé ce mois"}
 						icon={DollarSign}
-						progressValue={100} // Exemple barre pleine
+						progressValue={100}
 					/>
-					{/* <div className="bg-primary-foreground rounded-lg">2</div> */}
+
 					<KPICard
 						title="Factures Payées (Août)"
 						value={"90 000,0"}
@@ -29,12 +29,13 @@ export default function DashboardHomePage() {
 						icon={CheckCheck}
 						progressValue={90}
 					/>
+
 					<KPICard
 						title="Factures Impayées (Août)"
 						value={"30 000,0"}
 						description={`${20}% du total généré`}
-						icon={FileClock} // Ou Clock pour en attente?
-						progressValue={20} // À styler différemment peut-être (rouge?)
+						icon={FileClock}
+						progressValue={20}
 					/>
 				</div>
 				{/* Small Cards Row */}
@@ -42,17 +43,11 @@ export default function DashboardHomePage() {
 					{/* August Expenses */}
 					<SmallCard title="Dépenses (Août)" value={"30 000,0"} icon={Hourglass} />
 					{/* Active Contracts */}
-					<SmallCard title="Contrats Actifs" value="122" icon={FileText} />
+					<SmallCard title="Contrats Actifs" value={"122"} icon={FileText} />
 					{/* Inactive Contracts */}
-
-					<SmallCard title="Contrats Inactifs" value="1" icon={FileText} />
-
+					<SmallCard title="Contrats Inactifs" value={"1"} icon={FileText} />
 					{/* Terminated Contracts */}
-					<SmallCard
-						title="Contrats Terminés"
-						value="0"
-						icon={FileText} // Icône différente?
-					/>
+					<SmallCard title="Contrats Terminés" value="0" icon={FileText} />
 				</div>
 				{/* Chart Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ">
@@ -144,23 +139,6 @@ export default function DashboardHomePage() {
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
 											<div className="flex items-center justify-center w-8 h-8 bg-amber-100 rounded-full">
-												{/* <svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="16"
-													height="16"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													className="text-amber-500"
-												>
-													<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-													<circle cx="9" cy="7" r="4" />
-													<path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-													<path d="M16 3.13a4 4 0 0 1 0 7.75" />
-												</svg> */}
 												<Users className="w-4 h-4 text-amber-500" />
 											</div>
 											<div>

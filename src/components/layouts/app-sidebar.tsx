@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import {
-	BookOpen,
-	Bot,
 	Building2,
 	Command,
 	Contact,
@@ -16,11 +14,8 @@ import {
 	LayoutDashboard,
 	Mail,
 	ReceiptTextIcon,
-	Settings2,
 	User,
-	UserPlus,
 	UserRoundCog,
-	Users,
 } from "lucide-react"
 import {
 	Sidebar,
@@ -59,7 +54,7 @@ const data = {
 			isActive: false
 		},
 		{
-			title: "Propretaire",
+			title: "propriétaire",
 			url: "/owners",
 			icon: User,
 			isActive: false
@@ -89,19 +84,19 @@ const data = {
 			isActive: false
 		},
 		{
-			title: "Payement",
+			title: "Paiement",
 			url: "/payments",
 			icon: CreditCard,
 			isActive: false
 		},
 		{
-			title: "Payement a venir",
+			title: "Paiement a venir",
 			url: "/rentals",
 			icon: ReceiptTextIcon,
 			isActive: false
 		},
 		{
-			title: "Depenses",
+			title: "Dépenses",
 			url: "/expenses",
 			icon: Hourglass,
 			isActive: false
@@ -120,7 +115,7 @@ const data = {
 		},
 		{
 			title: "Rapports",
-			url: "/rentals",
+			url: "/reports",
 			icon: FileChartColumn,
 			isActive: false
 		},

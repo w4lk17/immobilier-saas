@@ -1,15 +1,14 @@
-
 "use client";
 
-import { useProperties } from "@/features/properties/hooks/useProperties.hooks";
-import { PropertyList } from "@/features/properties/components/PropertyList";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusIcon } from "lucide-react";
+import { PaymentList } from "@/features/payments/components/PaymentList";
+import { usePayments } from "@/features/payments/hooks/usePayments.hooks";
+import { PlusIcon} from "lucide-react";
+import Link from "next/link";
 
-export default function PropertiesPage() {
-	const { data: properties, isLoading, isError, error } = useProperties();
+export default function PaymentsPage() {
+	const { data: payments, isLoading, isError, error } = usePayments();
 
 	if (isLoading) {
 		// Afficher des Skeletons pendant le chargement
@@ -36,29 +35,22 @@ export default function PropertiesPage() {
 			<div>Breadcrumb</div>
 			{/* Container */}
 			<div className="flex flex-col xl:flex-row gap-4 p-4">
-				{/* Left */}
-				{/* <div className="xl:w-4/5 "> */}
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
+				
+					<div className="bg-primary-foreground p-4 rounded-lg">
 						<div className="flex items-center justify-between mb-2">
-							<h2 className="text-lg font-medium">Liste des propriétés</h2>
+							<h2 className="text-lg font-medium">Liste des paiements</h2>
 							<Button variant="outline" size="sm" >
 								<PlusIcon />
-								<Link href="/properties/new">
+								<Link href="/payments/new">
 									<span className="hidden lg:inline">Nouveau</span>
 								</Link>
 							</Button>
 						</div>
-						{/* Passer les données au composant d'affichage */}
-						<PropertyList properties={properties || []} />
+						{/*Composant d'affichage */}
+						<PaymentList payments={payments || []} />
 					</div>
-				{/* </div> */}
-				{/* Right */}
-				{/* <div className="xl:w-1/5">
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
-						test
-					</div>
-				</div> */}
 			</div>
 		</div>
-	);
+
+	)
 }

@@ -134,7 +134,7 @@ export interface ContractWithRelations extends FrontendContract {
 }
 
 export interface PaymentWithRelations extends FrontendPayment {
-	contract?: FrontendContract | null; // Relation vers le contrat de base
+	contract?: ContractWithRelations | null; // Relation vers le contrat de base
 	tenant?: FrontendTenant | null;
 }
 
@@ -144,9 +144,19 @@ export interface ExpenseWithRelations extends FrontendExpense {
 
 // Potentiellement des types pour les autres entités avec leurs relations si vos endpoints API
 // sont conçus pour retourner ces données imbriquées (moins courant pour les listes)
-export interface OwnerWithRelations extends FrontendOwner { properties: FrontendProperty[] }
-// export interface TenantWithRelations extends FrontendTenant { contracts: FrontendContract[], payments: FrontendPayment[] }
-// export interface EmployeeWithRelations extends FrontendEmployee { managedProperties: FrontendProperty[], managedContracts: FrontendContract[] }
+export interface OwnerWithRelations extends FrontendOwner {
+	properties: FrontendProperty[];
+}
+
+export interface TenantWithRelations extends FrontendTenant {
+	contracts: FrontendContract[];
+	payments: FrontendPayment[];
+}
+
+export interface EmployeeWithRelations extends FrontendEmployee {
+	managedProperties: FrontendProperty[];
+	managedContracts: FrontendContract[];
+}
 
 // --- Type pour le Store d'Authentification ---
 // (Correspond à FrontendUserSnippet mais on lui donne un nom spécifique au store)

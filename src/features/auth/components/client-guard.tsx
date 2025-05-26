@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
-// import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 export function ClientGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isLoading } = useAuth();
@@ -22,7 +22,7 @@ export function ClientGuard({ children }: { children: React.ReactNode }) {
 	if (isLoading || !isAuthenticated) {
 		return (
 			<div className="flex items-center justify-center h-screen">
-				{/* <LoadingSpinner size={48} /> */}
+				{/* <LoadingSpinner size={24} /> */}
 			</div>
 		);
 	}

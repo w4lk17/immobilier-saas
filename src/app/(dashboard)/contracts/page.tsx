@@ -1,15 +1,14 @@
-
 "use client";
 
-import { useProperties } from "@/features/properties/hooks/useProperties.hooks";
-import { PropertyList } from "@/features/properties/components/PropertyList";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContractList } from "@/features/contracts/components/ContractList";
+import { useContracts } from "@/features/contracts/hooks/useContracts.hooks";
 import { PlusIcon } from "lucide-react";
+import Link from "next/link";
 
-export default function PropertiesPage() {
-	const { data: properties, isLoading, isError, error } = useProperties();
+export default function ContractsPage() {
+	const { data: contracts, isLoading, isError, error } = useContracts();
 
 	if (isLoading) {
 		// Afficher des Skeletons pendant le chargement
@@ -37,28 +36,27 @@ export default function PropertiesPage() {
 			{/* Container */}
 			<div className="flex flex-col xl:flex-row gap-4 p-4">
 				{/* Left */}
-				{/* <div className="xl:w-4/5 "> */}
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
+				<div className=" xl:w-4/5 ">
+					<div className="bg-primary-foreground p-4 rounded-lg">
 						<div className="flex items-center justify-between mb-2">
-							<h2 className="text-lg font-medium">Liste des propriétés</h2>
+							<h2 className="text-lg font-medium">Liste des Contrats</h2>
 							<Button variant="outline" size="sm" >
 								<PlusIcon />
-								<Link href="/properties/new">
+								<Link href="/contracts/new">
 									<span className="hidden lg:inline">Nouveau</span>
 								</Link>
 							</Button>
 						</div>
-						{/* Passer les données au composant d'affichage */}
-						<PropertyList properties={properties || []} />
+						{/*Composant d'affichage */}
+						<ContractList contracts={contracts || []} />
 					</div>
-				{/* </div> */}
+				</div>
 				{/* Right */}
-				{/* <div className="xl:w-1/5">
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
-						test
-					</div>
-				</div> */}
+				<div className=" xl:w-1/5">
+
+				</div>
 			</div>
 		</div>
-	);
+
+	)
 }

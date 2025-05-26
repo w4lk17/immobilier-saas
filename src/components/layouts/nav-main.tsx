@@ -12,6 +12,7 @@ import {
 	SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function NavMain({
 	items,
@@ -22,20 +23,24 @@ export function NavMain({
 		icon?: LucideIcon
 		isActive?: boolean
 	}[]
-}) {
+	}) {
+	
+	const pathname = usePathname();
+	
 	return (
 		<SidebarGroup>
 			<SidebarGroupContent>
-				<SidebarMenu>
+				<SidebarMenu className="gap-2">
 					{items.map((item) => (
 						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton isActive={item.isActive} tooltip={item.title}>
-								{item.icon && <item.icon />}
-								<Link href={item.url}>
+							<Link href={item.url}>
+								<SidebarMenuButton isActive={pathname === item.url} tooltip={item.title}>
+									{item.icon && <item.icon />}
 									<span>{item.title}</span>
-								</Link>
-							</SidebarMenuButton>
-							{item.title === "Documentation" && (<SidebarMenuBadge>5</SidebarMenuBadge>)}
+								</SidebarMenuButton>
+							{item.title === "Paiement" && (<SidebarMenuBadge>3</SidebarMenuBadge>)}
+							{item.title === "Messages" && (<SidebarMenuBadge>2</SidebarMenuBadge>)}
+							</Link>
 						</SidebarMenuItem>
 					))}
 				</SidebarMenu>

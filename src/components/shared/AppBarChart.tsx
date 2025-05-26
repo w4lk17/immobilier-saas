@@ -32,7 +32,7 @@ const chartConfig = {
 } satisfies ChartConfig
 export default function AppBarChart() {
 	return (
-		<div className="">
+		<>
 			<h1 className="text-lg font-medium mb-6">Bar Chart</h1>
 			<ChartContainer config={chartConfig} className="min-h-[200px] w-full">
 				<BarChart accessibilityLayer data={chartData}>
@@ -55,6 +55,6 @@ export default function AppBarChart() {
 					<Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
 				</BarChart>
 			</ChartContainer>
-		</div>
+		</>
 	);
 }

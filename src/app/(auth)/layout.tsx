@@ -9,9 +9,10 @@ export default function AuthLayout({
 }) {
 	return (
 		<>
-			<div className="absolute top-4 right-4">
+			<div className="absolute top-4 right-4" >
 				<Link href="/" >
 					<Building className="size-6" />
+					<h1 className='sr-only'>landing</h1>
 				</Link>
 			</div>
 			{children}
