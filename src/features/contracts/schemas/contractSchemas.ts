@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { ContractStatus } from '@/types/enums';
 
-export const contractSchema = z.object({
+export const contractCreateSchema = z.object({
 	propertyId: z.number({ required_error: "L'ID de propriété est requis." }).int().positive(),
 	tenantId: z.number({ required_error: "L'ID de locataire est requis." }).int().positive(),
 	managerId: z.number({ required_error: "L'ID de gestionnaire est requis." }).int().positive(),
@@ -22,7 +22,7 @@ export const contractSchema = z.object({
 	status: z.nativeEnum(ContractStatus).optional(), // Le backend a une valeur par défaut
 });
 
-export type ContractFormData = z.infer<typeof contractSchema>;
+export type ContractFormData = z.infer<typeof contractCreateSchema>;
 
 // Schéma pour la mise à jour (souvent seulement status et endDate sont modifiables)
 export const contractUpdateSchema = z.object({

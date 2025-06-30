@@ -26,5 +26,13 @@ export function ClientGuard({ children }: { children: React.ReactNode }) {
 			</div>
 		);
 	}
-	return <>{children}</>;
+	return (
+		<div className="container-wrapper section-soft flex flex-1 flex-col pb-6">
+			<div className="theme-container flex scroll-mt-20 flex-col">
+				<div className="bg-background flex flex-col overflow-hidden rounded-lg m-4 border bg-clip-padding md:flex-1 xl:rounded-xl">
+					{children}
+				</div>
+			</div>
+		</div>
+	);
 }

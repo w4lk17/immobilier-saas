@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { CreditCard, PlusCircle } from "lucide-react";
 import { PaymentWithRelations } from "@/types";
-import { DataTable } from '@/components/shared/DataTable';
+import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { paymentColumns } from './payment.columns';
 
 interface PaymentListProps {
@@ -30,7 +30,6 @@ export function PaymentList({ payments }: PaymentListProps) {
 		<DataTable
 			columns={paymentColumns}
 			data={payments || []}
-			emptyStateContent={emptyState}
-		/>
+			emptyStateContent={emptyState} searchColumn={''} newButtonHref={''} newButtonTitle={''}		/>
 	);
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { CreditCard, PlusCircle } from "lucide-react";
 import { PaymentWithRelations } from "@/types";
-import { DataTable } from '@/components/shared/DataTable';
+import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { reportColumns } from './report.columns';
 
 interface ReportListProps {

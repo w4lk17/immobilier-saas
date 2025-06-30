@@ -1,49 +1,51 @@
 "use client";
 
+import { Download, Terminal } from "lucide-react";
+
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeeList } from "@/features/employees/components/EmployeeList";
 import { useEmployees } from "@/features/employees/hooks/useEmployees.hooks";
-import { PlusIcon } from "lucide-react";
-import Link from "next/link";
 
 export default function EmployeesPage() {
 	const { data: employees, isLoading, isError, error } = useEmployees();
 
 	if (isLoading) {
-		// Afficher des Skeletons pendant le chargement
-		return (
-			<div className="space-y-4">
-				Loading...
-			</div>
-		);
+		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
 	}
 
 	if (isError) {
-		return <p className="text-destructive">Erreur de chargement: {error?.message || 'Inconnue'}</p>;
+		return (
+			<Alert variant="destructive" className="max-w-2xl mx-auto">
+				<Terminal className="h-4 w-4" />
+				<AlertTitle>Erreur de chargement</AlertTitle>
+				<AlertDescription>
+					Impossible de charger la liste des employés. {error?.message}
+				</AlertDescription>
+			</Alert>
+		);
 	}
 
 	return (
-		<div className="">
-			{/* Breadcrumb */}
-			<div>Breadcrumb</div>
-			{/* Container */}
-			<div className="flex flex-col xl:flex-row gap-4 p-4">
-					<div className="bg-primary-foreground p-4 rounded-lg">
-						<div className="flex items-center justify-between mb-2">
-							<h2 className="text-lg font-medium">Liste des Employés</h2>
-							<Button variant="outline" size="sm" >
-								<PlusIcon />
-								<Link href="/employees/new">
-									<span className="hidden lg:inline">Nouveau</span>
-								</Link>
-							</Button>
-						</div>
-						{/*Composant d'affichage */}
-						<div className=""><EmployeeList employees={employees || []} /></div>
-					</div>
+		<div className=" h-full flex-1 flex-col gap-8 p-4 md:flex">
+			{/* TODO: change this div to reusable component */}
+			<div className="flex items-center justify-between gap-2">
+				<div className="flex flex-col gap-1">
+					<h2 className="text-2xl font-bold tracking-tight">Liste des Employés </h2>
+					<p className="text-muted-foreground">
+						Here&apos;s a list of your tasks for this month!
+					</p>
 				</div>
+				<div className="flex items-center gap-2">
+					<Button variant="outline"
+						onClick={() => { alert("Fonctionnalité d'export PDF à implémenter !"); }}
+					>
+						<Download /> Exporter
+					</Button>
+				</div>
+			</div>
+			<EmployeeList employees={employees || []} />
 		</div>
-
-	)
+	);
 }

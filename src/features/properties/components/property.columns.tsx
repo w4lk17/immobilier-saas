@@ -1,8 +1,12 @@
 
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { PropertyWithRelations } from "@/types"; // Votre type frontend
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { MoreHorizontal, Eye, Edit3, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+
+import { FrontendProperty, PropertyWithRelations } from "@/types"; // Votre type frontend
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -22,13 +26,9 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { MoreHorizontal, Eye, Edit3, Trash2, ArrowUpDown } from "lucide-react";
-import Link from "next/link";
 import { useDeleteProperty } from '../hooks/useProperties.hooks'; // Hook de suppression
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 
 // Helper pour le statut (peut être mis dans un fichier utilitaire)
 const getPropertyStatusVariant = (status: string) => {
@@ -42,62 +42,95 @@ const getPropertyStatusVariant = (status: string) => {
 };
 
 // Composant interne pour les actions pour pouvoir utiliser le hook
-function PropertyActionsCell({ propertyId }: { propertyId: number }) {
-	const deletePropertyMutation = useDeleteProperty();
+function PropertyActions({ row, table }: { row: Row<FrontendProperty>, table: any }) {
+	const property = row.original;
+	const { mutate: deleteProperty, isPending } = useDeleteProperty();
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-	const handleDeleteProperty = () => {
-		deletePropertyMutation.mutate(propertyId);
+	const handleDelete = () => {
+		deleteProperty(property.id);
+		setIsDropdownOpen(false); // close dropdown after deletion
+		setIsAlertOpen(false);
+	};
+
+	const openViewModal = () => {
+		// null check
+		if (table?.options?.meta?.viewDetails) {
+			table.options.meta.viewDetails(property);
+			setIsDropdownOpen(false);
+		} else {
+			console.warn('viewDetails function not found in table meta');
+		}
 	};
 
 	return (
-		<AlertDialog>
-			<DropdownMenu>
+		<>
+			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="ghost" className="h-8 w-8 p-0">
-						<span className="sr-only">Ouvrir menu</span>
+					<Button
+						variant="ghost"
+						className="h-8 w-8 p-0"
+						onClick={(e) => { e.stopPropagation() }}
+					>
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
+				<DropdownMenuContent
+					align="end"
+					onInteractOutside={() => setIsDropdownOpen(false)}
+				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuItem asChild>
-						<Link href={`/properties/${propertyId}`} className="flex items-center w-full cursor-pointer">
-							<Eye className="mr-2 h-4 w-4" /> Voir
-						</Link>
+					<DropdownMenuItem
+						onClick={(e) => {
+							e.preventDefault();
+							openViewModal();
+						}}
+						className="flex items-center w-full cursor-pointer"
+					>
+						<Eye className="mr-2 h-4 w-4" /> Détails
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
-						<Link href={`/properties/edit/${propertyId}`} className="flex items-center w-full cursor-pointer">
+						<Link href={`/properties/edit/${property.id}`}
+							className="flex items-center w-full cursor-pointer"
+						>
 							<Edit3 className="mr-2 h-4 w-4" /> Modifier
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<AlertDialogTrigger asChild>
-						<DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer">
-							<Trash2 className="mr-2 h-4 w-4" /> Supprimer
-						</DropdownMenuItem>
-					</AlertDialogTrigger>
+					<DropdownMenuItem
+						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+						onClick={() => {
+							setIsAlertOpen(true);
+							setIsDropdownOpen(false);
+						}}
+					>
+						<Trash2 className="mr-2 h-4 w-4" /> Supprimer
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-					<AlertDialogDescription>
-						Cette action est irréversible et supprimera définitivement cette propriété
-						et toutes les données associées.
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Annuler</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={handleDeleteProperty}
-						className={buttonVariants({ variant: "destructive" })}
-						disabled={deletePropertyMutation.isPending}
-					>
-						{deletePropertyMutation.isPending ? "Suppression..." : "Confirmer"}
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+
+			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+						<AlertDialogDescription>
+							Cette action est irréversible et supprimera définitivement cette propriété
+							et toutes les données associées.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Annuler</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDelete}
+							className={buttonVariants({ variant: "destructive" })}
+							disabled={isPending}
+						>
+							{isPending ? "Suppression..." : "Confirmer"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog >
+		</>
 	);
 }
 
@@ -105,25 +138,29 @@ function PropertyActionsCell({ propertyId }: { propertyId: number }) {
 export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 	{
 		accessorKey: "address",
-		header: "Adresse",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Adresse" />,
 		cell: ({ row }) => <div className="font-medium">{row.getValue("address")}</div>,
+		enableSorting: false,
 	},
+	// TODO: add column "Designation ou Nom du bien"
 	{
 		accessorKey: "type",
-		header: "Type",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
 		cell: ({ row }) => <Badge variant="outline">{row.getValue("type")}</Badge>,
 	},
 	{
 		accessorKey: "rentAmount",
-		header: "Loyer",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Loyer" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("rentAmount"));
 			return <div className="font-medium">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount)}</div>;
 		},
+		enableSorting: false,
 	},
+	// TODO: add column "Valeur"
 	{
 		accessorKey: "status",
-		header: "Statut",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
 			return <Badge variant={getPropertyStatusVariant(status) as any}>{status}</Badge>;
@@ -131,7 +168,7 @@ export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 	},
 	{
 		accessorKey: "owner", // Pour le tri, si l'API le permet, sinon trier sur owner.user.lastName
-		header: "Propriétaire",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Propriétaire" />,
 		cell: ({ row }) => {
 			const owner = row.original.owner; // Accéder à l'objet owner complet
 			return <div>{owner?.user?.firstName || 'N/A'} {owner?.user?.lastName || ''}</div>;
@@ -139,23 +176,17 @@ export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 	},
 	{
 		accessorKey: "manager",
-		header: "Gestionnaire",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Gestionnaire" />,
 		cell: ({ row }) => {
 			const manager = row.original.manager;
 			return <div>{manager?.user?.firstName || 'N/A'} {manager?.user?.lastName || ''}</div>;
 		},
+		enableSorting: false,
 	},
 	{
-		id: "actions", // Colonne spéciale pour les actions
-		header: () => <div className="text-right">Actions</div>,
-		cell: ({ row }) => {
-			const property = row.original;
-			return (
-				<div className="text-right">
-					<PropertyActionsCell propertyId={property.id} />
-				</div>
-			);
-		},
+		id: "actions",
+		// header: () => <div className="text-right">Actions</div>,
+		cell: ({ row, table }) => <PropertyActions row={row} table={table} />,
 		enableSorting: false,
 		enableHiding: false,
 	},

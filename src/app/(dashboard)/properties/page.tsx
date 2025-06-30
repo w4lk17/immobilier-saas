@@ -1,64 +1,51 @@
-
 "use client";
+
+import { Download, Terminal } from "lucide-react";
 
 import { useProperties } from "@/features/properties/hooks/useProperties.hooks";
 import { PropertyList } from "@/features/properties/components/PropertyList";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PlusIcon } from "lucide-react";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function PropertiesPage() {
 	const { data: properties, isLoading, isError, error } = useProperties();
 
 	if (isLoading) {
-		// Afficher des Skeletons pendant le chargement
-		return (
-			<div className="space-y-4">
-				<div className="flex justify-between items-center">
-					<Skeleton className="h-8 w-32" />
-					<Skeleton className="h-10 w-24" />
-				</div>
-				<Skeleton className="h-20 w-full" />
-				<Skeleton className="h-20 w-full" />
-				<Skeleton className="h-20 w-full" />
-			</div>
-		);
+		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
 	}
 
 	if (isError) {
-		return <p className="text-destructive">Erreur de chargement: {error?.message || 'Inconnue'}</p>;
+		return (
+			<Alert variant="destructive" className="max-w-2xl mx-auto">
+				<Terminal className="h-4 w-4" />
+				<AlertTitle>Erreur de chargement</AlertTitle>
+				<AlertDescription>
+					Impossible de charger la liste des biens immobiliers: {error?.message}
+				</AlertDescription>
+			</Alert>
+		);
 	}
 
 	return (
-		<div className="">
-			{/* Breadcrumb */}
-			<div>Breadcrumb</div>
-			{/* Container */}
-			<div className="flex flex-col xl:flex-row gap-4 p-4">
-				{/* Left */}
-				{/* <div className="xl:w-4/5 "> */}
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
-						<div className="flex items-center justify-between mb-2">
-							<h2 className="text-lg font-medium">Liste des propriétés</h2>
-							<Button variant="outline" size="sm" >
-								<PlusIcon />
-								<Link href="/properties/new">
-									<span className="hidden lg:inline">Nouveau</span>
-								</Link>
-							</Button>
-						</div>
-						{/* Passer les données au composant d'affichage */}
-						<PropertyList properties={properties || []} />
-					</div>
-				{/* </div> */}
-				{/* Right */}
-				{/* <div className="xl:w-1/5">
-					<div className="bg-primary-foreground p-4 rounded-lg gap-4">
-						test
-					</div>
-				</div> */}
+		<div className=" h-full flex-1 flex-col gap-8 p-4 md:flex">
+			{/* TODO: change this div to reusable component */}
+			<div className="flex items-center justify-between gap-2">
+				<div className="flex flex-col gap-1">
+					<h2 className="text-2xl font-bold tracking-tight">Liste des Biens </h2>
+					<p className="text-muted-foreground">
+						Liste des Biens immobiliers!
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<Button variant="outline"
+						onClick={() => { alert("Fonctionnalité d'export PDF à implémenter !"); }}
+					>
+						<Download /> Exporter
+					</Button>
+				</div>
 			</div>
+			<PropertyList properties={properties || []} />
 		</div>
 	);
 }

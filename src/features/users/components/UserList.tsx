@@ -5,7 +5,7 @@
 // L'admin peut avoir un bouton spécifique sur sa page pour créer un user avec un rôle précis.
 import { Users } from "lucide-react";
 import { FrontendUserSnippet } from "@/types";
-import { DataTable } from '@/components/shared/DataTable';
+import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { userColumns } from './user.columns';
 
 interface UserListProps {

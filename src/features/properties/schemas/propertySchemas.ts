@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { PropertyType, PropertyStatus } from '@/types/enums'; // Import enums frontend
 
-export const propertySchema = z.object({
+export const propertyCreateSchema = z.object({
 	// ownerId est requis à la création
 	ownerId: z.number({ invalid_type_error: "L'ID propriétaire doit être un nombre." }).int().positive("L'ID propriétaire est requis."),
 	// managerId est optionnel
@@ -16,9 +16,9 @@ export const propertySchema = z.object({
 	status: z.nativeEnum(PropertyStatus).optional(), // Statut optionnel à la création/modif (backend a une valeur par défaut)
 });
 
-export type PropertyFormData = z.infer<typeof propertySchema>;
+export type PropertyFormData = z.infer<typeof propertyCreateSchema>;
 
 // Pour la mise à jour, on peut rendre ownerId optionnel (ou l'interdire via la logique UI/service)
-export const propertyUpdateSchema = propertySchema.partial(); // Rend tous les champs optionnels pour la mise à jour partielle
+export const propertyUpdateSchema = propertyCreateSchema.partial(); // Rend tous les champs optionnels pour la mise à jour partielle
 // ou affiner: propertySchema.omit({ ownerId: true }).partial().extend({ ownerId: z.number()....optional() })
 export type PropertyUpdateFormData = z.infer<typeof propertyUpdateSchema>;

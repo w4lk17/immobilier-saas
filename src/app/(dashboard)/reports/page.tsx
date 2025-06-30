@@ -2,6 +2,7 @@
 
 import { PaymentList } from "@/features/payments/components/PaymentList";
 import { usePayments } from "@/features/payments/hooks/usePayments.hooks";
+import { ReportListTable } from "@/features/reports/components/ReportListTable";
 
 export default function ReportsPage() {
 	const { data: payments, isLoading, isError, error } = usePayments();
@@ -24,7 +25,7 @@ export default function ReportsPage() {
 			{/* Breadcrumb */}
 			<div>Breadcrumb</div>
 			{/* Container */}
-			<div className="flex flex-col xl:flex-row gap-4 p-4">
+			<div className="flex flex-col gap-4 p-4">
 				
 					<div className="bg-primary-foreground p-4 rounded-lg">
 						<div className="flex items-center justify-between mb-2">
@@ -32,7 +33,8 @@ export default function ReportsPage() {
 						</div>
 						{/*Composant d'affichage */}
 						<PaymentList payments={payments || []} />
-					</div>
+				</div>
+				<ReportListTable/>
 			</div>
 		</div>
 

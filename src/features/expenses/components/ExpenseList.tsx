@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { TrendingDown, PlusCircle } from "lucide-react"; // Icône pour Dépenses
 import { ExpenseWithRelations } from "@/types";
-import { DataTable } from '@/components/shared/DataTable';
+import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { expenseColumns } from './expense.columns';
 
 interface ExpenseListProps {
