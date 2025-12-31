@@ -1,9 +1,13 @@
 
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { FrontendUserSnippet } from "@/types"; // User type, non-sensitive
-import { Badge } from "@/components/ui/badge";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { useState } from "react";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+
+import { FrontendUser } from "@/types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -22,104 +26,159 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2, ArrowUpDown, UserCheck, UserX } from "lucide-react";
-import Link from "next/link";
-import { useDeleteUser, useUpdateUser } from '../hooks/useUsers.hooks';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { UserRole } from "@/types/enums";
+import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { useDeleteUser } from '../hooks/useUsers.hooks';
+import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
 
-// Composant interne pour les actions
-function UserActionsCell({ user }: { user: FrontendUserSnippet }) {
-	const deleteUserMutation = useDeleteUser();
-	// const updateUserMutation = useUpdateUser(); // Si on veut modifier le rôle rapidement par exemple
+const roleColors: Record<string, string> = {
+	ADMIN: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+	EMPLOYEE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+	OWNER: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+	TENANT: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+	USER: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+};
+
+function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
+	const user = row.original;
+	const { mutate: deleteUser, isPending } = useDeleteUser();
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isAlertOpen, setIsAlertOpen] = useState(false);
 
 	const handleDelete = () => {
-		deleteUserMutation.mutate(user.id);
+		deleteUser(user.id);
+		setIsDropdownOpen(false);
+		setIsAlertOpen(false);
+	}
+
+	const openViewModal = () => {
+		if (table?.options?.meta?.viewDetails) {
+			table.options.meta.viewDetails(user);
+			setIsDropdownOpen(false);
+		} else {
+			console.warn('viewDetails function not found in table meta');
+		}
 	};
 
-	// const handleToggleAdmin = () => {
-	//     const newRole = user.role === UserRole.ADMIN ? UserRole.USER : UserRole.ADMIN;
-	//     updateUserMutation.mutate({ id: user.id, data: { role: newRole } });
-	// };
-
 	return (
-		<AlertDialog>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
+		<>
+			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						className="h-8 w-8 p-0"
+						onClick={(e) => { e.stopPropagation() }}
+					>
+						<MoreHorizontal className="h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					onInteractOutside={() => setIsDropdownOpen(false)}
+				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuItem asChild><Link href={`/users/edit/${user.id}`} className="flex items-center w-full cursor-pointer"><Edit3 className="mr-2 h-4 w-4" /> Modifier</Link></DropdownMenuItem>
-					{/* Optionnel: Action rapide pour changer rôle (si pas Admin) */}
-					{/* {user.role !== UserRole.ADMIN && (
-                    <DropdownMenuItem onClick={handleToggleAdmin} className="cursor-pointer">
-                        {user.role === UserRole.USER || user.role === UserRole.TENANT || user.role === UserRole.OWNER || user.role === UserRole.EMPLOYEE ? <UserCheck className="mr-2 h-4 w-4" /> : <UserX className="mr-2 h-4 w-4" />}
-                        {user.role === UserRole.USER || user.role === UserRole.TENANT || user.role === UserRole.OWNER || user.role === UserRole.EMPLOYEE ? "Promouvoir Admin" : "Rétrograder Admin"}
-                    </DropdownMenuItem>
-                )} */}
-					{user.role !== UserRole.ADMIN && ( // Ne pas permettre de supprimer un admin facilement via cette UI
-						<>
-							<DropdownMenuSeparator />
-							<AlertDialogTrigger asChild>
-								<DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer">
-									<Trash2 className="mr-2 h-4 w-4" /> Supprimer
-								</DropdownMenuItem>
-							</AlertDialogTrigger>
-						</>
-					)}
+					<DropdownMenuItem
+						onClick={(e) => {
+							e.preventDefault();
+							openViewModal();
+						}}
+						className="flex items-center w-full cursor-pointer"
+					>
+						<Eye className="mr-2 h-4 w-4" /> Détails
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link href={`/users/edit/${user.id}`}
+							className="flex items-center w-full cursor-pointer"
+						>
+							<Edit3 className="mr-2 h-4 w-4" /> Modifier
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+						onClick={() => {
+							setIsAlertOpen(true);
+							setIsDropdownOpen(false);
+						}}
+					>
+						<Trash2 className="mr-2 h-4 w-4" /> Supprimer
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<AlertDialogContent>
-				<AlertDialogHeader><AlertDialogTitle>Supprimer cet utilisateur ?</AlertDialogTitle>
-					<AlertDialogDescription>Cette action supprimera l'utilisateur et potentiellement ses profils associés (Employé, Propriétaire, Locataire).</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Annuler</AlertDialogCancel>
-					<AlertDialogAction onClick={handleDelete} className={buttonVariants({ variant: "destructive" })} disabled={deleteUserMutation.isPending}>
-						{deleteUserMutation.isPending ? "Suppression..." : "Confirmer"}
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+
+			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Supprimer cet utilisateur ?</AlertDialogTitle>
+						<AlertDialogDescription>Cette action marquera l'utilisateur comme inactif. Ses données seront conservées à titre d'historique.</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Annuler</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDelete}
+							className={buttonVariants({ variant: "destructive" })}
+							disabled={isPending}
+						>
+							{isPending ? "Suppression..." : "Confirmer"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }
 
-
-export const userColumns: ColumnDef<FrontendUserSnippet>[] = [
+export const userColumns: ColumnDef<FrontendUser>[] = [
+	{
+		id: "email",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+		accessorFn: row => row.email,
+		enableSorting: true,
+	},
 	{
 		id: "name",
-		header: "Nom",
-		accessorFn: row => `${row.firstName || ''} ${row.lastName || ''}`.trim(),
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
+		accessorFn: row => `${row.firstName || ''} ${row.lastName || ''}`.trim() || 'N/A',
 		cell: ({ row }) => {
-			const name = `${row.original.firstName || ''} ${row.original.lastName || ''}`.trim();
-			return <div className="font-medium">{name || "-"}</div>;
+			const name = `${row.original.firstName || ''} ${row.original.lastName || ''}`.trim() || 'N/A';
+			return <div className="font-medium">{name}</div>;
 		}
 	},
 	{
-		accessorKey: "email",
-		header: ({ column }) => (
-			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-				
-				<ArrowUpDown className="ml-2 h-4 w-4" />
-			</Button>
-		),
-	},
-	{
 		accessorKey: "role",
-		header: "Rôle",
-		cell: ({ row }) => <Badge variant={row.getValue("role") === UserRole.ADMIN ? "destructive" : "secondary"}>{row.getValue("role")}</Badge>,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Rôle" />,
+		cell: ({ row }) => {
+			const role = row.getValue("role") as string;
+			return (
+				<Badge className={`${roleColors[role] || roleColors.USER}`}>
+					{role}
+				</Badge>
+			);
+		},
 	},
 	{
-		accessorKey: "createdAt",
-		header: "Créé le",
-		cell: ({ row }) => format(new Date(row.getValue("createdAt")), 'dd MMM yyyy, HH:mm', { locale: fr }),
+		id: "createdAt",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Créé le" />,
+		accessorFn: row => new Date(row.createdAt),
+		cell: ({ row }) => {
+			const date = new Date(row.original.createdAt);
+			return <div className="text-sm text-muted-foreground">{formatDistanceToNow(date, { addSuffix: true, locale: fr })}</div>;
+		},
+	},
+	{
+		id: "status",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
+		cell: ({ row }) => {
+			const isActive = row.original.isActive;
+			return (
+				<Badge variant={isActive ? "default" : "secondary"}>
+					{isActive ? "Actif" : "Inactif"}
+				</Badge>
+			);
+		},
 	},
 	{
 		id: "actions",
-		header: () => <div className="text-right">Actions</div>,
-		cell: ({ row }) => <UserActionsCell user={row.original} />,
-		enableSorting: false,
+		cell: ({ row, table }) => <UserActions row={row} table={table} />,
 	},
 ];

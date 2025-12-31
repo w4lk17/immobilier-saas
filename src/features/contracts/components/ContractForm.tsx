@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCcwDot, RefreshCcwDotIcon, RotateCcw } from 'lucide-react';
 import React from 'react';
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { contractCreateSchema, ContractFormData, ContractUpdateFormData, contractUpdateSchema } from '../schemas/contractSchemas';
 import { ContractStatus } from '@/types/enums';
+import { DatePicker } from '@/components/shared/DatePicker';
 
 interface ContractFormProps {
 	initialData?: FrontendContract | null; // Pour pré-remplir en mode édition
@@ -43,20 +44,20 @@ export function ContractForm({
 			// Pour la mise à jour, userId n'est généralement pas modifié via ce formulaire
 			// On se base sur contractUpdateSchema qui rend les champs optionnels
 			status: initialData.status || ContractStatus,
-			endDate: initialData.endDate,
+			endDate: initialData.endDate ? new Date(initialData.endDate) : null,
 		} : {
 			propertyId: undefined,
 			tenantId: undefined,
 			managerId: undefined,
-			startDate: Date,
+			startDate: new Date(),
 			rentAmount: undefined,
 			depositAmount: undefined,
-			endDate: Date,
-			status: ContractStatus,
+			endDate: undefined,
+			status: ContractStatus.DRAFT,
 		},
 	});
 
-	const form2 = useForm<{ test: string, test2:number }>();
+	const form2 = useForm<{ test: string, test2: number, test3: Date }>();
 
 	const handleSubmit = async (data: ContractFormData | ContractUpdateFormData) => {
 		await onSubmit(data);
@@ -75,11 +76,11 @@ export function ContractForm({
 								<div className='flex flex-col gap-8 mb-4'>
 									{/* */}
 									<div>
-										<h1 className='text-xl font-medium tracking-tight'>Identification</h1>
+										<h1 className='text-lg font-medium tracking-tight'>Concernés</h1>
 										<div className='space-y-3 mt-4'>
 											<FormField
 												control={form2.control}
-												name="test2" 
+												name="test2"
 												render={({ field }) => (
 													<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
 														<FormLabel>Propriétaire</FormLabel>
@@ -101,7 +102,7 @@ export function ContractForm({
 											/>
 											<FormField
 												control={form2.control}
-												name="test2" 
+												name="test2"
 												render={({ field }) => (
 													<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
 														<FormLabel>Bien</FormLabel>
@@ -123,7 +124,7 @@ export function ContractForm({
 											/>
 											<FormField
 												control={form2.control}
-												name="test2" 
+												name="test2"
 												render={({ field }) => (
 													<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
 														<FormLabel>Locative</FormLabel>
@@ -145,7 +146,7 @@ export function ContractForm({
 											/>
 											<FormField
 												control={form2.control}
-												name="test2" 
+												name="test2"
 												render={({ field }) => (
 													<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
 														<FormLabel>Locataire</FormLabel>
@@ -164,20 +165,21 @@ export function ContractForm({
 														<FormMessage />
 													</FormItem>
 												)}
-											/>										
+											/>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-						
+
 						{/* RIGHT */}
 						<div className='w-full xl:w-3/4 space-y-6'>
 							{/* INFORMATION */}
 							<div className='bg-primary-foreground p-4 rounded-lg space-y-4'>
 
 								{/* INFORMATION */}
-								<h1 className='text-xl font-medium tracking-tight'>Information</h1>
+								<h1 className='text-lg font-bold tracking-tight'>Eléments liés au contrat</h1>
+								<h1 className='text-sm font-semibold '>Locataire</h1>
 								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3  gap-3'>
 									<FormField
 										control={form2.control}
@@ -186,7 +188,7 @@ export function ContractForm({
 											<FormItem>
 												<FormLabel>Type de contrat</FormLabel>
 												<FormControl>
-													<Input {...field} />
+													<Input type='text' {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -209,23 +211,10 @@ export function ContractForm({
 										control={form2.control}
 										name="test"
 										render={({ field }) => (
-											<FormItem>
+											<FormItem className='sm:col-span-2 xl:col-span-1'>
 												<FormLabel>Loyer Avance</FormLabel>
 												<FormControl>
 													<Input type='number' {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Valeur locative</FormLabel>
-												<FormControl>
-													<Input disabled {...field} value={field.value ?? ''} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -245,7 +234,7 @@ export function ContractForm({
 										</FormItem>
 									)}
 								/>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
+								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3'>
 									<FormField
 										control={form2.control}
 										name="test"
@@ -290,22 +279,7 @@ export function ContractForm({
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Pourcentage a payer en cas de retard</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Jour ajoute a la date de paiement </FormLabel>
+												<FormLabel>Jour ajouté à la date de paiement </FormLabel>
 												<FormControl>
 													<Input type="number" placeholder="" {...field} />
 												</FormControl>
@@ -331,35 +305,7 @@ export function ContractForm({
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Date de délivrance</FormLabel>
-												<FormControl>
-													<Input placeholder="11/11/1111" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Date d'expiration</FormLabel>
-												<FormControl>
-													<Input placeholder="11/11/1111" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Statut matrimonial</FormLabel>
+												<FormLabel>Pourcentage a payer en cas de retard</FormLabel>
 												<FormControl>
 													<Input placeholder="" {...field} />
 												</FormControl>
@@ -367,32 +313,19 @@ export function ContractForm({
 											</FormItem>
 										)}
 									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Nombre d'enfant</FormLabel>
-												<FormControl>
-													<Input placeholder="" type='number' {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-
 								</div>
 								{/* PROPRIETAIRE & AGENCE */}
-								<h1 className='text-xl font-medium tracking-tight'>Propriétaire et Agence</h1>
+								<h1 className='text-sm font-semibold '>Propriétaire et Agence</h1>
+								{/* <h1 className='text-sm font-medium tracking-tight'>Visite du site</h1> */}
 								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
 									<FormField
 										control={form2.control}
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Nom</FormLabel>
+												<FormLabel>Visite du site</FormLabel>
 												<FormControl>
-													<Input {...field} />
+													<Input type='number' disabled {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -403,9 +336,9 @@ export function ContractForm({
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Prénoms</FormLabel>
+												<FormLabel>Honoraire (15%)</FormLabel>
 												<FormControl>
-													<Input {...field} />
+													<Input type='number' disabled {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -416,9 +349,9 @@ export function ContractForm({
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Téléphone</FormLabel>
+												<FormLabel>Frais de Dossier</FormLabel>
 												<FormControl>
-													<Input placeholder="+228XXXXXXXX" {...field} />
+													<Input type='number' disabled {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -429,63 +362,31 @@ export function ContractForm({
 										name="test"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Ancienne Adresse</FormLabel>
+												<FormLabel>Droit d'enrégistrement</FormLabel>
 												<FormControl>
-													<Input placeholder="" {...field} />
+													<Input type='number' {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
 										)}
 									/>
-
 								</div>
-								<h1 className='text-xl font-medium tracking-tight'>Connexion</h1>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Nom d'utilisateur</FormLabel>
-												<FormControl>
-													<Input {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Mot de passe</FormLabel>
-												<FormControl>
-													<Input type='password' {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Email</FormLabel>
-												<FormControl>
-													<Input type='email' placeholder="m@exemple.com" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-
+								<div className='flex items-center space-x-2'>
+									<Switch id="compte" className='mr-2' />
+									<Label htmlFor="compte" className='text-sm font-medium'>Activer Contrat</Label>
 								</div>
 								{/* Button */}
-								<Button className='mt-4'>
-									Enregistrer
-								</Button>
+								<div className='flex items-center mt-8 gap-2'>
+									<Button className='mr-2'>
+										Enregistrer
+									</Button>
+									<Button
+										variant='secondary'
+									>
+										<span className="sr-only">Reset form</span>
+										<RotateCcw />
+									</Button>
+								</div>
 							</div>
 						</div>
 						{/* END FORM */}

@@ -4,6 +4,7 @@ import tenantsService from '../services/tenantsApi';
 import { TenantFormData, TenantUpdateFormData } from '../schemas/tenantSchemas';
 import { toast } from "sonner";
 import { FrontendTenant } from '@/types';
+import { USER_QUERY_KEYS } from '@/features/users/hooks/useUsers.hooks';
 
 export const TENANTS_QUERY_KEY = ['tenants'];
 
@@ -32,6 +33,7 @@ export function useCreateTenant() {
 		mutationFn: (data) => tenantsService.createTenant(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: TENANTS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil locataire créé avec succès !");
 		},
 		onError: (error: any) => {
@@ -47,6 +49,7 @@ export function useUpdateTenant() {
 		onSuccess: (updatedTenant, variables) => {
 			queryClient.invalidateQueries({ queryKey: TENANTS_QUERY_KEY });
 			queryClient.setQueryData([...TENANTS_QUERY_KEY, variables.id], updatedTenant);
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil locataire mis à jour avec succès !");
 		},
 		onError: (error: any) => {
@@ -66,6 +69,7 @@ export function useDeleteTenant() {
 			queryClient.invalidateQueries({ queryKey: ['contracts'] });
 			queryClient.invalidateQueries({ queryKey: ['payments'] });
 			queryClient.removeQueries({ queryKey: [...TENANTS_QUERY_KEY, id] });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 		},
 		onError: (error: any) => {
 			toast.error(error.response?.data?.message || "Erreur lors de la suppression du profil locataire.");

@@ -1,7 +1,11 @@
 
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import Link from "next/link";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
 import { ExpenseWithRelations } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -24,12 +28,11 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
 import { useDeleteExpense } from '../hooks/useExpenses.hooks';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { formatCurrency } from "@/lib/utils";
+import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
+import { useState } from "react";
 
 const getExpenseStatusVariant = (status?: string) => {
 	switch (status) {
@@ -40,68 +43,139 @@ const getExpenseStatusVariant = (status?: string) => {
 	}
 };
 
-function ExpenseActionsCell({ expenseId }: { expenseId: number }) {
-	const deleteExpenseMutation = useDeleteExpense();
-	const handleDelete = () => deleteExpenseMutation.mutate(expenseId);
+// Étendre TableMeta pour inclure notre fonction
+declare module '@tanstack/react-table' {
+	interface TableMeta<TData extends unknown> {
+		viewDetails?: (rowData: TData) => void;
+	}
+}
+
+function ExpenseActions({ row, table }: { row: Row<ExpenseWithRelations>, table: any }) {
+	const expense = row.original;
+	const { mutate: deleteExpense, isPending } = useDeleteExpense();
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+	const handleDelete = () => {
+		deleteExpense(expense.id);
+		setIsDropdownOpen(false); // close dropdown after deletion
+		setIsAlertOpen(false);
+	};
+
+	const openViewModal = () => {
+		// null check
+		if (table?.options?.meta?.viewDetails) {
+			table.options.meta.viewDetails(expense);
+			setIsDropdownOpen(false);
+		} else {
+			console.warn('viewDetails function not found in table meta');
+		}
+	};
 
 	return (
-		<AlertDialog>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
+		<>
+			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						className="h-8 w-8 p-0"
+						onClick={(e) => { e.stopPropagation() }}
+					>
+						<MoreHorizontal className="h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					onInteractOutside={() => setIsDropdownOpen(false)}
+				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuItem asChild><Link href={`/expenses/edit/${expenseId}`} className="flex items-center w-full cursor-pointer"><Edit3 className="mr-2 h-4 w-4" /> Modifier</Link></DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={(e) => {
+							e.preventDefault();
+							openViewModal();
+						}}
+						className="flex items-center w-full cursor-pointer"
+					>
+						<Eye className="mr-2 h-4 w-4" /> Détails
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link
+							href={`/expenses/edit/${expense.id}`}
+							className="flex items-center w-full cursor-pointer">
+							<Edit3 className="mr-2 h-4 w-4" /> Modifier
+						</Link>
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<AlertDialogTrigger asChild>
-						<DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer">
-							<Trash2 className="mr-2 h-4 w-4" /> Supprimer
-						</DropdownMenuItem>
-					</AlertDialogTrigger>
+					<DropdownMenuItem
+						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+						onClick={() => {
+							setIsAlertOpen(true);
+							setIsDropdownOpen(false);
+						}}
+					>
+						<Trash2 className="mr-2 h-4 w-4" /> Supprimer
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<AlertDialogContent>
-				<AlertDialogHeader><AlertDialogTitle>Supprimer cette dépense ?</AlertDialogTitle></AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Annuler</AlertDialogCancel>
-					<AlertDialogAction onClick={handleDelete} className={buttonVariants({ variant: "destructive" })}>Confirmer</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+
+			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Supprimer cette dépense ?</AlertDialogTitle>
+					</AlertDialogHeader>
+					<AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Annuler</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDelete}
+							className={buttonVariants({ variant: "destructive" })}
+							disabled={isPending}
+						>
+							{isPending ? "Suppression..." : "Confirmer"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog >
+		</>
 	);
 }
 
 export const expenseColumns: ColumnDef<ExpenseWithRelations>[] = [
 	{
 		accessorKey: "property.address",
-		header: "Propriété",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Propriété" />,
 		cell: ({ row }) => row.original.property?.address || 'N/A',
+		enableSorting: false,
 	},
 	{
 		accessorKey: "description",
-		header: "Description",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
 		cell: ({ row }) => <div className="truncate max-w-xs">{row.getValue("description")}</div>,
 	},
 	{
 		accessorKey: "amount",
-		header: "Montant",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Montant" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("amount"));
-			return <div className="text-right font-medium">{formatCurrency(amount)}</div>;
+			return <div className=" font-medium">{formatCurrency(amount)}</div>;
 		},
+		enableSorting: false,
 	},
 	{
 		accessorKey: "date",
-		header: "Date",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
 		cell: ({ row }) => format(new Date(row.getValue("date")), 'dd MMM yyyy', { locale: fr }),
+		enableSorting: false,
 	},
+	// TODO: add Column "ajouter par"
 	{
 		accessorKey: "type",
-		header: "Type",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
 		cell: ({ row }) => <Badge variant="outline">{row.getValue("type")}</Badge>,
 	},
 	{
 		accessorKey: "status",
-		header: "Statut",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
 			return <Badge variant={getExpenseStatusVariant(status) as any}>{status}</Badge>;
@@ -109,8 +183,7 @@ export const expenseColumns: ColumnDef<ExpenseWithRelations>[] = [
 	},
 	{
 		id: "actions",
-		header: () => <div className="text-right">Actions</div>,
-		cell: ({ row }) => <ExpenseActionsCell expenseId={row.original.id} />,
+		cell: ({ row, table }) => <ExpenseActions row={row} table={table} />,
 		enableSorting: false,
 	},
 ];

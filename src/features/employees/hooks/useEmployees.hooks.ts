@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import employeesService from '../services/employeesApi';
 import { EmployeeFormData, EmployeeUpdateFormData } from '../schemas/employeeSchemas'; // Importer les types de formulaire
 import { toast } from "sonner";
 import { FrontendEmployee } from '@/types';
+import { USER_QUERY_KEYS } from '@/features/users/hooks/useUsers.hooks';
 
 export const EMPLOYEES_QUERY_KEY = ['employees'];
 
@@ -32,6 +32,7 @@ export function useCreateEmployee() {
 		mutationFn: (data) => employeesService.createEmployee(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: EMPLOYEES_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil employé créé avec succès !");
 		},
 		onError: (error: any) => {
@@ -47,6 +48,7 @@ export function useUpdateEmployee() {
 		onSuccess: (updatedEmployee, variables) => {
 			queryClient.invalidateQueries({ queryKey: EMPLOYEES_QUERY_KEY });
 			queryClient.setQueryData([...EMPLOYEES_QUERY_KEY, variables.id], updatedEmployee);
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil employé mis à jour avec succès !");
 		},
 		onError: (error: any) => {
@@ -63,6 +65,7 @@ export function useDeleteEmployee() {
 			toast.success(`Profil employé ${id} supprimé avec succès !`);
 			queryClient.invalidateQueries({ queryKey: EMPLOYEES_QUERY_KEY });
 			queryClient.removeQueries({ queryKey: [...EMPLOYEES_QUERY_KEY, id] });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 		},
 		onError: (error: any) => {
 			toast.error(error.response?.data?.message || "Erreur lors de la suppression du profil employé.");

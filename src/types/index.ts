@@ -22,6 +22,12 @@ export interface FrontendUserSnippet {
 	// PAS de password ou hashedRefreshToken ici
 }
 
+// --- Full user object (with active flag) ---
+export interface FrontendUser extends FrontendUserSnippet {
+	isActive: boolean;
+	// Optionally include additional profile fields if the API returns them
+	// e.g. roles, lastLogin, etc.
+}
 // --- Types pour les profils liés aux utilisateurs ---
 
 export interface FrontendOwner {

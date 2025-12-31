@@ -1,16 +1,36 @@
 import { z } from 'zod';
-import { UserRole } from '@/types/enums'; // Import enum frontend
+import { UserRole } from '@/types/enums';
 
-// Schéma pour la mise à jour d'un utilisateur par un admin
-export const userUpdateSchema = z.object({
-	// L'email est généralement unique, sa mise à jour peut nécessiter une logique spéciale
-	email: z.string().email({ message: 'Adresse email invalide.' }).optional(),
-	// Le mot de passe est optionnel lors de la mise à jour. S'il est fourni, le backend doit le hasher.
-	// On peut ajouter une validation plus complexe si nécessaire (ex: confirmation)
-	password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères.' }).optional().or(z.literal('')), // Permet une chaîne vide si on ne veut pas le MAJ via ce champ
-	role: z.nativeEnum(UserRole).optional(),
-	firstName: z.string().min(1, "Le prénom ne peut pas être vide.").optional().nullable(),
-	lastName: z.string().min(1, "Le nom ne peut pas être vide.").optional().nullable(),
+export const roleEnum = z.nativeEnum(UserRole);
+
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
+export const UserCreateSchema = z.object({
+	email: z.string().email({ message: 'Invalid email address' }),
+	password: z.string().min(8, 'Password must be at least 8 characters').regex(passwordRegex, 'Password must include letters, numbers and a special character'),
+	firstName: z.string().optional().nullable(),
+	lastName: z.string().optional().nullable(),
 });
 
-export type UserFormData = z.infer<typeof userUpdateSchema>; // Nom générique, peut être renommé UpdateUserFormData
+export const UserUpdateSchema = z.object({
+	email: z.string().email({ message: 'Invalid email address' }).optional(),
+	role: roleEnum.optional(),
+	firstName: z.string().optional().nullable(),
+	lastName: z.string().optional().nullable(),
+	isActive: z.boolean().optional(),
+});
+
+export const PasswordChangeSchema = z.object({
+	oldPassword: z.string().min(1),
+	newPassword: z.string().min(8).regex(passwordRegex, 'Password must include letters, numbers and a special character'),
+});
+
+export type UserCreateFormData = z.infer<typeof UserCreateSchema>;
+export type UserUpdateFormData = z.infer<typeof UserUpdateSchema>;
+export type PasswordChangeFormData = z.infer<typeof PasswordChangeSchema>;
+
+export default {
+	UserCreateSchema,
+	UserUpdateSchema,
+	PasswordChangeSchema,
+};

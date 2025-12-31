@@ -4,6 +4,7 @@ import ownersService from '../services/ownersApi';
 import { OwnerFormData, OwnerUpdateFormData } from '../schemas/ownerSchemas';
 import { toast } from "sonner";
 import { FrontendOwner } from '@/types';
+import { USER_QUERY_KEYS } from '@/features/users/hooks/useUsers.hooks';
 
 export const OWNERS_QUERY_KEY = ['owners'];
 
@@ -32,6 +33,7 @@ export function useCreateOwner() {
 		mutationFn: (data) => ownersService.createOwner(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: OWNERS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil propriétaire créé avec succès !");
 		},
 		onError: (error: any) => {
@@ -47,6 +49,7 @@ export function useUpdateOwner() {
 		onSuccess: (updatedOwner, variables) => {
 			queryClient.invalidateQueries({ queryKey: OWNERS_QUERY_KEY });
 			queryClient.setQueryData([...OWNERS_QUERY_KEY, variables.id], updatedOwner);
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 			toast.success("Profil propriétaire mis à jour avec succès !");
 		},
 		onError: (error: any) => {
@@ -65,6 +68,7 @@ export function useDeleteOwner() {
 			// Invalider aussi les propriétés si nécessaire (ou le backend gère cascade?)
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
 			queryClient.removeQueries({ queryKey: [...OWNERS_QUERY_KEY, id] });
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
 		},
 		onError: (error: any) => {
 			toast.error(error.response?.data?.message || "Erreur lors de la suppression du profil propriétaire.");

@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-privider";
 import { ToasterProvider } from "@/providers/toaster-provider";
 import { QueryClientProvider } from "@/providers/query-client-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 
 export const metadata: Metadata = {
@@ -26,19 +27,21 @@ export default function RootLayout({
           dm_sans.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <QueryClientProvider> {/*Pour React Query*/} 
-            <AuthProvider> {/* Gère l'état d'auth */}
-              {children}
-              <ToasterProvider />
-            </AuthProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
+        {/* <ErrorBoundary> */}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryClientProvider> {/*Pour React Query*/}
+              <AuthProvider> {/* Gère l'état d'auth */}
+                {children}
+                <ToasterProvider />
+              </AuthProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
+        {/* </ErrorBoundary> */}
       </body>
     </html>
   );
