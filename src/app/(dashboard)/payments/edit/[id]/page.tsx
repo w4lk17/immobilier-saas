@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { usePayment, useUpdatePayment } from "@/features/payments/hooks/usePayments.hooks";
-import { UpdatePaymentFormData } from "@/features/payments/schemas/paymentSchemas";
+import { UpdatePaymentFormData } from "@/features/reports/schemas/paymentSchemas";
 
 export default function EditPaymentPage() {
 	const router = useRouter();
@@ -63,12 +63,12 @@ export default function EditPaymentPage() {
 					<PresetActions /> */}
 				</div>
 			</div>
-			<PaymentForm
+			{/* <PaymentForm
 				initialData={payment}
 				onSubmit={handleSubmit}
 				isLoading={updatePaymentMutation.isPending}
 				submitButtonText="Mettre à jour le paiement"
-			/>
+			/> */}
 		</div>
 	);
 }
