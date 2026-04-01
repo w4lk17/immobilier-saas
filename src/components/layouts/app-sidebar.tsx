@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 import {
 	Building2,
 	Command,
 	Contact,
-	CreditCard,
 	FileBox,
 	FileChartColumn,
 	FileText,
@@ -14,6 +14,8 @@ import {
 	LayoutDashboard,
 	Mail,
 	ReceiptTextIcon,
+	Settings,
+	Shield,
 	User,
 	UserRoundCog,
 	Users,
@@ -29,134 +31,210 @@ import { NavUser } from "./nav-user"
 import { AppName } from "./app-name"
 import { NavMain } from "./nav-main"
 
-// This is sample data.
-const data = {
-	user: {
-		name: "shadcn",
-		email: "m@example.com",
-		avatar: "/avatar.png",
+// Define navigation items for each role
+const adminNavItems = [
+	{
+		title: "Tableau de bord",
+		url: "/admin",
+		icon: LayoutDashboard,
 	},
-	teams: {
-		name: "Evil Corp.",
-		logo: Command,
-		plan: "Free",
+	{
+		title: "Utilisateurs",
+		url: "/admin/users",
+		icon: Users,
 	},
-	navMain: [
-		{
-			title: "Tableau de bord",
-			url: "/accueil",
-			icon: LayoutDashboard,
-			isActive: true
-		},
-		{
-			title: "Utilisateurs",
-			url: "/users",
-			icon: Users,
-			isActive: false
-		},
-		{
-			title: "Employee",
-			url: "/employees",
-			icon: UserRoundCog,
-			isActive: false
-		},
-		{
-			title: "propriétaire",
-			url: "/owners",
-			icon: User,
-			isActive: false
-		},
-		{
-			title: "Locataire",
-			url: "/tenants",
-			icon: Contact,
-			isActive: false
-		},
-		{
-			title: "Biens",
-			url: "/properties",
-			icon: Building2,
-			isActive: false
-		},
-		{
-			title: "Locative",
-			url: "/rentals",
-			icon: House,
-			isActive: false
-		},
-		{
-			title: "Contrat",
-			url: "/contracts",
-			icon: FileText,
-			isActive: false
-		},
-		{
-			title: "Paiement",
-			url: "/payments",
-			icon: CreditCard,
-			isActive: false
-		},
-		{
-			title: "Paiement a venir",
-			url: "/rentals",
-			icon: ReceiptTextIcon,
-			isActive: false
-		},
-		{
-			title: "Dépenses",
-			url: "/expenses",
-			icon: Hourglass,
-			isActive: false
-		},
-		{
-			title: "Fichiers",
-			url: "/rentals",
-			icon: FileBox,
-			isActive: false
-		},
-		{
-			title: "Messages",
-			url: "/rentals",
-			icon: Mail,
-			isActive: false
-		},
-		{
-			title: "Rapports",
-			url: "/reports",
-			icon: FileChartColumn,
-			isActive: false
-		},
+	{
+		title: "Gestionnaires",
+		url: "/admin/managers",
+		icon: UserRoundCog,
+	},
+	{
+		title: "Paramètres",
+		url: "/admin/settings",
+		icon: Settings,
+	},
+	{
+		title: "Système",
+		url: "/admin/system",
+		icon: Shield,
+	},
+	{
+		title: "Rapports",
+		url: "/manager/reports",
+		icon: FileChartColumn,
+	},
+];
 
-	],
+const managerNavItems = [
+	{
+		title: "Tableau de bord",
+		url: "/manager",
+		icon: LayoutDashboard,
+	},
+	{
+		title: "Propriétaires",
+		url: "/manager/owners",
+		icon: User,
+	},
+	{
+		title: "Biens",
+		url: "/manager/properties",
+		icon: Building2,
+	},
+	{
+		title: "Locataires",
+		url: "/manager/tenants",
+		icon: Contact,
+	},
+	{
+		title: "Contrats",
+		url: "/manager/contracts",
+		icon: FileText,
+	},
+	{
+		title: "Factures",
+		url: "/manager/invoices",
+		icon: ReceiptTextIcon,
+	},
+	{
+		title: "Dépenses",
+		url: "/manager/expenses",
+		icon: Hourglass,
+	},
+	{
+		title: "Rapports",
+		url: "/manager/reports",
+		icon: FileChartColumn,
+	},
+];
+
+const tenantNavItems = [
+	{
+		title: "Tableau de bord",
+		url: "/tenant-portal",
+		icon: LayoutDashboard,
+	},
+	{
+		title: "Mes Contrats",
+		url: "/tenant-portal/my-contracts",
+		icon: FileText,
+	},
+	{
+		title: "Mes Factures",
+		url: "/tenant-portal/my-invoices",
+		icon: ReceiptTextIcon,
+	},
+	{
+		title: "Maintenance",
+		url: "/tenant-portal/maintenance",
+		icon: House,
+	},
+	{
+		title: "Messages",
+		url: "/tenant-portal/messages",
+		icon: Mail,
+	},
+	{
+		title: "Documents",
+		url: "/tenant-portal/documents",
+		icon: FileBox,
+	},
+];
+
+const ownerNavItems = [
+	{
+		title: "Tableau de bord",
+		url: "/owner-portal",
+		icon: LayoutDashboard,
+	},
+	{
+		title: "Mes Biens",
+		url: "/owner-portal/my-properties",
+		icon: Building2,
+	},
+	{
+		title: "Mes Contrats",
+		url: "/owner-portal/my-contracts",
+		icon: FileText,
+	},
+	{
+		title: "Factures Reçues",
+		url: "/owner-portal/my-invoices",
+		icon: ReceiptTextIcon,
+	},
+	{
+		title: "Mes Dépenses",
+		url: "/owner-portal/my-expenses",
+		icon: Hourglass,
+	},
+	{
+		title: "Rapports",
+		url: "/owner-portal/reports",
+		icon: FileChartColumn,
+	},
+];
+
+// Get navigation items based on roleVariant/role
+function getNavItems(roleVariant?: "admin" | "manager" | "tenant" | "owner") {
+	switch (roleVariant) {
+		case "admin":
+			return adminNavItems;
+		case "tenant":
+			return tenantNavItems;
+		case "owner":
+			return ownerNavItems;
+		case "manager":
+		default:
+			return managerNavItems;
+	}
 }
 
+export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+	roleVariant?: "admin" | "manager" | "tenant" | "owner";
+}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+	roleVariant = "manager",
+	...props
+}: AppSidebarProps) {
+	const { user } = useAuth();
+
+	// If variant is not explicitly provided, detect from user role
+	const detectedVariant: "admin" | "manager" | "tenant" | "owner" = React.useMemo(() => {
+		if (roleVariant !== "manager") return roleVariant as "admin" | "manager" | "tenant" | "owner";
+
+		// Auto-detect based on user role when roleVariant is "manager" (default)
+		if (!user?.role) return "manager";
+
+		switch (user.role) {
+			case "ADMIN":
+				return "admin";
+			case "TENANT":
+				return "tenant";
+			case "OWNER":
+				return "owner";
+			case "MANAGER":
+			default:
+				return "manager";
+		}
+	}, [user?.role, roleVariant]);
+
+	const navItems = getNavItems(detectedVariant);
+
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
-				<AppName teams={data.teams} />
-				{/* <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden">
-					<SidebarGroupContent>
-						<form className="relative">
-							<Label htmlFor="search" className="sr-only">
-								Search
-							</Label>
-							<SidebarInput
-								id="search"
-								placeholder="Search the docs..."
-								className="pl-8"
-							/>
-							<Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
-						</form>
-					</SidebarGroupContent>
-				</SidebarGroup> */}
+				<AppName teams={{
+					name: "EstateFlow",
+					logo: Command,
+					plan: user?.role || "Free",
+				}} />
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
+				<NavMain items={navItems} />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

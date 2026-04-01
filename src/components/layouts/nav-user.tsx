@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
 	BadgeCheck,
 	ChevronsUpDown,
@@ -28,17 +29,26 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { formatDateTime } from "@/lib/dateUtils"
+import Link from "next/link"
 
-export function NavUser({
-	user,
-}: {
-	user: {
-		name: string
-		email: string
-		avatar: string
-	}
-}) {
+export function NavUser() {
+	const { user, logout, isLoading } = useAuth()
 	const { isMobile } = useSidebar()
+	const router = useRouter()
+
+	if (!user) {
+		return null
+	}
+
+	const handleLogout = async () => {
+		await logout()
+		router.push("/login")
+	}
+
+	const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'U'
+	const fullName = `${user.firstName} ${user.lastName}`.trim()
 
 	return (
 		<SidebarMenu>
@@ -48,13 +58,14 @@ export function NavUser({
 						<SidebarMenuButton
 							size="lg"
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							disabled={isLoading}
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage src={user.avatar} alt={user.name} />
-								<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+								<AvatarImage src="" alt={fullName} />
+								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-semibold">{user.name}</span>
+								<span className="truncate font-semibold">{fullName}</span>
 								<span className="truncate text-xs">{user.email}</span>
 							</div>
 							<ChevronsUpDown className="ml-auto size-4" />
@@ -67,14 +78,17 @@ export function NavUser({
 						sideOffset={4}
 					>
 						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+							<div className="flex flex-col gap-1 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.avatar} alt={user.name} />
-									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+									<AvatarImage src="" alt={fullName} />
+									<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">{user.name}</span>
+									<span className="truncate font-semibold">{fullName}</span>
 									<span className="truncate text-xs">{user.email}</span>
+									<span className="truncate text-xs text-muted-foreground">
+										{formatDateTime(user.createdAt)}
+									</span>
 								</div>
 							</div>
 						</DropdownMenuLabel>
@@ -87,9 +101,12 @@ export function NavUser({
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<BadgeCheck />
-								Compte
+							<DropdownMenuItem asChild>
+								{/* Use Next.js Link for client-side navigation */}
+								<Link href="/profile" className="flex items-center gap-2 w-full">
+									<BadgeCheck />
+									Compte
+								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<Settings />
@@ -97,9 +114,9 @@ export function NavUser({
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
+						<DropdownMenuItem onClick={handleLogout} disabled={isLoading}>
 							<LogOut />
-							Déconnexion
+							{isLoading ? 'Déconnexion...' : 'Déconnexion'}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
