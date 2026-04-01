@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-// Import direct du service user pour register
-import usersService from '@/features/users/services/usersApi';
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import usersService from '@/features/users/services/usersService';
 
 export function RegisterForm() {
 	const router = useRouter();
@@ -36,7 +35,7 @@ export function RegisterForm() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			await usersService.register(values);
+			await usersService.createUser(values);
 			toast.success("Inscription réussie ! Veuillez vous connecter.");
 			router.push('/login'); // Rediriger vers login après inscription
 		} catch (err: any) {
