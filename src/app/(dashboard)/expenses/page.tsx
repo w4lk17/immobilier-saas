@@ -1,15 +1,34 @@
 "use client";
 
 import { Download, Terminal } from "lucide-react";
+import Link from "next/link";
 
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ExpenseList } from "@/features/expenses/components/ExpenseList";
-import { useExpenses } from "@/features/expenses/hooks/useExpenses.hooks";
+import { useExpensesWithRelations } from "@/features/expenses/hooks/useExpenses.hooks";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Permission, hasPermission } from "@/lib/permissions";
 
 export default function ExpensesPage() {
-	const { data: expenses, isLoading, isError, error } = useExpenses();
+	const { data: expenses, isLoading, isError, error } = useExpensesWithRelations();
+	const { user } = useAuth();
+
+	const canRead = user && hasPermission(user.role, Permission.EXPENSES_READ);
+	const canCreate = user && hasPermission(user.role, Permission.EXPENSES_CREATE);
+
+	if (!canRead) {
+		return (
+			<Alert variant="destructive" className="max-w-2xl mx-auto">
+				<Terminal className="h-4 w-4" />
+				<AlertTitle>Accès refusé</AlertTitle>
+				<AlertDescription>
+					Vous n'avez pas la permission d'accéder à cette page.
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	if (isLoading) {
 		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
@@ -41,8 +60,13 @@ export default function ExpensesPage() {
 						onClick={() => { alert("Fonctionnalité d'export PDF à implémenter !"); }}
 					>
 						<Download /> Exporter
-					</Button>
-				</div>
+					</Button>					{canCreate && (
+						<Button asChild>
+							<Link href="/expenses/new">
+								Ajouter une dépense
+							</Link>
+						</Button>
+					)}				</div>
 			</div>
 			<ExpenseList expenses={expenses || []} />
 		</div>

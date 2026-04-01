@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { PaymentType, PaymentStatus } from '@/types/enums';
 
-// Schéma pour la création (généralement par Admin/Employee)
+// Schéma pour la création (généralement par Admin/Manager)
 export const paymentCreateSchema = z.object({
 	contractId: z.number({ required_error: "L'ID du contrat est requis." }).int().positive(),
 	tenantId: z.number({ required_error: "L'ID du locataire est requis." }).int().positive(), // Redondant mais utile pour validation croisée potentielle

@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-
-import { Button } from "@/components/ui/button";
 import { Contact, PlusCircle } from "lucide-react";
 import { FrontendTenant } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
+import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
 import { tenantColumns } from './tenant.columns';
 import { TenantDetailsModal } from './TenantDetailsModal';
 
@@ -23,18 +21,15 @@ export function TenantList({ tenants }: TenantListProps) {
 		setIsModalOpen(true);
 	};
 
-
 	const emptyState = (
-		<div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-			<Contact className="h-12 w-12 text-muted-foreground" />
-			<h3 className="text-xl font-semibold">Aucun locataire trouvé</h3>
-			<p className="text-muted-foreground">Commencez par ajouter un nouveau profil locataire.</p>
-			<Button asChild>
-				<Link href="/tenants/new">
-					<PlusCircle className="mr-2 h-4 w-4" /> Ajouter un locataire
-				</Link>
-			</Button>
-		</div>
+		<DataTableEmptyState
+			icon={Contact}
+			title="Aucun locataire trouvé"
+			description="Commencez par ajouter un nouveau profil locataire."
+			actionHref="/tenants/new"
+			actionLabel="Ajouter un locataire"
+			actionIcon={PlusCircle}
+		/>
 	);
 
 	return (
@@ -43,10 +38,12 @@ export function TenantList({ tenants }: TenantListProps) {
 				columns={tenantColumns}
 				data={tenants || []}
 				meta={{ viewDetails: handleViewDetails }}
-				searchColumn={'name'}
-				searchPlaceholder={'Rechercher'}
-				newButtonHref={'/tenants/new'}
-				newButtonTitle={'Nouveau'}
+				searchPlaceholder='Rechercher par nom, email'
+				searchColumn='name'
+				newButtonHref='/tenants/new'
+				newButtonTitle='Nouveau'
+				enableExport={true}
+				exportFileName='locataires'
 				emptyStateContent={emptyState} />
 
 			<TenantDetailsModal

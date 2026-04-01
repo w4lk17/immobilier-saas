@@ -1,10 +1,12 @@
+import {
+	Check,
+	House,
+	Users
+} from "lucide-react";
 import AppBarChart from "@/components/shared/AppBarChart";
 import AppPieChart from "@/components/shared/AppPieChart";
-import { KPICard } from "@/components/shared/KPICard";
-import { SmallCard } from "@/components/shared/SmallCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, CheckCheck, DollarSign, FileClock, FileText, Hourglass, House, Users } from "lucide-react";
 
 export default function DashboardHomePage() {
 	return (
@@ -14,40 +16,12 @@ export default function DashboardHomePage() {
 			<div className="grid grid-cols-1 lg:col-span-6 2xl:col-span-12 gap-4">
 				{/* Large Cards Row */}
 				<div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
-					<KPICard
-						title="Factures Générées (Août)"
-						value={"120 000,0"}
-						description={"Total facturé ce mois"}
-						icon={DollarSign}
-						progressValue={100}
-					/>
-
-					<KPICard
-						title="Factures Payées (Août)"
-						value={"90 000,0"}
-						description={`${90}% du total généré`}
-						icon={CheckCheck}
-						progressValue={90}
-					/>
-
-					<KPICard
-						title="Factures Impayées (Août)"
-						value={"30 000,0"}
-						description={`${20}% du total généré`}
-						icon={FileClock}
-						progressValue={20}
-					/>
+				
 				</div>
 				{/* Small Cards Row */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 					{/* August Expenses */}
-					<SmallCard title="Dépenses (Août)" value={"30 000,0"} icon={Hourglass} />
-					{/* Active Contracts */}
-					<SmallCard title="Contrats Actifs" value={"122"} icon={FileText} />
-					{/* Inactive Contracts */}
-					<SmallCard title="Contrats Inactifs" value={"1"} icon={FileText} />
-					{/* Terminated Contracts */}
-					<SmallCard title="Contrats Terminés" value="0" icon={FileText} />
+				
 				</div>
 				{/* Chart Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ">

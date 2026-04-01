@@ -1,34 +1,47 @@
 
 import api from '@/lib/api';
-import { ExpenseFormData } from '../schemas/expenseSchemas'; // Schema à créer
-import { FrontendExpense, ExpenseWithRelations } from '@/types'; // Importer les types frontend
+import { ExpenseFormData, ExpenseUpdateFormData } from '../schemas/expenseSchemas';
+import { FrontendExpense, ExpenseWithRelations } from '@/types';
 
 const expensesService = {
-	async getExpenses(): Promise<ExpenseWithRelations[]> {
-		// Ajouter des query params pour filtrer par propriété etc si nécessaire
-		const response = await api.get<ExpenseWithRelations[]>('/expenses');
+	// Basic list (minimal data)
+	async getAll(): Promise<FrontendExpense[]> {
+		const response = await api.get<FrontendExpense[]>('/expenses');
 		return response.data;
 	},
 
-	async getExpenseById(id: number): Promise<ExpenseWithRelations> {
-		const response = await api.get<ExpenseWithRelations>(`/expenses/${id}`);
+	// List with relations (for tables/displays)
+	async getAllWithRelations(): Promise<ExpenseWithRelations[]> {
+		const response = await api.get<ExpenseWithRelations[]>('/expenses?include=property');
 		return response.data;
 	},
 
-	async createExpense(data: ExpenseFormData): Promise<FrontendExpense> {
-		const response = await api.post<FrontendExpense>('/expenses', data);
+	// Single record (basic)
+	async getById(id: number): Promise<FrontendExpense> {
+		const response = await api.get<FrontendExpense>(`/expenses/${id}`);
 		return response.data;
 	},
 
-	async updateExpense(id: number, data: Partial<ExpenseFormData>): Promise<FrontendExpense> {
-		const response = await api.patch<FrontendExpense>(`/expenses/${id}`, data);
+	// Single record (full relations for detail view)
+	async getByIdWithRelations(id: number): Promise<ExpenseWithRelations> {
+		const response = await api.get<ExpenseWithRelations>(`/expenses/${id}?include=property`);
 		return response.data;
 	},
 
-	async deleteExpense(id: number): Promise<FrontendExpense> {
-		const response = await api.delete<FrontendExpense>(`/expenses/${id}`);
+	// CRUD operations
+	async create(payload: ExpenseFormData): Promise<ExpenseWithRelations> {
+		const response = await api.post<ExpenseWithRelations>('/expenses', payload);
 		return response.data;
-	}
+	},
+
+	async update(id: number, payload: ExpenseUpdateFormData): Promise<ExpenseWithRelations> {
+		const response = await api.patch<ExpenseWithRelations>(`/expenses/${id}`, payload);
+		return response.data;
+	},
+
+	async delete(id: number): Promise<void> {
+		await api.delete(`/expenses/${id}`);
+	},
 };
 
 export default expensesService;

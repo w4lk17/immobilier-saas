@@ -7,20 +7,21 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { FrontendUser } from "@/types";
+import { User } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, formatDate } from "date-fns";
 import { fr } from "date-fns/locale";
+import { formatDateTime } from "@/lib/dateUtils";
 
 interface UserDetailsModalProps {
-	user: FrontendUser | null;
+	user: User | null;
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
 const roleColors: Record<string, string> = {
 	ADMIN: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-	EMPLOYEE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+	Manager: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
 	OWNER: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
 	TENANT: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
 	USER: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
@@ -38,7 +39,7 @@ export function UserDetailsModal({ user, isOpen, onOpenChange }: UserDetailsModa
 						Informations du profil {user.firstName && user.lastName ? `de ${user.firstName} ${user.lastName}` : ""}
 					</DialogDescription>
 				</DialogHeader>
-				<div className="space-y-4">
+				<div className="space-y-4 py-4">
 					<div className="grid grid-cols-1 gap-4">
 						<div>
 							<label className="text-sm font-medium text-muted-foreground">Email</label>
@@ -47,13 +48,7 @@ export function UserDetailsModal({ user, isOpen, onOpenChange }: UserDetailsModa
 						<div>
 							<label className="text-sm font-medium text-muted-foreground">Nom complet</label>
 							<p className="text-sm font-medium">
-								{user.firstName && user.lastName
-									? `${user.firstName} ${user.lastName}`
-									: user.firstName
-										? user.firstName
-										: user.lastName
-											? user.lastName
-											: "N/A"}
+								{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : ""}
 							</p>
 						</div>
 						<div>
@@ -73,15 +68,23 @@ export function UserDetailsModal({ user, isOpen, onOpenChange }: UserDetailsModa
 							</div>
 						</div>
 						<div>
+							<label className="text-sm font-medium text-muted-foreground">Téléphone</label>
+							<p className="text-sm font-medium">{user.phoneNumber || "Non renseigné"}</p>
+						</div>
+						<div>
 							<label className="text-sm font-medium text-muted-foreground">Créé le</label>
 							<p className="text-sm font-medium">
-								{format(new Date(user.createdAt), "dd MMMM yyyy à HH:mm", { locale: fr })}
+								{user.createdAt
+									? format(new Date(user.createdAt), "dd MMMM yyyy 'à' HH:mm", { locale: fr })
+									: "Inconnu"}
 							</p>
 						</div>
 						<div>
 							<label className="text-sm font-medium text-muted-foreground">Modifié le</label>
 							<p className="text-sm font-medium">
-								{format(new Date(user.updatedAt), "dd MMMM yyyy à HH:mm", { locale: fr })}
+								{user.updatedAt
+									? format(new Date(user.updatedAt), "dd MMMM yyyy 'à' HH:mm", { locale: fr })
+									: "Inconnu"}
 							</p>
 						</div>
 					</div>

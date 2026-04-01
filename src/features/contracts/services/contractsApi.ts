@@ -1,34 +1,47 @@
 
 import api from '@/lib/api';
-import { ContractFormData } from '../schemas/contractSchemas'; // Schema à créer
-import { FrontendContract, ContractWithRelations } from '@/types'; // Importer les types frontend
+import { ContractFormData, ContractUpdateFormData } from '../schemas/contractSchemas';
+import { Contract, ContractWithRelations } from '@/types';
 
 const contractsService = {
-	async getContracts(): Promise<ContractWithRelations[]> {
-		const response = await api.get<ContractWithRelations[]>('/contracts');
+	// Basic list (minimal data)
+	async getAll(): Promise<Contract[]> {
+		const response = await api.get<Contract[]>('/contracts');
 		return response.data;
 	},
 
-	async getContractById(id: number): Promise<ContractWithRelations> {
-		const response = await api.get<ContractWithRelations>(`/contracts/${id}`);
+	// List with relations (for tables/displays)
+	async getAllWithRelations(): Promise<ContractWithRelations[]> {
+		const response = await api.get<ContractWithRelations[]>('/contracts?include=property,tenant,manager');
 		return response.data;
 	},
 
-	async createContract(data: ContractFormData): Promise<FrontendContract> {
-		const response = await api.post<FrontendContract>('/contracts', data);
+	// Single record (basic)
+	async getById(id: number): Promise<Contract> {
+		const response = await api.get<Contract>(`/contracts/${id}`);
 		return response.data;
 	},
 
-	async updateContract(id: number, data: Partial<ContractFormData>): Promise<FrontendContract> {
-		// Le DTO backend pour update est peut-être différent (UpdateContractDto)
-		const response = await api.patch<FrontendContract>(`/contracts/${id}`, data);
+	// Single record (full relations for detail view)
+	async getByIdWithRelations(id: number): Promise<ContractWithRelations> {
+		const response = await api.get<ContractWithRelations>(`/contracts/${id}?include=property,tenant,manager`);
 		return response.data;
 	},
 
-	async deleteContract(id: number): Promise<FrontendContract> {
-		const response = await api.delete<FrontendContract>(`/contracts/${id}`);
+	// CRUD operations
+	async create(payload: ContractFormData): Promise<ContractWithRelations> {
+		const response = await api.post<ContractWithRelations>('/contracts', payload);
 		return response.data;
-	}
+	},
+
+	async update(id: number, payload: ContractUpdateFormData): Promise<ContractWithRelations> {
+		const response = await api.patch<ContractWithRelations>(`/contracts/${id}`, payload);
+		return response.data;
+	},
+
+	async delete(id: number): Promise<void> {
+		await api.delete(`/contracts/${id}`);
+	},
 };
 
 export default contractsService;

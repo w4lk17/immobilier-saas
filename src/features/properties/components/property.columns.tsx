@@ -29,17 +29,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useDeleteProperty } from '../hooks/useProperties.hooks'; // Hook de suppression
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
-
-// Helper pour le statut (peut être mis dans un fichier utilitaire)
-const getPropertyStatusVariant = (status: string) => {
-	switch (status) {
-		case 'AVAILABLE': return 'success';
-		case 'RENTED': return 'default';
-		case 'MAINTENANCE': return 'warning';
-		case 'UNAVAILABLE': return 'destructive';
-		default: return 'secondary';
-	}
-};
+import { getStatusBadge } from "@/lib/statusHelpers";
 
 // Composant interne pour les actions pour pouvoir utiliser le hook
 function PropertyActions({ row, table }: { row: Row<FrontendProperty>, table: any }) {
@@ -163,7 +153,7 @@ export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
-			return <Badge variant={getPropertyStatusVariant(status) as any}>{status}</Badge>;
+			return getStatusBadge(status, 'property');
 		},
 	},
 	{

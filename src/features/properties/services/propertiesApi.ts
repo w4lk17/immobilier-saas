@@ -1,34 +1,47 @@
 
 import api from '@/lib/api';
-import { PropertyFormData } from '../schemas/propertySchemas'; // Assurez-vous que ce fichier existe
-import { FrontendProperty, PropertyWithRelations } from '@/types'; // Importer les types frontend
+import { PropertyFormData, PropertyUpdateFormData } from '../schemas/propertySchemas';
+import { FrontendProperty, PropertyWithRelations } from '@/types';
 
 const propertiesService = {
-	// Les GET retournent potentiellement les relations
-	async getProperties(): Promise<PropertyWithRelations[]> {
-		const response = await api.get<PropertyWithRelations[]>('/properties');
+	// Basic list (minimal data)
+	async getAll(): Promise<FrontendProperty[]> {
+		const response = await api.get<FrontendProperty[]>('/properties');
 		return response.data;
 	},
 
-	async getPropertyById(id: number): Promise<PropertyWithRelations> {
-		const response = await api.get<PropertyWithRelations>(`/properties/${id}`);
+	// List with relations (for tables/displays)
+	async getAllWithRelations(): Promise<PropertyWithRelations[]> {
+		const response = await api.get<PropertyWithRelations[]>('/properties?include=owner,manager');
 		return response.data;
 	},
 
-	// Les mutations retournent généralement l'objet de base mis à jour/créé/supprimé
-	async createProperty(data: PropertyFormData): Promise<FrontendProperty> {
-		const response = await api.post<FrontendProperty>('/properties', data);
+	// Single record (basic)
+	async getById(id: number): Promise<FrontendProperty> {
+		const response = await api.get<FrontendProperty>(`/properties/${id}`);
 		return response.data;
 	},
 
-	async updateProperty(id: number, data: Partial<PropertyFormData>): Promise<FrontendProperty> {
-		const response = await api.patch<FrontendProperty>(`/properties/${id}`, data);
+	// Single record (full relations for detail view)
+	async getByIdWithRelations(id: number): Promise<PropertyWithRelations> {
+		const response = await api.get<PropertyWithRelations>(`/properties/${id}?include=owner,manager`);
 		return response.data;
 	},
 
-	async deleteProperty(id: number): Promise<FrontendProperty> {
-		const response = await api.delete<FrontendProperty>(`/properties/${id}`);
+	// CRUD operations
+	async create(payload: PropertyFormData): Promise<PropertyWithRelations> {
+		const response = await api.post<PropertyWithRelations>('/properties', payload);
 		return response.data;
-	}
+	},
+
+	async update(id: number, payload: PropertyUpdateFormData): Promise<PropertyWithRelations> {
+		const response = await api.patch<PropertyWithRelations>(`/properties/${id}`, payload);
+		return response.data;
+	},
+
+	async delete(id: number): Promise<void> {
+		await api.delete(`/properties/${id}`);
+	},
 };
+
 export default propertiesService;
