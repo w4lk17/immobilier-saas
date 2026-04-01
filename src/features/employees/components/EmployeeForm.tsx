@@ -475,7 +475,6 @@ export function EmployeeForm({
 											<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
 												<FormLabel>Utilisateur à associer</FormLabel>
 												<FormControl>
-													{/* TODO: Remplacer par un ComboBox/Select pour une meilleure UX */}
 													<ComboboxUsers
 														users={usersForSelection}
 														value={field.value}
@@ -485,12 +484,6 @@ export function EmployeeForm({
 														emptyResultText="Aucun utilisateur correspondant."
 														disabled={isLoading /* || isLoadingUsers */} // Désactiver pendant le chargement
 													/>
-													{/* <Input
-												type="number"
-												placeholder="Entrez l'ID de l'utilisateur existant"
-												{...field}
-												onChange={event => field.onChange(+event.target.value)} // Convertir en nombre
-											/> */}
 												</FormControl>
 												<FormDescription>
 													Le compte utilisateur existant (créé via la section Utilisateurs) à lier à ce profil employé.

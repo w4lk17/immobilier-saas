@@ -13,11 +13,8 @@ import { FrontendProperty, FrontendUserSnippet } from '@/types'; // Importer Fro
 
 // ComboBox pour sélectionner l'utilisateur
 import { ComboboxUsers } from '@/components/shared/ComboboxUsers';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { propertyCreateSchema, PropertyFormData, PropertyUpdateFormData, propertyUpdateSchema } from '../schemas/propertySchemas';
-import { PropertyType } from '@/types/enums';
-import { ZodEnum } from 'zod';
+import { PropertyStatus, PropertyType } from '@/types/enums';
 
 interface PropertyFormProps {
 	initialData?: FrontendProperty | null; // Pour pré-remplir en mode édition
@@ -45,18 +42,18 @@ export function PropertyForm({
 			// On se base sur propertyUpdateSchema qui rend les champs optionnels
 			// ownerId: initialData.ownerId, // Ne pas inclure pour l'update si non modifiable
 			address: initialData.address || '',
-			type: initialData.type  ,
+			type: initialData.type || PropertyType ,
 			rentAmount: initialData.rentAmount,
 			charges: initialData.charges,
 			// managerId: initialData.managerId, // Ne pas inclure pour l'update si non modifiable
-			status: initialData.status || '',
+			status: initialData.status || PropertyStatus.AVAILABLE,
 			description: initialData.description || '',
 		} : {
 			ownerId: undefined, // Ou un autre type si vous utilisez un number input
 			address: '',
-			type: '',
-			rentAmount: '',
-			charges: '',
+			type: PropertyType.APARTMENT,
+			rentAmount: undefined,
+			charges: undefined,
 			managerId: undefined, // Ou un autre type si vous utilisez un number input
 			status: '',
 			description: '',
@@ -347,7 +344,7 @@ export function PropertyForm({
 										<FormItem>
 											<FormLabel>Numéro de téléphone (Optionnel)</FormLabel>
 											<FormControl>
-												<Input placeholder="Ex: +228 90000000" {...field} value={field.value ?? ''} />
+												<Input placeholder="" {...field} value={field.value ?? ''} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>

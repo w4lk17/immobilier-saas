@@ -5,11 +5,13 @@ import { Download, Terminal } from "lucide-react";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { PaymentList } from "@/features/payments/components/PaymentList";
-import { usePayments } from "@/features/payments/hooks/usePayments.hooks";
+import { UserList } from "@/features/users/components/UserList";
+import { useUsers } from "@/features/users/hooks/useUsers.hooks";
+import { FrontendUser } from "@/types";
 
-export default function PaymentsPage() {
-	const { data: payments, isLoading, isError, error } = usePayments();
+export default function UsersPage() {
+	const { data: usersData, isLoading, isError, error } = useUsers();
+	const users: FrontendUser[] = Array.isArray(usersData) ? usersData : [];
 
 	if (isLoading) {
 		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
@@ -21,18 +23,19 @@ export default function PaymentsPage() {
 				<Terminal className="h-4 w-4" />
 				<AlertTitle>Erreur de chargement</AlertTitle>
 				<AlertDescription>
-					Impossible de charger la liste des paiements. {error?.message}
+					Impossible de charger la liste des utilisateurs: {error?.message}
 				</AlertDescription>
 			</Alert>
 		);
 	}
+
 	return (
 		<div className=" h-full flex-1 flex-col gap-8 p-4 md:flex">
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h2 className="text-2xl font-bold tracking-tight">Liste des paiements</h2>
+					<h2 className="text-2xl font-bold tracking-tight">Gestion des utilisateurs</h2>
 					<p className="text-muted-foreground">
-						Here&apos;s a list of your tasks for this month!
+						Gérez les comptes utilisateurs et assignez les rôles
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -43,7 +46,7 @@ export default function PaymentsPage() {
 					</Button>
 				</div>
 			</div>
-			<PaymentList payments={payments || []} />
+			<UserList users={users} />
 		</div>
 	);
 }

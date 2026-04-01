@@ -2,9 +2,7 @@
 
 import {
 	BadgeCheck,
-	Bell,
 	ChevronsUpDown,
-	CreditCard,
 	LogOut,
 	Settings,
 	Sparkles,

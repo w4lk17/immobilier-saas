@@ -16,6 +16,7 @@ import {
 	ReceiptTextIcon,
 	User,
 	UserRoundCog,
+	Users,
 } from "lucide-react"
 import {
 	Sidebar,
@@ -46,6 +47,12 @@ const data = {
 			url: "/accueil",
 			icon: LayoutDashboard,
 			isActive: true
+		},
+		{
+			title: "Utilisateurs",
+			url: "/users",
+			icon: Users,
+			isActive: false
 		},
 		{
 			title: "Employee",
@@ -119,7 +126,7 @@ const data = {
 			icon: FileChartColumn,
 			isActive: false
 		},
-		
+
 	],
 }
 

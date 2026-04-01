@@ -1,8 +1,9 @@
-
 import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333/api';
+
 const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_API_URL,
+	baseURL: API_URL,
 	// Important pour envoyer les cookies (HttpOnly) lors des requêtes cross-origin
 	// si votre frontend et backend sont sur des domaines/ports différents.
 	// Assurez-vous que votre backend est configuré avec CORS et 'credentials: true'.
@@ -19,7 +20,7 @@ api.interceptors.response.use(
 	(error) => {
 		// Gérer les erreurs globales ici (ex: erreur 401 non autorisée, etc.)
 		if (error.response?.status === 401 && error.response?.data?.message === 'No auth token') {
-			console.info('Error: No auth token');	
+			console.info('Error: No auth token');
 		} else if (error.response?.status === 401 && error.response?.data?.message === 'jwt expired') {
 			// Gérer le cas ou le token est expire
 			// Vous pouvez rediriger vers la page de login

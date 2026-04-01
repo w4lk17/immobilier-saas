@@ -35,4 +35,4 @@ export const paymentUpdateSchema = z.object({
 });
 
 
-export type UpdatePaymentFormData = z.infer<typeof paymentUpdateSchema>;
+export type PaymentUpdateFormData = z.infer<typeof paymentUpdateSchema>;

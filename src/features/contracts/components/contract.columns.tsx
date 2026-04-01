@@ -1,10 +1,12 @@
 
 "use client";
 
+import Link from "next/link";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useState } from "react";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { ContractWithRelations, FrontendUserSnippet } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -22,17 +24,14 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Eye, Edit3, Trash2, ArrowUpDown } from "lucide-react";
-import Link from "next/link";
+import { ContractWithRelations, FrontendUserSnippet } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { MoreHorizontal, Eye, Edit3, Trash2, EyeClosed, BookXIcon } from "lucide-react";
 import { useDeleteContract } from '../hooks/useContracts.hooks';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { formatCurrency } from "@/lib/utils";
-import { useState } from "react";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
-import { table } from "console";
 
 // Helper pour le statut du contrat
 const getContractStatusVariant = (status?: string) => {
@@ -54,6 +53,12 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 
 	const handleDelete = () => {
 		deleteContract(contract.id);
+		setIsDropdownOpen(false); // close dropdown after deletion
+		setIsAlertOpen(false);
+	}
+
+	const handleStop = () => {
+		// TODO: implement contract termination
 		setIsDropdownOpen(false); // close dropdown after deletion
 		setIsAlertOpen(false);
 	}
@@ -94,41 +99,66 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 					>
 						<Eye className="mr-2 h-4 w-4" /> Détails
 					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link href={`/contracts/edit/${contract.id}`}
-							className="flex items-center w-full cursor-pointer"
+					{contract.status === 'ACTIVE' || contract.status === 'DRAFT' ? (
+						<DropdownMenuItem
+							className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+							onClick={() => {
+								setIsAlertOpen(true);
+								setIsDropdownOpen(false);
+							}}
 						>
-							<Edit3 className="mr-2 h-4 w-4" /> Modifier
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
-						onClick={() => {
-							setIsAlertOpen(true);
-							setIsDropdownOpen(false);
-						}}
-					>
-						<Trash2 className="mr-2 h-4 w-4" /> Supprimer
-					</DropdownMenuItem>
+							<BookXIcon className="mr-2 h-4 w-4" /> Terminer
+						</DropdownMenuItem>
+					) : (
+							<>
+								<DropdownMenuItem asChild>
+								<Link href={`/contracts/edit/${contract.id}`}
+									className="flex items-center w-full cursor-pointer"
+								>
+									<Edit3 className="mr-2 h-4 w-4" /> Modifier
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+								onClick={() => {
+									setIsAlertOpen(true);
+									setIsDropdownOpen(false);
+								}}
+							>
+								<Trash2 className="mr-2 h-4 w-4" /> Supprimer
+							</DropdownMenuItem>
+							
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
-
+			{/* DELETE/TERMINATION ALERT DIALOG */}
 			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce contrat ?</AlertDialogTitle>
+						<AlertDialogTitle>
+							{contract.status === 'ACTIVE' ? "Arret Contrat" : "Suppression du contrat"}
+						</AlertDialogTitle>
 						<AlertDialogDescription>
-							Cette action est irréversible et supprimera définitivement ce contrat et ses paiements associés.
+							{contract.status === 'ACTIVE' ? (
+								<>Confirmer l'arret du {contract.property?.type} <span className="text-sm font-bold">({contract.id})</span>.</>
+							) : (
+								<>Confirmer la suppression du contrat <span className="text-sm font-bold">({contract.id})</span>.</>
+							)}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
+					<span className="text-destructive text-sm italic">
+						{contract.status === 'ACTIVE'
+							? "Cette action est irréversible et mettra fin définitivement à ce contrat."
+							: "Cette action est irréversible et supprimera définitivement ce contrat et ses paiements associés."}
+					</span>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Annuler</AlertDialogCancel>
-						<AlertDialogAction onClick={handleDelete}
+						<AlertDialogAction onClick={contract.status === 'ACTIVE' ? handleStop : handleDelete}
 							className={buttonVariants({ variant: "destructive" })}
 							disabled={isPending}
 						>
-							{isPending ? "Suppression..." : "Confirmer"}
+							{isPending ? (contract.status === 'ACTIVE' ? "Arrestation..." : "Suppression...") : "Confirmer"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
