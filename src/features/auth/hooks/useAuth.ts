@@ -1,95 +1,104 @@
-
-import { useCallback } from 'react';
-import { useAuthStore } from '@/store/authStore'; // Importez le store
-import { LoginCredentials, RegisterCredentials } from '../schemas/authSchemas'; // Importez les types Zod (à créer)
-import { useRouter } from 'next/navigation';
-import authService from '../services/authApi'; // Importez les fonctions API (à créer)
+import { useCallback, useEffect } from 'react';
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
+import useAuthStore from '@/store/authStore';
+import { LoginCredentials, RegisterCredentials } from '../schemas/authSchemas';
+import authService from '../services/authApi';
+import { getRoleRedirectPath } from '@/lib/authUtils';
+
+// Global hydration flag to ensure hydration only runs once across all components
+let hasHydrated = false;
 
 export function useAuth() {
-	const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuthStore();
+	const { user, isAuthenticated, isLoading, setUser, setLoading, logout: storeLogout, restoreProfile } = useAuthStore();
 	const router = useRouter();
+
+	// Hydrate auth on mount - only once globally
+	useEffect(() => {
+		// Skip if already hydrated
+		if (hasHydrated) return;
+		hasHydrated = true;
+
+		const hydrate = async () => {
+			try {
+				const profile = await authService.getProfile();
+				setUser(profile);
+			} catch (error: any) {
+				// 401 is expected when user is not logged in - don't treat as error
+				if (error.response?.status !== 401) {
+					// Only log unexpected errors
+					console.error('Auth hydration error:', error.message);
+				}
+				setUser(null);
+			} finally {
+				setLoading(false);
+			}
+		};
+		hydrate();
+	}, [setUser, setLoading]);
 
 	const login = useCallback(async (credentials: LoginCredentials) => {
 		setLoading(true);
 		try {
-			const loggedInUser = await authService.login(credentials); // L'API login retourne le profil user si succès
-			setUser(loggedInUser); // Mettre à jour le store
+			const loggedInUser = await authService.login(credentials);
+			setUser(loggedInUser);
 			toast.success('Connexion réussie !');
-			router.push('/accueil'); // Rediriger vers le dashboard ou autre page
+
+			// Redirect to role-specific dashboard
+			const redirectPath = getRoleRedirectPath(loggedInUser);
+			router.push(redirectPath);
 		} catch (error: any) {
 			console.error('Login failed:', error);
-			setUser(null); // Assurer que l'utilisateur est null en cas d'échec
-			toast.error(error.response?.data?.message || 'Échec de la connexion.');
+			setUser(null);
+			const errorMessage = error.response?.data?.message || "Échec de la connexion.";
+			toast.error(errorMessage);
+			throw error; // Re-throw for form handling
 		} finally {
 			setLoading(false);
 		}
 	}, [setUser, setLoading, router]);
 
-	// const register = useCallback(async (credentials: RegisterCredentials) => {
-	// 	setLoading(true);
-	// 	try {
-	// 		const registeredUser = await authService.register(credentials);
-	// 		setUser(registeredUser); // Connecte l'utilisateur après l'inscription
-	// 		toast.success('Inscription réussie !');
-	// 		router.push('/');
-	// 	} catch (error: any) {
-	// 		console.error('Registration failed:', error);
-	// 		setUser(null);
-	// 		toast.error(error.response?.data?.message || "Échec de l'inscription.");
-	// 	} finally {
-	// 		setLoading(false);
-	// 	}
-	// }, [setUser, setLoading, router]);
+	const register = useCallback(async (credentials: RegisterCredentials) => {
+		setLoading(true);
+		try {
+			const registeredUser = await authService.register(credentials);
+			setUser(registeredUser);
+			toast.success('Inscription réussie !');
 
+			// Redirect to role-specific dashboard
+			const redirectPath = getRoleRedirectPath(registeredUser);
+			router.push(redirectPath);
+		} catch (error: any) {
+			console.error('Registration failed:', error);
+			setUser(null);
+			const errorMessage = error.response?.data?.message || "Échec de l'inscription.";
+			toast.error(errorMessage);
+			throw error; // Re-throw for form handling
+		} finally {
+			setLoading(false);
+		}
+	}, [setUser, setLoading, router]);
 
 	const logout = useCallback(async () => {
-		// setLoading(true); // Pas forcément utile pour logout
 		try {
-			await authService.logout(); // Appeler l'API logout (qui clear les cookies côté serveur/client)
-			setUser(null); // Mettre à jour le store
+			await storeLogout();
 			toast.success('Déconnexion réussie.');
 			router.push('/login');
 		} catch (error: any) {
 			console.error('Logout failed:', error);
-			// Même si l'API échoue, on déconnecte côté client
 			setUser(null);
 			toast.error('Erreur lors de la déconnexion.');
 			router.push('/login');
-		} finally {
-			// setLoading(false);
 		}
-	}, [setUser, router]);
-
-	const checkAuthStatus = useCallback(async () => {
-		console.log('Checking auth status...');
-		// Ne pas re-vérifier si on n'est pas en chargement initial ou si déjà authentifié ?
-		// if (!isLoading && isAuthenticated) return;
-
-		setLoading(true);
-		try {
-			// Appeler l'endpoint 'profile' qui est protégé par JWT
-			// Si succès, l'utilisateur est authentifié (cookie valide)
-			const currentUser = await authService.getProfile();
-			console.log('Auth status check successful:', currentUser);
-			setUser(currentUser);
-		} catch (error) {
-			// Si l'appel échoue (401), l'utilisateur n'est pas authentifié
-			console.log('Auth status check failed:', error);
-			setUser(null);
-		} finally {
-			// Important : Mettre fin au chargement même en cas d'erreur
-			setLoading(false);
-		}
-	}, [setUser, setLoading/* , isAuthenticated, isLoading */]); // Ajoutez deps si la condition if est utilisée
+	}, [storeLogout, setUser, router]);
 
 	return {
 		user,
 		isAuthenticated,
 		isLoading,
 		login,
-		// register,
+		register,
 		logout,
-		checkAuthStatus,
+		restoreProfile,
 	};
 }

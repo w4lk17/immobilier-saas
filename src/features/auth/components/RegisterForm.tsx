@@ -1,26 +1,24 @@
-
 "use client";
 
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
+
 import { registerSchema, RegisterCredentials } from '../schemas/authSchemas';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-// Import direct du service user pour register
-import usersService from '@/features/users/services/usersApi';
-import { useRouter } from 'next/navigation';
-import { toast } from "sonner";
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { useAuth } from '../hooks/useAuth';
 
 export function RegisterForm() {
-	const router = useRouter();
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null); // Pour afficher une erreur générale
+	const { register } = useAuth();
+	const [error, setError] = useState<string | null>(null);
+	const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
 
 	const form = useForm<RegisterCredentials>({
 		resolver: zodResolver(registerSchema),
@@ -33,20 +31,13 @@ export function RegisterForm() {
 	});
 
 	async function onSubmit(values: RegisterCredentials) {
-		setIsLoading(true);
 		setError(null);
+		setPasswordMatchError(null);
 		try {
-			await usersService.register(values);
-			toast.success("Inscription réussie ! Veuillez vous connecter.");
-			router.push('/login'); // Rediriger vers login après inscription
-		} catch (err: any) {
-			console.error('Registration failed:', err);
-			const errMsg = err.response?.data?.message || "Échec de l'inscription. Vérifiez les informations ou réessayez.";
-			setError(errMsg); // Afficher l'erreur dans le formulaire
-			// Le toast peut être redondant si on affiche l'erreur dans le formulaire
-			// toast.error(errMsg);
-		} finally {
-			setIsLoading(false);
+			await register(values);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'inscription';
+			setError(message);
 		}
 	}
 
@@ -56,17 +47,22 @@ export function RegisterForm() {
 				<CardContent className="grid p-0 md:grid-cols-2">
 					{/* Colonne Formulaire (Gauche) */}
 					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 p-6 md:p-8"> {/* Réduit gap */}
-							<div className="flex flex-col items-center text-center mb-2"> {/* Réduit margin bottom */}
+						<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 p-6 md:p-8">
+							<div className="flex flex-col items-center text-center mb-2">
 								<h1 className="text-2xl font-bold tracking-tight">Créez votre compte</h1>
 								<p className="text-balance text-sm text-muted-foreground">
 									Rejoignez GestImmo Pro
 								</p>
 							</div>
 
-							{error && <p className="text-sm font-medium text-destructive text-center">{error}</p>}
+							{error && (
+								<Alert variant="destructive">
+									<AlertCircle className="h-4 w-4" />
+									<AlertDescription>{error}</AlertDescription>
+								</Alert>
+							)}
 
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* Grid pour Prénom/Nom */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<FormField
 									control={form.control}
 									name="lastName"
@@ -74,7 +70,11 @@ export function RegisterForm() {
 										<FormItem className="space-y-1">
 											<FormLabel>Nom</FormLabel>
 											<FormControl>
-												<Input placeholder="Dupont" {...field} />
+												<Input
+													placeholder="Dupont"
+													{...field}
+													value={field.value || ''}
+												/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -87,7 +87,11 @@ export function RegisterForm() {
 										<FormItem className="space-y-1">
 											<FormLabel>Prénom</FormLabel>
 											<FormControl>
-												<Input placeholder="Jean" {...field} />
+												<Input
+													placeholder="Jean"
+													{...field}
+													value={field.value || ''}
+												/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -116,16 +120,30 @@ export function RegisterForm() {
 									<FormItem className="space-y-1">
 										<FormLabel>Mot de passe</FormLabel>
 										<FormControl>
-											<Input placeholder="********" {...field} type="password" />
+											<Input
+												placeholder="Au moins 8 caractères"
+												{...field}
+												type="password"
+												onChange={(e) => {
+													field.onChange(e);
+													setPasswordMatchError(null);
+												}}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
 
-							<Button type="submit" className="w-full mt-2" disabled={isLoading}> {/* Ajout mt-2 */}
-								{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-								{isLoading ? 'Inscription...' : "S'inscrire"}
+							<Button type="submit" className="w-full mt-2" disabled={form.formState.isSubmitting}>
+								{form.formState.isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Inscription...
+									</>
+								) : (
+									"S'inscrire"
+								)}
 							</Button>
 
 							{/* Séparateur et lien Connexion */}
@@ -171,7 +189,7 @@ export function RegisterForm() {
 					</div>
 				</CardContent>
 			</Card>
-			<div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+			<div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-primary">
 				By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
 				and <a href="#">Privacy Policy</a>.
 			</div>

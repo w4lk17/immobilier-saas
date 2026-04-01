@@ -1,4 +1,3 @@
-// src/app/(auth)/layout.tsx
 import Link from 'next/link';
 import { Building } from 'lucide-react';
 
@@ -15,7 +14,9 @@ export default function AuthLayout({
 					<h1 className='sr-only'>landing</h1>
 				</Link>
 			</div>
-			{children}
+			<div className="flex min-h-svh flex-col items-center justify-center bg-background md:bg-muted p-6 md:p-10">
+				{children}
+			</div>
 		</>
 
 	);
