@@ -2,20 +2,30 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginCredentials } from '../schemas/authSchemas';
+import { Loader2, AlertCircle } from 'lucide-react';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form"; 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormMessage,
+	FormLabel,
+} from "@/components/ui/form";
+import { loginSchema, LoginCredentials } from '../schemas/authSchemas';
 import { useAuth } from '../hooks/useAuth';
-import { Loader2 } from 'lucide-react'; // Pour l'indicateur de chargement
-import Image from 'next/image';
+import { useState } from 'react';
 
 export function LoginForm() {
-	const { login, isLoading } = useAuth();
-	// const [error, setError] = useState<string | null>(null); // Gestion d'erreur via toast dans useAuth
+	const { login } = useAuth();
+	const [error, setError] = useState<string | null>(null);
 
 	const form = useForm<LoginCredentials>({
 		resolver: zodResolver(loginSchema),
@@ -26,12 +36,17 @@ export function LoginForm() {
 	});
 
 	async function onSubmit(values: LoginCredentials) {
-		await login(values);
+		setError(null);
+		try {
+			await login(values);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Une erreur est survenue lors de la connexion';
+			setError(message);
+		}
 	}
 
 	return (
 		<div className="flex flex-col gap-6">
-			{/* Structure externe de la carte avec 2 colonnes internes sur md+ */}
 			<Card className="overflow-hidden shadow-lg"> {/* Ajout ombre */}
 				<CardContent className="grid p-0 md:grid-cols-2">
 					{/* Colonne Formulaire (Gauche) */}
@@ -44,6 +59,13 @@ export function LoginForm() {
 									Connectez-vous à votre compte GestImmo Pro
 								</p>
 							</div>
+
+							{error && (
+								<Alert variant="destructive">
+									<AlertCircle className="h-4 w-4" />
+									<AlertDescription>{error}</AlertDescription>
+								</Alert>
+							)}
 
 							{/* Champs du formulaire gérés par RHF */}
 							<FormField
@@ -68,7 +90,7 @@ export function LoginForm() {
 										<div className="flex items-center">
 											<FormLabel>Mot de passe</FormLabel>
 											<Link
-												href="#" // TODO: Mettre en place la logique "mot de passe oublié"
+												href="/forgot-password" // TODO: Mettre en place la logique "mot de passe oublié"
 												className="ml-auto text-xs font-medium text-primary underline-offset-4 hover:underline"
 											>
 												Mot de passe oublié ?
@@ -82,9 +104,16 @@ export function LoginForm() {
 								)}
 							/>
 
-							<Button type="submit" className="w-full" disabled={isLoading}>
-								{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-								{isLoading ? 'Connexion...' : 'Se connecter'}
+							<Button
+								type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+								{form.formState.isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Connexion...
+									</>
+								) : (
+									"Se connecter"
+								)}
 							</Button>
 
 							{/* Séparateur */}
@@ -116,9 +145,9 @@ export function LoginForm() {
 								</Button>
 							</div> */}
 							{/* Fin des boutons sociaux */}
-							<div className="text-center text-sm">
-								Nouveau chez GestImmo Pro?{" "}
-								<Link href="/register" className="underline underline-offset-4">
+							<	div className="text-center text-sm">
+								Nouveau chez GestImmo Pro ?{" "}
+								<Link href="/register" className="underline underline-offset-4 hover:text-primary">
 									Créer un compte
 								</Link>
 							</div>
@@ -135,8 +164,8 @@ export function LoginForm() {
 							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
 							priority={true}
 							className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale-[50%]"
-							// width={800} // Fournir width/height si vous n'utilisez pas fill
-							// height={1000}
+						// width={800} // Fournir width/height si vous n'utilisez pas fill
+						// height={1000}
 						/>
 						{/* Optionnel: Ajouter une citation par dessus l'image */}
 						<div className="relative z-10 m-auto max-w-[80%] rounded-lg bg-black/50 p-6 text-white backdrop-blur-sm">
@@ -150,10 +179,6 @@ export function LoginForm() {
 					</div>
 				</CardContent>
 			</Card>
-			<div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
-				By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-				and <a href="#">Privacy Policy</a>.
-			</div>
 		</div>
 	);
 }

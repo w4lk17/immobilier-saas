@@ -3,114 +3,196 @@ import {
 	PropertyType,
 	PropertyStatus,
 	ContractStatus,
-	PaymentType,
-	PaymentStatus,
+	EmploymentType,
 	ExpenseType,
 	ExpenseStatus,
-} from './enums'; // Assurez-vous que le chemin vers vos enums est correct
+	LeaseType,
+	RentalType,
+	RentalStatus,
+	PaymentProvider,
+	PaymentTransactionStatus,
+	InvoiceType,
+	InvoiceStatus,
+} from './enums';
 
-// --- Types de base pour les utilisateurs (sans données sensibles) ---
+// ==========================================
+// BASE PROFILE TYPES
+// ==========================================
 
-export interface FrontendUserSnippet {
-	id: number;
-	email: string;
-	role: UserRole;
-	firstName?: string | null;
-	lastName?: string | null;
-	createdAt: Date | string;
-	updatedAt: Date | string;
-	// PAS de password ou hashedRefreshToken ici
-}
-
-// --- Full user object (with active flag) ---
-export interface FrontendUser extends FrontendUserSnippet {
-	isActive: boolean;
-	// Optionally include additional profile fields if the API returns them
-	// e.g. roles, lastLogin, etc.
-}
-// --- Types pour les profils liés aux utilisateurs ---
-
-export interface FrontendOwner {
+export interface Owner {
 	id: number;
 	userId: number;
-	phoneNumber?: string | null;
-	// Relation optionnelle (si incluse par l'API)
-	user?: FrontendUserSnippet | null;
-	// Relation optionnelle pour la liste des propriétés (généralement chargée séparément)
-	// properties?: FrontendProperty[];
+	user?: User; // Relation
 }
 
-export interface FrontendEmployee {
+export interface Manager {
 	id: number;
 	userId: number;
 	position: string;
-	phoneNumber?: string | null;
-	hireDate: Date | string;
-	// Relation optionnelle (si incluse par l'API)
-	user?: FrontendUserSnippet | null;
-	// Relations optionnelles (généralement chargées séparément)
-	// managedProperties?: FrontendProperty[];
-	// managedContracts?: FrontendContract[];
+	hireDate: string | Date;
+	terminationDate?: string | Date | null;
+	employmentType: EmploymentType;
+	user?: User; // Relation
 }
 
-export interface FrontendTenant {
+export interface Tenant {
 	id: number;
 	userId: number;
-	phoneNumber?: string | null;
-	// Relation optionnelle (si incluse par l'API)
-	user?: FrontendUserSnippet | null;
-	// Relations optionnelles (généralement chargées séparément)
-	// contracts?: FrontendContract[];
-	// payments?: FrontendPayment[];
+	oldAddress?: string | null;
+	user?: User; // Relation
 }
 
+// ==========================================
+// MAIN USER TYPE (Optimized Schema)
+// ==========================================
 
-// --- Types pour les entités principales ---
+export interface User {
+	id: number;
+	email: string;
+	role: UserRole;
+	firstName: string | null;
+	lastName: string | null;
+	phoneNumber: string | null;
+	civility: string | null;
+	dateOfBirth: Date | string | null;
+	address: string | null;
+	pictureUrl: string | null;
+	workPlace: string | null;
+	occupation: string | null;
+	identityDocumentNumber: string | null;
+	identityDocumentType: string | null;
+	identityDeliveryCity: string | null;
+	identityDeliveryDate: Date | string | null;
+	identityExpiryDate: Date | string | null;
+	pacLastName: string | null;
+	pacFirstName: string | null;
+	pacPhoneNumber: string | null;
+	isActive: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
 
-export interface FrontendProperty {
+	// Relations optionnelles (renvoyées par /users/me par exemple)
+	ownerProfile?: Owner | null;
+	managerProfile?: Manager | null;
+	tenantProfile?: Tenant | null;
+}
+
+// Type spécifique pour l'utilisateur courant (retour de GET /users/me)
+export interface CurrentUser extends User {
+	// On s'assure que les profils sont présents même si null
+	ownerProfile: Owner | null;
+	managerProfile: Manager | null;
+	tenantProfile: Tenant | null;
+}
+
+// ==========================================
+// MAIN ENTITY TYPES
+// ==========================================
+
+export interface Property {
 	id: number;
 	ownerId: number;
-	managerId?: number | null;
+	managerId: number | null;
 	address: string;
+	description: string | null;
 	type: PropertyType;
-	description?: string | null;
-	rentAmount: number;
-	charges: number;
+	propertyValue: number;
 	status: PropertyStatus;
 	createdAt: Date | string;
 	updatedAt: Date | string;
+
+	// Relations
+	owner?: Owner | null;
+	manager?: Manager | null;
+	rentals?: Rental[];
 }
 
-export interface FrontendContract {
+export interface Rental {
 	id: number;
 	propertyId: number;
+	name: string;
+	type: RentalType;
+	status: RentalStatus;
+	roomCount: number;
+	rentalValue: number;
+	charges: number;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+
+	// Relations
+	property?: Property;
+	contracts?: Contract[];
+	expenses?: Expense[];
+}
+
+export interface Contract {
+	id: number;
+	ownerId: number;
+	propertyId: number;
+	rentalId: number;
 	tenantId: number;
-	managerId: number;
+	managerId: number | null;
+	rentDeposit: number;
+	rentAdvance: number;
 	startDate: Date | string;
-	endDate?: Date | string | null;
+	endDate: Date | string | null;
+	dayAddToPaymentDay: number;
+	paymentStartAfter: number;
 	rentAmount: number;
 	depositAmount: number;
+	leaseType: LeaseType;
 	status: ContractStatus;
 	createdAt: Date | string;
 	updatedAt: Date | string;
+
+	// Relations
+	owner?: Owner;
+	property?: Property;
+	rental?: Rental;
+	tenant?: Tenant;
+	manager?: Manager | null;
+	invoices?: Invoice[];
 }
 
-export interface FrontendPayment {
+export interface Invoice {
 	id: number;
+	invoiceNumber: string;
 	contractId: number;
 	tenantId: number;
-	amount: number;
-	type: PaymentType;
-	status: PaymentStatus;
+	amountDue: number;
+	paidAmount: number;
+	type: InvoiceType;
+	status: InvoiceStatus;
 	dueDate: Date | string;
-	paidDate?: Date | string | null;
+	paidDate: Date | string | null;
 	createdAt: Date | string;
 	updatedAt: Date | string;
+
+	// Relations
+	contract?: Contract;
+	tenant?: Tenant;
+	transactions?: PaymentTransaction[];
 }
 
-export interface FrontendExpense {
+export interface PaymentTransaction {
+	id: number;
+	invoiceId: number;
+	provider: PaymentProvider;
+	providerRef: string | null;
+	amount: number;
+	status: PaymentTransactionStatus;
+	rawPayload: any | null;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+
+	invoice?: Invoice;
+}
+
+export interface Expense {
 	id: number;
 	propertyId: number;
+	rentalId: number | null;
+	recordedById: number;
 	amount: number;
 	description: string;
 	date: Date | string;
@@ -118,52 +200,104 @@ export interface FrontendExpense {
 	status: ExpenseStatus;
 	createdAt: Date | string;
 	updatedAt: Date | string;
+
+	// Relations
+	property?: Property;
+	rental?: Rental | null;
+	recordedBy?: User;
 }
 
+// ==========================================
+// RELATION TYPES (For Lists & Detailed Views)
+// ==========================================
 
-// --- Types combinés avec relations (utilisés pour les GET / GET by ID) ---
+// --- Types With User (Essential for displaying names) ---
 
-export interface PropertyWithRelations extends FrontendProperty {
-	owner?: FrontendOwner | null;
-	manager?: FrontendEmployee | null; // Manager est un Employee
-	// Ajoutez contracts/expenses ici si l'API les retourne systématiquement avec la propriété
-	// contracts?: FrontendContract[];
-	// expenses?: FrontendExpense[];
+export type OwnerWithUser = Owner & { user: User };
+export type ManagerWithUser = Manager & { user: User };
+export type TenantWithUser = Tenant & { user: User };
+
+// --- Types With Relations (For detailed pages) ---
+
+export interface PropertyWithRelations extends Property {
+	owner: OwnerWithUser;
+	manager: ManagerWithUser | null;
+	rentals?: Rental[];
+	_count?: { rentals: number; expenses: number };
 }
 
-export interface ContractWithRelations extends FrontendContract {
-	property?: FrontendProperty | null; // Relation vers la propriété de base
-	tenant?: FrontendTenant | null;
-	manager?: FrontendEmployee | null; // Manager est un Employee
-	// Ajoutez payments ici si nécessaire
-	// payments?: FrontendPayment[];
+export interface RentalWithRelations extends Rental {
+	property: Property;
+	contracts?: ContractWithRelations[];
+	_count?: { contracts: number; expenses: number };
 }
 
-export interface PaymentWithRelations extends FrontendPayment {
-	contract?: ContractWithRelations | null; // Relation vers le contrat de base
-	tenant?: FrontendTenant | null;
+export interface ContractWithRelations extends Contract {
+	tenant: TenantWithUser;
+	owner: OwnerWithUser;
+	manager: ManagerWithUser | null;
+	property: Property;
+	rental: Rental;
+	invoices?: Invoice[];
 }
 
-export interface ExpenseWithRelations extends FrontendExpense {
-	property?: FrontendProperty | null; // Relation vers la propriété de base
+export interface InvoiceWithRelations extends Invoice {
+	contract?: ContractWithRelations;
+	tenant: TenantWithUser;
+	transactions: PaymentTransaction[];
 }
 
-// Potentiellement des types pour les autres entités avec leurs relations si vos endpoints API
-// sont conçus pour retourner ces données imbriquées (moins courant pour les listes)
-export interface OwnerWithRelations extends FrontendOwner {
-	properties: FrontendProperty[];
+export interface ExpenseWithRelations extends Expense {
+	property: Property;
+	rental: Rental | null;
+	recordedBy: User;
 }
 
-export interface TenantWithRelations extends FrontendTenant {
-	contracts: FrontendContract[];
-	payments: FrontendPayment[];
+// ==========================================
+// EXTENDED RELATION TYPES (Pour les Dashboards)
+// ==========================================
+
+// Propriétaire avec ses biens (Pour le dashboard Owner)
+export interface OwnerWithRelations extends OwnerWithUser {
+	properties: Property[];
+	contracts: Contract[];
 }
 
-export interface EmployeeWithRelations extends FrontendEmployee {
-	managedProperties: FrontendProperty[];
-	managedContracts: FrontendContract[];
+// Locataire avec ses contrats/factures (Pour le dashboard Tenant)
+export interface TenantWithRelations extends TenantWithUser {
+	contracts: Contract[];
+	invoices: Invoice[];
 }
 
-// --- Type pour le Store d'Authentification ---
-// (Correspond à FrontendUserSnippet mais on lui donne un nom spécifique au store)
-export interface AuthUser extends FrontendUserSnippet { }
+// Employé avec ses assignations (Pour le dashboard Manager)
+export interface ManagerWithRelations extends ManagerWithUser {
+	managedProperties: Property[];
+	managedContracts: Contract[];
+}
+
+// ==========================================
+// AUTH TYPES
+// ==========================================
+
+export interface LoginDto {
+	email: string;
+	password: string;
+}
+
+export interface RegisterDto {
+	email: string;
+	password: string;
+	firstName: string;
+	lastName: string;
+	phoneNumber?: string;
+}
+
+// Type pour l'objet request.user (utilisateur courant léger)
+export interface RequestUser {
+	id: number;
+	email: string;
+	role: UserRole;
+	isActive: boolean;
+}
+
+export { UserRole };

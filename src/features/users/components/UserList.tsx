@@ -2,39 +2,41 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-
-import { Button } from "@/components/ui/button";
 import { Users, PlusCircle } from "lucide-react";
-import { FrontendUser } from "@/types";
+import { User } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
+import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
 import { userColumns } from './user.columns';
 import { UserDetailsModal } from './UserDetailsModal';
+import { useUpdateUserStatus } from '../hooks/useUsers.hooks';
 
 interface UserListProps {
-	users: FrontendUser[];
+	users: User[];
 }
 
 export function UserList({ users }: UserListProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [selectedUser, setSelectedUser] = useState<FrontendUser | null>(null);
+	const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-	const handleViewDetails = (user: FrontendUser) => {
+	// Hook pour gérer le switch Actif/Inactif
+	const { mutate: updateStatus, isPending: isUpdatingStatus } = useUpdateUserStatus();
+
+	const handleViewDetails = (user: User) => {
 		setSelectedUser(user);
 		setIsModalOpen(true);
 	};
 
+	// Fonction passée aux colonnes pour le Switch
+	const handleToggleStatus = (userId: number, currentStatus: boolean) => {
+		updateStatus({ id: userId, isActive: !currentStatus });
+	};
+
 	const emptyState = (
-		<div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-			<Users className="h-12 w-12 text-muted-foreground" />
-			<h3 className="text-xl font-semibold">Aucun utilisateur trouvé</h3>
-			<p className="text-muted-foreground">Commencez par ajouter un nouvel utilisateur.</p>
-			<Button asChild>
-				<Link href="/users/new">
-					<PlusCircle className="mr-2 h-4 w-4" /> Ajouter un utilisateur
-				</Link>
-			</Button>
-		</div>
+		<DataTableEmptyState
+			icon={Users}
+			title="Aucun utilisateur trouvé"
+			description="Les utilisateurs apparaîtront ici dès qu'ils seront créés via les profils Employés, Propriétaires ou Locataires."
+      />
 	);
 
 	return (
@@ -42,11 +44,15 @@ export function UserList({ users }: UserListProps) {
 			<DataTable
 				columns={userColumns}
 				data={users || []}
-				meta={{ viewDetails: handleViewDetails }}
-				searchColumn={'email'}
-				searchPlaceholder={'Rechercher par email...'}
-				newButtonHref={'/users/new'}
-				newButtonTitle={'Nouvel utilisateur'}
+				meta={{
+					viewDetails: handleViewDetails,
+					toggleStatus: handleToggleStatus,
+					isUpdatingStatus: isUpdatingStatus
+				 }}
+				searchPlaceholder='Rechercher par nom, email'
+				searchColumn='name'
+				enableExport={true}
+				exportFileName='utilisateurs'
 				emptyStateContent={emptyState}
 			/>
 

@@ -3,52 +3,92 @@
 
 export enum UserRole {
 	ADMIN = 'ADMIN',
-	EMPLOYEE = 'EMPLOYEE',
+	MANAGER = 'MANAGER',
 	OWNER = 'OWNER',
 	TENANT = 'TENANT',
 	USER = 'USER',
 }
 
 export enum PropertyType {
-	HOUSE = 'HOUSE',
 	APARTMENT = 'APARTMENT',
-	COMMERCIAL = 'COMMERCIAL',
+	BUILDING = 'BUILDING',
+	BUNGALOW = 'BUNGALOW',
+	DUPLEX = 'DUPLEX',
+	HOUSE = 'HOUSE',
 	LAND = 'LAND',
+	VILLA = 'VILLA',
+	OTHER = 'OTHER',
 }
 
 export enum PropertyStatus {
 	AVAILABLE = 'AVAILABLE',
-	RENTED = 'RENTED',
+	FOR_RENT = 'FOR_RENT',
 	MAINTENANCE = 'MAINTENANCE',
 	UNAVAILABLE = 'UNAVAILABLE',
 }
 
+export enum RentalType {
+	APARTMENT = 'APARTMENT',
+	STUDIO = 'STUDIO',
+	STORE = 'STORE',
+	VILLA = 'VILLA',
+}
+
+export enum RentalStatus {
+	AVAILABLE = 'AVAILABLE',
+	BOOKED = 'BOOKED',
+	MAINTENANCE = 'MAINTENANCE',
+	OCCUPIED = 'OCCUPIED',
+}
+
+/** Nature juridique du contrat de location */
+export enum LeaseType {
+	RESIDENTIAL_LEASE = 'RESIDENTIAL_LEASE',
+	COMMERCIAL_LEASE = 'COMMERCIAL_LEASE',
+	PROFESSIONAL_LEASE = 'PROFESSIONAL_LEASE',
+	FURNISHED_LEASE = 'FURNISHED_LEASE',
+}
+
 export enum ContractStatus {
-	DRAFT = 'DRAFT',
+	PENDING = 'PENDING',
 	ACTIVE = 'ACTIVE',
 	TERMINATED = 'TERMINATED',
 	EXPIRED = 'EXPIRED',
 }
 
-export enum PaymentType {
+export enum InvoiceType {
 	RENT = 'RENT',
+	CHARGE = 'CHARGE',
 	DEPOSIT = 'DEPOSIT',
-	CHARGES = 'CHARGES',
+	PENALTY = 'PENALTY',
 }
 
-export enum PaymentStatus {
+export enum InvoiceStatus {
 	PENDING = 'PENDING',
 	PAID = 'PAID',
-	LATE = 'LATE',
+	PARTIAL = 'PARTIAL',
+	OVERDUE = 'OVERDUE',
 	CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentProvider {
+	STRIPE='STRIPE',
+	MOBILE_MONEY = 'MOBILE_MONEY',
+}
+
+export enum PaymentTransactionStatus {
+	PENDING = 'PENDING',
+	SUCCESS = 'SUCCESS',
+	FAILED = 'FAILED',
+	REFUNDED = 'REFUNDED',
 }
 
 export enum ExpenseType {
 	MAINTENANCE = 'MAINTENANCE',
 	REPAIR = 'REPAIR',
-	TAXES = 'TAXES',
+	TAX = 'TAX',
 	INSURANCE = 'INSURANCE',
-	UTILITIES = 'UTILITIES',
+	UTILITY = 'UTILITY',
 	OTHER = 'OTHER',
 }
 
@@ -57,3 +97,13 @@ export enum ExpenseStatus {
 	PAID = 'PAID',
 	CANCELLED = 'CANCELLED',
 }
+
+/** Type de contrat pour les EMPLOYÉS (RH) */
+export enum EmploymentType {
+	CDI = 'CDI',
+	CDD = 'CDD',
+	INTERIM = 'INTERIM',
+	STAGE = 'STAGE',
+	OTHER = 'OTHER',
+}
+

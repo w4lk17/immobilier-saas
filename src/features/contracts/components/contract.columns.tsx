@@ -32,17 +32,7 @@ import { MoreHorizontal, Eye, Edit3, Trash2, EyeClosed, BookXIcon } from "lucide
 import { useDeleteContract } from '../hooks/useContracts.hooks';
 import { formatCurrency } from "@/lib/utils";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
-
-// Helper pour le statut du contrat
-const getContractStatusVariant = (status?: string) => {
-	switch (status) {
-		case 'ACTIVE': return 'success';
-		case 'EXPIRED': return 'outline';
-		case 'TERMINATED': return 'destructive';
-		case 'DRAFT': return 'secondary';
-		default: return 'default';
-	}
-};
+import { getStatusBadge } from "@/lib/statusHelpers";
 
 // Composant interne pour les actions pour utiliser les hooks
 function ContractActions({ row, table }: { row: Row<ContractWithRelations>, table: any }) {
@@ -221,7 +211,7 @@ export const contractColumns: ColumnDef<ContractWithRelations>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
-			return <Badge variant={getContractStatusVariant(status) as any}>{status}</Badge>;
+			return getStatusBadge(status, 'contract');
 		},
 		enableSorting: false,
 	},

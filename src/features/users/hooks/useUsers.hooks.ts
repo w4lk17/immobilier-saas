@@ -1,23 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
-	changeUserPassword,
-	createUser,
 	deleteUser,
 	getUserById,
 	getUsers,
 	updateUser,
+	updateUserStatus,
 } from "@/features/users/services/usersService";
-import {
-	PasswordChangeSchema,
-	UserCreateSchema,
-	UserUpdateSchema,
-} from "@/features/users/schemas/userSchemas";
+import { UserUpdateSchema } from "@/features/users/schemas/userSchemas";
 import { z } from "zod";
+import { User } from "@/types";
 
-// Query key factory
 export const USER_QUERY_KEYS = {
 	all: ["users"],
 	lists: () => [...USER_QUERY_KEYS.all, "list"],
@@ -26,96 +20,108 @@ export const USER_QUERY_KEYS = {
 	detail: (id: number) => [...USER_QUERY_KEYS.details(), id],
 };
 
-// Query hook for all users
+// Lister les users
 export const useUsers = () => {
 	return useQuery({
 		queryKey: USER_QUERY_KEYS.list(),
 		queryFn: () => getUsers(),
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 2,
+		staleTime: 5 * 60 * 1000,
 	});
 };
 
-// Query hook for single user
+// Voir un user
 export const useUser = (userId: number, enabled = true) => {
 	return useQuery({
 		queryKey: USER_QUERY_KEYS.detail(userId),
 		queryFn: () => getUserById(userId),
 		enabled,
-		staleTime: 5 * 60 * 1000,
-		retry: 2,
 	});
 };
 
-// Mutation hook for creating user
-export const useCreateUser = () => {
-	const queryClient = useQueryClient();
-	const router = useRouter();
-
-	return useMutation({
-		mutationFn: (data: z.infer<typeof UserCreateSchema>) => createUser(data),
-		onSuccess: () => {
-			toast.success("Utilisateur créé avec succès");
-			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-			router.push("/users");
-		},
-		onError: (error: any) => {
-			toast.error(error?.message || "Erreur lors de la création");
-		},
-	});
-};
-
-// Mutation hook for updating user
+// Modifier un user (Admin corrige les infos)
 export const useUpdateUser = () => {
 	const queryClient = useQueryClient();
-	const router = useRouter();
 
 	return useMutation({
 		mutationFn: ({ id, data }: { id: number; data: z.infer<typeof UserUpdateSchema> }) =>
 			updateUser(id, data),
 		onSuccess: (_, variables) => {
-			toast.success("Utilisateur mis à jour avec succès");
+			toast.success("Utilisateur mis à jour");
 			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
 			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(variables.id) });
-			router.push("/users");
 		},
 		onError: (error: any) => {
-			toast.error(error?.message || "Erreur lors de la mise à jour");
+			toast.error(error?.response?.data?.message || "Erreur lors de la mise à jour");
 		},
 	});
 };
 
-// Mutation hook for deleting user
+// Changer le statut (Switch Actif/Inactif)
+export const useUpdateUserStatus = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) =>
+			updateUserStatus(id, isActive),
+
+		// 1. ON MUTATE : Mise à jour optimiste (visuel immédiat)
+		onMutate: async ({ id, isActive }) => {
+			// Annule les requêtes en cours pour éviter de remplacer notre update
+			await queryClient.cancelQueries({ queryKey: USER_QUERY_KEYS.lists() });
+
+			// Capture l'état actuel pour pouvoir revenir en arrière si besoin
+			const previousUsers = queryClient.getQueryData(USER_QUERY_KEYS.lists());
+
+			// Met à jour le cache localement
+			queryClient.setQueryData(USER_QUERY_KEYS.lists(), (old: User[] | undefined) => {
+				if (!old) return [];
+				return old.map((user) =>
+					user.id === id ? { ...user, isActive } : user
+				);
+			});
+
+			return { previousUsers };
+		},
+
+		// 2. ON ERROR : Si le serveur dit "Non", on revient en arrière
+		onError: (err, variables, context) => {
+			// Rollback : on remet l'ancienne liste
+			if (context?.previousUsers) {
+				queryClient.setQueryData(USER_QUERY_KEYS.lists(), context.previousUsers);
+			}
+
+			// Toast d'erreur
+			toast.error("Erreur", {
+				description: "Impossible de changer le statut.",
+			});
+		},
+
+		// 3. ON SUCCESS : Tout s'est bien passé
+		onSuccess: () => {
+			// Toast de succès
+			toast.success("Statut mis à jour", {
+				description: "Le changement a été sauvegardé.",
+			});
+		},
+
+		// 4. ON SETTLED : Dans tous les cas, on resync avec le serveur
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+		},
+	});
+};
+// Supprimer un user
 export const useDeleteUser = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (id: number) => deleteUser(id),
 		onSuccess: () => {
-			toast.success("Utilisateur supprimé avec succès");
+			toast.success("Utilisateur supprimé définitivement");
 			queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
 		},
 		onError: (error: any) => {
-			toast.error(error?.message || "Erreur lors de la suppression");
-		},
-	});
-};
-
-// Mutation hook for changing password
-export const useChangePassword = () => {
-	return useMutation({
-		mutationFn: ({
-			id,
-			data,
-		}: {
-			id: number;
-			data: z.infer<typeof PasswordChangeSchema>;
-		}) => changeUserPassword(id, data),
-		onSuccess: () => {
-			toast.success("Mot de passe changé avec succès");
-		},
-		onError: (error: any) => {
-			toast.error(error?.message || "Erreur lors du changement de mot de passe");
+			toast.error(error?.response?.data?.message || "Erreur lors de la suppression");
 		},
 	});
 };

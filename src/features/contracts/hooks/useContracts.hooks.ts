@@ -3,37 +3,59 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import contractsService from '../services/contractsApi';
 import { ContractFormData, ContractUpdateFormData } from '../schemas/contractSchemas';
 import { toast } from "sonner";
-import { FrontendContract, ContractWithRelations } from '@/types';
+import { Contract, ContractWithRelations } from '@/types';
 
 export const CONTRACTS_QUERY_KEY = ['contracts'];
 
-// Hook pour la liste (peut nécessiter des filtres via query params)
-export function useContracts(/* filters: any = {} */) {
-	return useQuery<ContractWithRelations[], Error>({
-		queryKey: [CONTRACTS_QUERY_KEY /*, filters */], // Inclure les filtres dans la clé si utilisés
-		queryFn: () => contractsService.getContracts(/* filters */),
-		staleTime: 1000 * 60 * 3,
+// List queries
+export function useContracts() {
+	return useQuery<Contract[], Error>({
+		queryKey: CONTRACTS_QUERY_KEY,
+		queryFn: contractsService.getAll,
+		staleTime: 1000 * 60 * 5,
 	});
 }
 
+export function useContractsWithRelations() {
+	return useQuery<ContractWithRelations[], Error>({
+		queryKey: [...CONTRACTS_QUERY_KEY, 'with-relations'],
+		queryFn: contractsService.getAllWithRelations,
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// Detail queries
 export function useContract(contractId: number | null | undefined) {
-	return useQuery<ContractWithRelations, Error>({
+	return useQuery<Contract, Error>({
 		queryKey: [...CONTRACTS_QUERY_KEY, contractId],
 		queryFn: () => {
 			if (!contractId) throw new Error("ID contrat invalide");
-			return contractsService.getContractById(contractId);
+			return contractsService.getById(contractId);
 		},
 		enabled: !!contractId,
+		staleTime: 1000 * 60 * 5,
 	});
 }
 
+export function useContractWithRelations(contractId: number | null | undefined) {
+	return useQuery<ContractWithRelations, Error>({
+		queryKey: [...CONTRACTS_QUERY_KEY, contractId, 'with-relations'],
+		queryFn: () => {
+			if (!contractId) throw new Error("ID contrat invalide");
+			return contractsService.getByIdWithRelations(contractId);
+		},
+		enabled: !!contractId,
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// Mutation hooks
 export function useCreateContract() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendContract, Error, ContractFormData>({
-		mutationFn: (data) => contractsService.createContract(data),
+	return useMutation<ContractWithRelations, Error, ContractFormData>({
+		mutationFn: (data) => contractsService.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
-			// Invalider aussi la propriété liée pour MAJ son statut
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
 			toast.success("Contrat créé avec succès !");
 		},
@@ -45,12 +67,11 @@ export function useCreateContract() {
 
 export function useUpdateContract() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendContract, Error, { id: number; data: ContractUpdateFormData }>({
-		mutationFn: ({ id, data }) => contractsService.updateContract(id, data),
+	return useMutation<ContractWithRelations, Error, { id: number; data: ContractUpdateFormData }>({
+		mutationFn: ({ id, data }) => contractsService.update(id, data),
 		onSuccess: (updatedContract, variables) => {
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
 			queryClient.setQueryData([...CONTRACTS_QUERY_KEY, variables.id], updatedContract);
-			// Invalider la propriété liée si le statut change
 			queryClient.invalidateQueries({ queryKey: ['properties', updatedContract.propertyId] });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
 			toast.success("Contrat mis à jour avec succès !");
@@ -63,15 +84,12 @@ export function useUpdateContract() {
 
 export function useDeleteContract() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendContract, Error, number>({
-		mutationFn: (id) => contractsService.deleteContract(id),
-		onSuccess: (deletedContract, id) => {
-			toast.success(`Contrat ${id} supprimé avec succès !`);
+	return useMutation<void, Error, number>({
+		mutationFn: (id) => contractsService.delete(id),
+		onSuccess: (_, id) => {
+			toast.success(`Contrat supprimé avec succès !`);
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
-			// Invalider la propriété liée pour MAJ son statut
-			queryClient.invalidateQueries({ queryKey: ['properties', deletedContract.propertyId] });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
-			// Invalider les paiements liés
 			queryClient.invalidateQueries({ queryKey: ['payments'] });
 			queryClient.removeQueries({ queryKey: [...CONTRACTS_QUERY_KEY, id] });
 		},

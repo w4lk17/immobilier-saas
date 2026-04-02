@@ -5,7 +5,6 @@ import { type LucideIcon } from "lucide-react"
 import {
 	SidebarGroupContent,
 	SidebarGroup,
-	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,

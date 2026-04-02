@@ -7,36 +7,56 @@ import { FrontendProperty, PropertyWithRelations } from '@/types';
 
 export const PROPERTIES_QUERY_KEY = ['properties'];
 
-// Hook pour récupérer la liste des propriétés (avec relations)
+// List queries
 export function useProperties() {
-	return useQuery<PropertyWithRelations[], Error>({
+	return useQuery<FrontendProperty[], Error>({
 		queryKey: PROPERTIES_QUERY_KEY,
-		queryFn: propertiesService.getProperties,
-		staleTime: 1000 * 60 * 2, // Cache un peu moins longtemps peut-être
+		queryFn: propertiesService.getAll,
+		staleTime: 1000 * 60 * 5,
 	});
 }
 
-// Hook pour récupérer une propriété spécifique par ID (avec relations)
+export function usePropertiesWithRelations() {
+	return useQuery<PropertyWithRelations[], Error>({
+		queryKey: [...PROPERTIES_QUERY_KEY, 'with-relations'],
+		queryFn: propertiesService.getAllWithRelations,
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// Detail queries
 export function useProperty(propertyId: number | null | undefined) {
-	return useQuery<PropertyWithRelations, Error>({
+	return useQuery<FrontendProperty, Error>({
 		queryKey: [...PROPERTIES_QUERY_KEY, propertyId],
 		queryFn: () => {
 			if (!propertyId) throw new Error("ID de propriété invalide");
-			return propertiesService.getPropertyById(propertyId);
+			return propertiesService.getById(propertyId);
 		},
-		enabled: !!propertyId, // N'exécute que si propertyId a une valeur
+		enabled: !!propertyId,
+		staleTime: 1000 * 60 * 5,
 	});
 }
 
-// Hook pour créer une propriété
+export function usePropertyWithRelations(propertyId: number | null | undefined) {
+	return useQuery<PropertyWithRelations, Error>({
+		queryKey: [...PROPERTIES_QUERY_KEY, propertyId, 'with-relations'],
+		queryFn: () => {
+			if (!propertyId) throw new Error("ID de propriété invalide");
+			return propertiesService.getByIdWithRelations(propertyId);
+		},
+		enabled: !!propertyId,
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// Mutation hooks
 export function useCreateProperty() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendProperty, Error, PropertyFormData>({
-		mutationFn: (data: PropertyFormData) => propertiesService.createProperty(data),
+	return useMutation<PropertyWithRelations, Error, PropertyFormData>({
+		mutationFn: (data: PropertyFormData) => propertiesService.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: PROPERTIES_QUERY_KEY });
 			toast.success("Propriété créée avec succès !");
-			// Redirection ou fermeture de modal gérée dans le composant appelant
 		},
 		onError: (error: any) => {
 			toast.error(error.response?.data?.message || "Erreur lors de la création de la propriété.");
@@ -44,14 +64,13 @@ export function useCreateProperty() {
 	});
 }
 
-// Hook pour mettre à jour une propriété
 export function useUpdateProperty() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendProperty, Error, { id: number; data: PropertyUpdateFormData }>({
-		mutationFn: ({ id, data }) => propertiesService.updateProperty(id, data),
+	return useMutation<PropertyWithRelations, Error, { id: number; data: PropertyUpdateFormData }>({
+		mutationFn: ({ id, data }) => propertiesService.update(id, data),
 		onSuccess: (updatedProperty, variables) => {
 			queryClient.invalidateQueries({ queryKey: PROPERTIES_QUERY_KEY });
-			queryClient.setQueryData([...PROPERTIES_QUERY_KEY, variables.id], updatedProperty); // Met à jour le cache détail
+			queryClient.setQueryData([...PROPERTIES_QUERY_KEY, variables.id], updatedProperty);
 			toast.success("Propriété mise à jour avec succès !");
 		},
 		onError: (error: any) => {
@@ -60,18 +79,16 @@ export function useUpdateProperty() {
 	});
 }
 
-// Hook pour supprimer une propriété
 export function useDeleteProperty() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendProperty, Error, number>({
-		mutationFn: (id) => propertiesService.deleteProperty(id),
-		onSuccess: (deletedProperty, id) => {
-			toast.success(`Propriété ${id} supprimée avec succès !`);
+	return useMutation<void, Error, number>({
+		mutationFn: (id) => propertiesService.delete(id),
+		onSuccess: (_, id) => {
 			queryClient.invalidateQueries({ queryKey: PROPERTIES_QUERY_KEY });
-			// Invalider aussi contrats et dépenses liés potentiellement
 			queryClient.invalidateQueries({ queryKey: ['contracts'] });
 			queryClient.invalidateQueries({ queryKey: ['expenses'] });
 			queryClient.removeQueries({ queryKey: [...PROPERTIES_QUERY_KEY, id] });
+			toast.success(`Propriété supprimée avec succès !`);
 		},
 		onError: (error: any) => {
 			toast.error(error.response?.data?.message || "Erreur lors de la suppression de la propriété.");

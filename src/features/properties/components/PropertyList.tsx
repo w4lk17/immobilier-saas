@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Building2 } from "lucide-react";
 import { FrontendProperty, PropertyWithRelations } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
+import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
 import { propertyColumns } from './property.columns';
 import { PropertyDetailsModal } from './PropertyDetailsModal';
 
@@ -15,7 +16,7 @@ interface PropertyListProps {
 	properties: PropertyWithRelations[];
 }
 
-export function PropertyList({ properties /*, isLoading, isError */ }: PropertyListProps) {
+export function PropertyList({ properties }: PropertyListProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedProperty, setSelectedProperty] = useState<FrontendProperty | null>(null);
 
@@ -24,25 +25,16 @@ export function PropertyList({ properties /*, isLoading, isError */ }: PropertyL
 		setIsModalOpen(true);
 	};
 
-
 	const emptyState = (
-		<div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-			<Building2 className="h-12 w-12 text-muted-foreground" />
-			<h3 className="text-xl font-semibold">Aucun bien trouvée</h3>
-			<p className="text-muted-foreground">Commencez par ajouter un Bien (propriété).</p>
-			<Button asChild>
-				<Link href="/properties/new">
-					<PlusCircle className="mr-2 h-4 w-4" /> Ajouter un Bien (propriété)
-				</Link>
-			</Button>
-		</div>
+		<DataTableEmptyState
+			icon={Building2}
+			title="Aucun bien trouvé"
+			description="Commencez par ajouter un bien immobilier."
+			actionHref="/properties/new"
+			actionLabel="Ajouter un bien"
+			actionIcon={PlusCircle}
+		/>
 	);
-
-	// Si isLoading est vrai (géré par la page parente), vous pourriez afficher un squelette ici
-	// if (isLoading) return <PropertyTableSkeleton />; // Composant de squelette à créer
-
-	// Si erreur (gérée par la page parente), afficher un message
-	// if (isError) return <p>Erreur de chargement des propriétés.</p>;
 
 	return (
 		<div className='grid grid-cols-1 gap-4'>
@@ -51,9 +43,11 @@ export function PropertyList({ properties /*, isLoading, isError */ }: PropertyL
 				data={properties || []}
 				meta={{ viewDetails: handleViewDetails }}
 				searchPlaceholder='Rechercher par adresse'
-				searchColumn={'address'}
-				newButtonHref={'/properties/new'}
-				newButtonTitle={'Nouveau'}
+				searchColumn='address'
+				newButtonHref='/properties/new'
+				newButtonTitle='Nouveau'
+				enableExport={true}
+				exportFileName='biens-immobiliers'
 				emptyStateContent={emptyState} />
 
 			<PropertyDetailsModal

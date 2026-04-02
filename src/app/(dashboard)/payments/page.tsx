@@ -1,15 +1,34 @@
 "use client";
 
 import { Download, Terminal } from "lucide-react";
+import Link from "next/link";
 
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PaymentList } from "@/features/payments/components/PaymentList";
-import { usePayments } from "@/features/payments/hooks/usePayments.hooks";
+import { usePaymentsWithRelations } from "@/features/payments/hooks/usePayments.hooks";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Permission, hasPermission } from "@/lib/permissions";
 
 export default function PaymentsPage() {
-	const { data: payments, isLoading, isError, error } = usePayments();
+	const { data: payments, isLoading, isError, error } = usePaymentsWithRelations();
+	const { user } = useAuth();
+
+	const canRead = user && hasPermission(user.role, Permission.PAYMENTS_READ);
+	const canCreate = user && hasPermission(user.role, Permission.PAYMENTS_CREATE);
+
+	if (!canRead) {
+		return (
+			<Alert variant="destructive" className="max-w-2xl mx-auto">
+				<Terminal className="h-4 w-4" />
+				<AlertTitle>Accès refusé</AlertTitle>
+				<AlertDescription>
+					Vous n'avez pas la permission d'accéder à cette page.
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	if (isLoading) {
 		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
@@ -41,6 +60,13 @@ export default function PaymentsPage() {
 					>
 						<Download /> Exporter
 					</Button>
+					{canCreate && (
+						<Button asChild>
+							<Link href="/payments/new">
+								Ajouter un paiement
+							</Link>
+						</Button>
+					)}
 				</div>
 			</div>
 			<PaymentList payments={payments || []} />
