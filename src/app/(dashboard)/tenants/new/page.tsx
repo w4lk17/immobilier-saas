@@ -51,7 +51,7 @@ export default function NewTenantPage() {
 				onSubmit={handleSubmit}
 				isLoading={createTenantMutation.isPending}
 				submitButtonText="Créer le Profil Locataire"
-				usersForSelection={users?.filter(u => u.role === 'TENANT') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role === 'TENANT') || []} // Exemple de filtre pour ComboBox
 			/>
 		</div>
 

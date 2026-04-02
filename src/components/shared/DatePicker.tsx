@@ -35,6 +35,7 @@ export function DatePicker({ className, field }: DatePickerProps) {
 			<PopoverContent className="w-auto p-0" align="start">
 				<Calendar
 					mode="single"
+					required={true}
 					selected={field.value ?? undefined}
 					onSelect={field.onChange}
 					disabled={(date) =>

@@ -51,7 +51,7 @@ export default function NewEmployeePage() {
 				onSubmit={handleSubmit}
 				isLoading={createEmployeeMutation.isPending}
 				submitButtonText="Créer le Profil Employé"
-				usersForSelection={users?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
 			/>
 		</div>
 	);

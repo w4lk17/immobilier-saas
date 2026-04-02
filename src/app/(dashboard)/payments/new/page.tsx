@@ -48,13 +48,13 @@ export default function NewPaymentPage() {
 					<PresetActions /> */}
 				</div>
 			</div>
-			<PaymentForm
+			{/* <PaymentForm
 				onSubmit={handleSubmit}
 				isLoading={createPaymentMutation.isPending}
 				submitButtonText="Créer un paiement"
 				usersForSelection={users?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
 				propertiesForSelection={properties || []}
-			/>
+			/> */}
 		</div>
 	);
 }

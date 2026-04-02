@@ -49,7 +49,7 @@ export function ExpenseForm({
 			// On se base sur expenseUpdateSchema qui rend les champs optionnels
 			amount: initialData.amount,
 			description: initialData.description || '',
-			date: initialData.date,
+			date: new Date(initialData.date),
 			type: initialData.type,
 			status: initialData.status,
 		} : {
@@ -80,7 +80,7 @@ export function ExpenseForm({
 							<div className='bg-primary-foreground p-4 rounded-lg space-y-4'>
 
 								{/* INFORMATION */}
-								<h1 className='text-xl font-medium tracking-tight'>Information</h1>
+								{/* <h1 className='text-xl font-medium tracking-tight'>Information</h1>
 								<div className='grid grid-cols-1 gap-4'>
 									<div className='grid  sm:grid-cols-1 xl:grid-cols-3 gap-3'>
 										<FormField
@@ -179,16 +179,16 @@ export function ExpenseForm({
 									</div>
 
 
-								</div>
+								</div> */}
 								{/* Button */}
-								<div className='flex items-center mt-8 gap-2'>
+								{/* <div className='flex items-center mt-8 gap-2'>
 									<Button variant='outline'>
 										Annuler
 									</Button>
 									<Button type="submit">
 										Enregistrer
 									</Button>
-								</div>
+								</div> */}
 							</div>
 						</div>
 						{/* END FORM */}

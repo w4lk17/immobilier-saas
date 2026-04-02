@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import paymentsService from '../services/paymentsApi';
-import { PaymentFormData, UpdatePaymentFormData } from '../schemas/paymentSchemas';
+import { PaymentFormData, PaymentUpdateFormData } from '../schemas/paymentSchemas';
 import { toast } from "sonner";
 import { FrontendPayment, PaymentWithRelations } from '@/types';
 
@@ -44,7 +44,7 @@ export function useCreatePayment() {
 
 export function useUpdatePayment() {
 	const queryClient = useQueryClient();
-	return useMutation<FrontendPayment, Error, { id: number; data: UpdatePaymentFormData }>({
+	return useMutation<FrontendPayment, Error, { id: number; data: PaymentUpdateFormData }>({
 		mutationFn: ({ id, data }) => paymentsService.updatePayment(id, data),
 		onSuccess: (updatedPayment, variables) => {
 			queryClient.invalidateQueries({ queryKey: PAYMENTS_QUERY_KEY });

@@ -53,7 +53,7 @@ export default function NewExpensePage() {
 				onSubmit={handleSubmit}
 				isLoading={createExpenseMutation.isPending}
 				submitButtonText="Créer une dépense"
-				usersForSelection={users?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
 				propertiesForSelection={properties || []}
 			/>
 		</div>

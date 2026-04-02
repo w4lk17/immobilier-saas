@@ -51,7 +51,7 @@ export default function NewOwnerPage() {
 				onSubmit={handleSubmit}
 				isLoading={createOwnerMutation.isPending}
 				submitButtonText="Créer le Profil Propriétaire"
-				usersForSelection={users?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
 			/>
 		</div>
 

@@ -1,6 +1,6 @@
 
 import api from '@/lib/api';
-import { PaymentFormData, UpdatePaymentFormData } from '../schemas/paymentSchemas'; // Schemas à créer
+import { PaymentFormData, PaymentUpdateFormData } from '../schemas/paymentSchemas'; // Schemas à créer
 import { FrontendPayment, PaymentWithRelations } from '@/types'; // Importer les types frontend
 
 const paymentsService = {
@@ -21,7 +21,7 @@ const paymentsService = {
 	},
 
 	// Utilise un type différent pour l'update (UpdatePaymentDto backend)
-	async updatePayment(id: number, data: UpdatePaymentFormData): Promise<FrontendPayment> {
+	async updatePayment(id: number, data: PaymentUpdateFormData): Promise<FrontendPayment> {
 		const response = await api.patch<FrontendPayment>(`/payments/${id}`, data);
 		return response.data;
 	},

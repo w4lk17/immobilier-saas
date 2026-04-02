@@ -51,9 +51,9 @@ export default function NewContractPage() {
 				onSubmit={handleSubmit}
 				isLoading={createContractMutation.isPending}
 				submitButtonText="Créer le Contrat"
-				usersForSelection={users?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role !== 'USER') || []} // Exemple de filtre pour ComboBox
 			/>
 		</div>
 
 	);
-}
+}	

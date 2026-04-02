@@ -18,7 +18,7 @@ export default function NewPropertyPage() {
 	const handleSubmit = async (data: PropertyFormData | PropertyUpdateFormData) => {
 		if ('ownerId' in data && typeof data.ownerId === 'number') {
 				// TypeScript sait maintenant que 'data' est PropertyFormData dans ce bloc
-				await createPropertyMutation.mutateAsync(data);
+				await createPropertyMutation.mutateAsync(data as unknown as PropertyFormData);
 				router.push("/properties");
 			} else {
 				console.error("Structure de données inattendue pour la création d'un Bien:", data);
@@ -51,7 +51,7 @@ export default function NewPropertyPage() {
 				onSubmit={handleSubmit}
 				isLoading={createPropertyMutation.isPending}
 				submitButtonText="Créer le Profil Bien"
-				usersForSelection={users?.filter(u => u.role === 'USER') || []} // Exemple de filtre pour ComboBox
+				usersForSelection={users?.data?.filter(u => u.role === 'USER') || []} // Exemple de filtre pour ComboBox
 			/>
 		</div>
 
