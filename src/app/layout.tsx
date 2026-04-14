@@ -10,7 +10,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 
 
 export const metadata: Metadata = {
-  title: "EstateFlow - Gestion Immobilière",
+  title: "Hofeti - Gestion Immobilière",
   description: "Plateforme SaaS de gestion immobilière pour propriétaires, gestionnaires et locataires",
 };
 
@@ -22,11 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
+        {/* <script
           async
           crossOrigin="anonymous"
           src="https://tweakcn.com/live-preview.min.js"
-        />
+        /> */}
       </head>
       <body
         className={cn(
@@ -41,8 +41,8 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <QueryClientProvider> {/* Pour React Query */}
-              <AuthProvider> {/* Gère l'état d'auth */}
+            <QueryClientProvider>
+              <AuthProvider>
                 {children}
                 <ToasterProvider />
               </AuthProvider>

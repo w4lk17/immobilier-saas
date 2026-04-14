@@ -12,11 +12,24 @@ import {
 	MapPin,
 	LayoutDashboard,
 	User,
+	ArrowRight,
 } from 'lucide-react';
 import { ModeSwitcher } from '@/components/shared/ModeSwitcher';
+import { UserDropdown } from '@/components/shared/UserDropdown';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getRoleRedirectPath } from '@/lib/authUtils';
 
+
+interface PublicNavItem {
+	label: string;
+	href: string;
+}
+
+const publicNavItems: PublicNavItem[] = [
+	{ label: "Comment ça marche ?", href: "#how" },
+	{ label: "Fonctionnalités", href: "#fonctionnalités" },
+	{ label: "Tarifs", href: "#tarifs" },
+];
 
 // Navigation Header
 function LandingHeader() {
@@ -46,17 +59,17 @@ function LandingHeader() {
 						<div className="absolute inset-0 bg-primary/20 blur-lg rounded-full group-hover:bg-primary/30 transition-all duration-300" />
 						<Building className="h-8 w-8 text-primary relative z-10" />
 					</div>
-					<span className="text-xl font-bold text-foreground tracking-tight">EstateFlow</span>
+					<span className="text-xl font-bold text-foreground tracking-tight">Hofeti</span>
 				</Link>
 
 				<nav className="hidden lg:flex items-center space-x-8">
-					{['Fonctionnalités', 'Tarifs', 'Témoignages'].map((item) => (
+					{publicNavItems.map((item) => (
 						<Link
-							key={item}
-							href={`#${item.toLowerCase()}`}
+							key={item.label}
+							href={item.href}
 							className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors relative group"
 						>
-							{item}
+							{item.label}
 							<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
 						</Link>
 					))}
@@ -67,18 +80,12 @@ function LandingHeader() {
 					<div className="hidden sm:flex items-center space-x-3">
 						{isAuthenticated ? (
 							<>
-								<Button variant="outline" asChild>
-									<Link href="/profile">
-										<User className="h-4 w-4 mr-2" />
-										{user?.firstName || 'Mon Compte'}
-									</Link>
-								</Button>
 								<Button asChild className="font-semibold px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
 									<Link href={dashboardPath}>
-										<LayoutDashboard className="h-4 w-4 mr-2" />
 										Tableau de Bord
 									</Link>
 								</Button>
+								<UserDropdown />
 							</>
 						) : (
 							<>
@@ -86,7 +93,10 @@ function LandingHeader() {
 									<Link href="/login">Connexion</Link>
 								</Button>
 								<Button asChild className="font-semibold px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-									<Link href="/register">Essai Gratuit</Link>
+									<Link href="/login">
+										Commencer
+										<ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+									</Link>
 								</Button>
 							</>
 						)}
@@ -104,14 +114,14 @@ function LandingHeader() {
 			{isMobileMenuOpen && (
 				<div className="lg:hidden bg-background/98 backdrop-blur-xl border-t border-border">
 					<nav className="container mx-auto px-4 py-6 flex flex-col space-y-4">
-						{['Fonctionnalités', 'Tarifs', 'Témoignages'].map((item) => (
+						{publicNavItems.map((item) => (
 							<Link
-								key={item}
-								href={`#${item.toLowerCase()}`}
+								key={item.label}
+								href={item.href}
 								className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
 								onClick={() => setIsMobileMenuOpen(false)}
 							>
-								{item}
+								{item.label}
 							</Link>
 						))}
 						<div className="flex flex-col space-y-3 pt-4 border-t border-border">
@@ -125,7 +135,6 @@ function LandingHeader() {
 									</Button>
 									<Button asChild className="font-semibold">
 										<Link href={dashboardPath}>
-											<LayoutDashboard className="h-4 w-4 mr-2" />
 											Tableau de Bord
 										</Link>
 									</Button>
@@ -136,7 +145,10 @@ function LandingHeader() {
 										<Link href="/login">Connexion</Link>
 									</Button>
 									<Button asChild className="font-semibold">
-										<Link href="/register">Essai Gratuit</Link>
+										<Link href="/login">
+											Commencer
+											<ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+										</Link>
 									</Button>
 								</>
 							)}
@@ -157,17 +169,18 @@ function LandingFooter() {
 					<div>
 						<Link href="/" className="flex items-center space-x-3 mb-6">
 							<Building className="h-7 w-7 text-primary" />
-							<span className="text-lg font-bold text-foreground">EstateFlow</span>
+							<span className="text-lg font-bold text-foreground">Hofeti</span>
 						</Link>
 						<p className="text-muted-foreground text-sm leading-relaxed mb-6">
-							Simplifiez vos opérations de gestion immobilière avec notre plateforme tout-en-un de confiance par des milliers de propriétaires.
+						Simplifiez vos opérations de gestion locative avec notre plateforme de gestion des loyers 
+							tout-en-un de confiance par des professionnels du secteur.
 						</p>
 					</div>
 
 					<div>
-						<h4 className="text-foreground font-semibold mb-4">Produit</h4>
+						<h4 className="text-foreground font-semibold mb-4">Liens rapides</h4>
 						<ul className="space-y-3">
-							{['Fonctionnalités', 'Tarifs', 'Intégrations', 'API'].map((item) => (
+							{['Fonctionnalités', 'Tarifs'].map((item) => (
 								<li key={item}>
 									<Link href="#" className="text-muted-foreground hover:text-primary text-sm transition-colors">
 										{item}
@@ -180,7 +193,7 @@ function LandingFooter() {
 					<div>
 						<h4 className="text-foreground font-semibold mb-4">Entreprise</h4>
 						<ul className="space-y-3">
-							{['À Propos', 'Carrières', 'Blog', 'Contact'].map((item) => (
+							{['À Propos', 'Contact'].map((item) => (
 								<li key={item}>
 									<Link href="#" className="text-muted-foreground hover:text-primary text-sm transition-colors">
 										{item}
@@ -195,7 +208,7 @@ function LandingFooter() {
 						<ul className="space-y-3">
 							<li className="flex items-center space-x-3 text-muted-foreground text-sm">
 								<Mail className="h-4 w-4 text-primary" />
-								<span>support@estateflow.com</span>
+								<span>support@Hofeti.com</span>
 							</li>
 							<li className="flex items-center space-x-3 text-muted-foreground text-sm">
 								<Phone className="h-4 w-4 text-primary" />
@@ -211,7 +224,7 @@ function LandingFooter() {
 
 				<div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
 					<p className="text-muted-foreground text-sm">
-						© {new Date().getFullYear()} EstateFlow. Tous droits réservés.
+						© {new Date().getFullYear()} Hofeti. Tous droits réservés.
 					</p>
 					<div className="flex space-x-6">
 						{['Politique de Confidentialité', 'Conditions d\'Utilisation', 'Politique de Cookies'].map((item) => (
