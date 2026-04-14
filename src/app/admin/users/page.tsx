@@ -58,8 +58,8 @@ export default function UsersPage() {
 	return (
 		<div className="space-y-6 p-4">
 			<PageHeader
-			title="Gestion des utilisateurs"
-			description="Gérez les comptes utilisateurs et assignez les rôles"
+			title="Listes des utilisateurs"
+			description="Gérez un compte utilisateur"
 			/>
 			
 			<UserList users={users} />

@@ -62,10 +62,10 @@ export default function AdminDashboardPage() {
 						<Shield className="h-3 w-3" />
 						Admin
 					</Badge>
-					<Badge variant="outline" className="gap-1 text-green-600 border-green-600">
+					{/* <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
 						<CheckCircle className="h-3 w-3" />
 						{stats.systemHealth}
-					</Badge>
+					</Badge> */}
 				</div>
 			</div>
 
@@ -94,7 +94,7 @@ export default function AdminDashboardPage() {
 					</CardContent>
 				</Card>
 
-				{/* Total Managers */}
+				{/* Total Gestionnaire */}
 				<Card className="overflow-hidden">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Employés</CardTitle>
@@ -243,10 +243,9 @@ export default function AdminDashboardPage() {
 							{systemMetrics.map((metric, index) => (
 								<div key={index} className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
-										<div className={`h-2 w-2 rounded-full ${metric.status === 'good' ? 'bg-green-500' :
-											metric.status === 'warning' ? 'bg-yellow-500' :
-												'bg-red-500'
-											}`}></div>
+										<div className={`h-2 w-2 rounded-full ${metric.status === 'good' ? 'bg-green-500' : metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+											}`}>
+										</div>
 										<span className="text-sm font-medium">{metric.label}</span>
 									</div>
 									<div className="flex items-center gap-2">

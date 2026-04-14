@@ -6,9 +6,9 @@ import { useDeleteManager } from '../hooks/useManagers.hooks';
 import { useState } from "react";
 import { ColumnDef, Row } from "@tanstack/react-table";
 
-import { Manager, FrontendUserSnippet } from "@/types";
+import { Manager } from "@/types";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { formatDate } from "@/lib/dateUtils";
+import { formatDate, getRelativeTime } from "@/lib/dateUtils";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Permission, hasPermission } from "@/lib/permissions";
 import {
@@ -29,13 +29,8 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
+import { Switch } from "@/components/ui/switch";
 
-// Étendre TableMeta pour inclure notre fonction
-declare module '@tanstack/react-table' {
-	interface TableMeta<TData extends unknown> {
-		viewDetails?: (rowData: TData) => void;
-	}
-}
 
 function ManagerActions({ row, table }: { row: Row<Manager>, table: any }) {
 	const manager = row.original;
@@ -54,12 +49,8 @@ function ManagerActions({ row, table }: { row: Row<Manager>, table: any }) {
 	}
 
 	const openViewModal = () => {
-		if (table?.options?.meta?.viewDetails) {
-			table.options.meta.viewDetails(manager);
-			setIsDropdownOpen(false);
-		} else {
-			console.warn('viewDetails function not found in table meta');
-		}
+		table?.options?.meta?.viewDetails?.(manager);
+		setIsDropdownOpen(false);
 	};
 
 	return (
@@ -120,7 +111,7 @@ function ManagerActions({ row, table }: { row: Row<Manager>, table: any }) {
 				<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>Supprimer cet employé ?</AlertDialogTitle>
+							<AlertDialogTitle>Supprimer ce gestionnaire ?</AlertDialogTitle>
 							<AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
@@ -146,7 +137,7 @@ export const managerColumns: ColumnDef<Manager>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
 		accessorFn: row => `${row.user?.firstName || ''} ${row.user?.lastName || ''}`.trim() || 'N/A',
 		cell: ({ row }) => {
-			const user = row.original.user as FrontendUserSnippet | undefined;
+			const user = row.original.user;
 			const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'N/A';
 			return <div className="font-medium">{name}</div>;
 		},
@@ -157,35 +148,74 @@ export const managerColumns: ColumnDef<Manager>[] = [
 		accessorFn: row => row.user?.email || 'N/A',
 		enableSorting: false,
 	},
-	{
-		accessorKey: "position",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Position" />,
-		enableSorting: false,
-	},
-	{
-		accessorKey: "phoneNumber",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
-		cell: ({ row }) => row.getValue("phoneNumber") || '-',
-		enableSorting: false,
-	},
+	// {
+	// 	accessorKey: "position",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Position" />,
+	// 	accessorFn:row =>row.position,
+	// 	enableSorting: false,
+	// },
+	
+		{
+			id: "phoneNumber",
+			header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
+			accessorFn: row => row.user?.phoneNumber || '-',
+			cell: ({ row }) => {
+				const user = row.original.user;
+				return <span>{user?.phoneNumber || '-'}</span>;
+			},
+			enableSorting: false,
+		},
 	{
 		accessorKey: "status",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
-		cell: ({ row }) => row.getValue("status") || '-',
+		cell: ({ row, table }) => {
+			const manager = row.original;
+			const toggleStatus = table.options.meta?.toggleStatus;
+			const isUpdatingStatus = table.options.meta?.isUpdatingStatus;
+
+			return (
+				<div className="flex items-center gap-2">
+					<Switch
+						checked={manager.user?.isActive}
+						onCheckedChange={() => toggleStatus?.(manager.id, !!manager.user?.isActive)}
+						disabled={isUpdatingStatus}
+						aria-label="Changer le statut"
+					/>
+					<span className="text-xs text-muted-foreground">
+						{manager.user?.isActive ? "Actif" : "Inactif"}
+					</span>
+				</div>
+			);
+		},
 		enableSorting: false,
 	},
 	{
-		accessorKey: "hireDate",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Date d'embauche" />,
-		cell: ({ row }) => formatDate(row.getValue("hireDate")),
+		id: "createdAt",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Créé le" />,
+		accessorFn: row => row.user?.createdAt ?? null,
+		cell: ({ row }) => {
+			const dateValue = row.original.user?.createdAt;
+			const relative = formatDate(dateValue);
+			return (
+				<div className="text-sm text-muted-foreground">
+					{relative || "-"}
+				</div>
+			);
+		},
 		enableSorting: false,
 	},
-	{
-		accessorKey: "terminationDate",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Date de fin" />,
-		cell: ({ row }) => formatDate(row.getValue("terminationDate") ?? null),
-		enableSorting: false,
-	},
+	// {
+	// 	accessorKey: "hireDate",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Date d'embauche" />,
+	// 	cell: ({ row }) => formatDate(row.getValue("hireDate")),
+	// 	enableSorting: false,
+	// },
+	// {
+	// 	accessorKey: "terminationDate",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Date de fin" />,
+	// 	cell: ({ row }) => formatDate(row.getValue("terminationDate") || '-'),
+	// 	enableSorting: false,
+	// },
 	{
 		id: "actions",
 		cell: ({ row, table }) => <ManagerActions row={row} table={table} />,

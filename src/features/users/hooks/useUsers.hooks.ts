@@ -99,9 +99,7 @@ export const useUpdateUserStatus = () => {
 		// 3. ON SUCCESS : Tout s'est bien passé
 		onSuccess: () => {
 			// Toast de succès
-			toast.success("Statut mis à jour", {
-				description: "Le changement a été sauvegardé.",
-			});
+			toast.success("Statut mis à jour");
 		},
 
 		// 4. ON SETTLED : Dans tous les cas, on resync avec le serveur

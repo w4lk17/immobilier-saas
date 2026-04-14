@@ -28,8 +28,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { useDeleteUser } from '../hooks/useUsers.hooks';
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import { getRelativeTime } from "@/lib/dateUtils";
+import { formatDate, getRelativeTime } from "@/lib/dateUtils";
 import { Switch } from "@/components/ui/switch";
+import { getRoleName } from "@/lib";
 
 const roleColors: Record<string, string> = {
 	ADMIN: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
@@ -143,7 +144,7 @@ export const userColumns: ColumnDef<User>[] = [
 			const role = row.getValue("role") as string;
 			return (
 				<Badge className={`${roleColors[role] || roleColors.USER}`}>
-					{role}
+					{getRoleName(role)}
 				</Badge>
 			);
 		},
@@ -155,7 +156,7 @@ export const userColumns: ColumnDef<User>[] = [
 		accessorFn: row => row.createdAt ?? null,
 		cell: ({ row }) => {
 			const dateValue = row.original.createdAt;
-			const relative = getRelativeTime(dateValue);
+			const relative = formatDate(dateValue);
 			return (
 				<div className="text-sm text-muted-foreground">
 					{relative || "Inconnu"}

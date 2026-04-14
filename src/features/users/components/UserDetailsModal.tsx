@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, formatDate } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatDateTime } from "@/lib/dateUtils";
+import { getRoleName } from "@/lib";
 
 interface UserDetailsModalProps {
 	user: User | null;
@@ -55,7 +56,7 @@ export function UserDetailsModal({ user, isOpen, onOpenChange }: UserDetailsModa
 							<label className="text-sm font-medium text-muted-foreground">Rôle</label>
 							<div className="mt-1">
 								<Badge className={`${roleColors[user.role] || roleColors.USER}`}>
-									{user.role}
+									{getRoleName(user.role)}
 								</Badge>
 							</div>
 						</div>

@@ -300,4 +300,4 @@ export interface RequestUser {
 	isActive: boolean;
 }
 
-export { UserRole };
+export { UserRole, EmploymentType };

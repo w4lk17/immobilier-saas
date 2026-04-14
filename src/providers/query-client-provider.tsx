@@ -22,7 +22,7 @@ export function QueryClientProvider({ children }: { children: React.ReactNode })
 		<TanstackQueryClientProvider client={queryClient}>
 			{children}
 			{/* Outils de dev pour React Query (uniquement en dév) */}
-			{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+			{/* {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />} */}
 		</TanstackQueryClientProvider>
 	);
 }

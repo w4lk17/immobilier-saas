@@ -4,23 +4,26 @@ import { ArrowLeftCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { ManagerForm } from "@/features/managers/components/ManagerForm";
+
 import { useCreateManager } from "@/features/managers/hooks/useManagers.hooks";
-import { ManagerFormData, ManagerUpdateFormData } from "@/features/managers/schemas/managerSchemas";
-import { useUsers } from "@/features/users/hooks/useUsers.hooks";
+import { UpdateManagerFormData, CreateManagerFormData } from "@/features/managers/schemas/managerSchemas";
 import { Button } from "@/components/ui/button";
+import { ManagerForm } from "@/features/managers/components/ManagerForm";
 
 export default function NewManagerPage() {
 	const router = useRouter();
 	const createManagerMutation = useCreateManager();
-	const { data: users } = useUsers();
 
-	const handleSubmit = async (data: ManagerFormData | ManagerUpdateFormData) => {
-		if ('userId' in data && typeof data.userId === 'number' && 'position' in data) {
-			await createManagerMutation.mutateAsync(data);
+	const handleSubmit = async (data: CreateManagerFormData | UpdateManagerFormData) => {
+		// VALIDATION CORRECTE pour la nouvelle architecture
+		// En mode création, le formulaire DOIT contenir email et password
+		if ('email' in data && 'password' in data) {
+			// On cast explicitement pour TypeScript car on a vérifié la présence des champs
+			await createManagerMutation.mutateAsync(data as CreateManagerFormData);
 			router.push("/admin/managers");
 		} else {
-			console.error("Structure de données inattendue pour la création d'un gestionnaire:", data);
+			// Ce cas ne devrait pas arriver sur cette page car le formulaire est en mode création
+			console.error("Structure de données invalide pour la création :", data);
 		}
 	};
 
@@ -43,7 +46,6 @@ export default function NewManagerPage() {
 				onSubmit={handleSubmit}
 				isLoading={createManagerMutation.isPending}
 				submitButtonText="Créer le Profil Gestionnaire"
-				usersForSelection={users || []}
 			/>
 		</div>
 	);

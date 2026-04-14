@@ -48,21 +48,21 @@ const adminNavItems = [
 		url: "/admin/managers",
 		icon: UserRoundCog,
 	},
-	{
-		title: "Paramètres",
-		url: "/admin/settings",
-		icon: Settings,
-	},
-	{
-		title: "Système",
-		url: "/admin/system",
-		icon: Shield,
-	},
-	{
-		title: "Rapports",
-		url: "/manager/reports",
-		icon: FileChartColumn,
-	},
+	// {
+	// 	title: "Paramètres",
+	// 	url: "/admin/settings",
+	// 	icon: Settings,
+	// },
+	// {
+	// 	title: "Système",
+	// 	url: "/admin/system",
+	// 	icon: Shield,
+	// },
+	// {
+	// 	title: "Rapports",
+	// 	url: "/manager/reports",
+	// 	icon: FileChartColumn,
+	// },
 ];
 
 const managerNavItems = [
@@ -101,11 +101,11 @@ const managerNavItems = [
 		url: "/manager/expenses",
 		icon: Hourglass,
 	},
-	{
-		title: "Rapports",
-		url: "/manager/reports",
-		icon: FileChartColumn,
-	},
+	// {
+	// 	title: "Rapports",
+	// 	url: "/manager/reports",
+	// 	icon: FileChartColumn,
+	// },
 ];
 
 const tenantNavItems = [
@@ -225,7 +225,7 @@ export function AppSidebar({
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
 				<AppName teams={{
-					name: "EstateFlow",
+					name: "Hofeti",
 					logo: Command,
 					plan: user?.role || "Free",
 				}} />
