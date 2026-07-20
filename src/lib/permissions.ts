@@ -25,8 +25,10 @@ export enum Permission {
 	// Contracts
 	CONTRACTS_READ = 'contracts:read',
 	CONTRACTS_CREATE = 'contracts:create',
-	CONTRACTS_APPROVE = 'contracts:approve',
+	CONTRACTS_UPDATE = 'contracts:update',
 	CONTRACTS_DELETE = 'contracts:delete',
+	CONTRACTS_APPROVE = 'contracts:approve',
+	CONTRACTS_TERMINATE = 'contracts:terminate',
 
 	// Owners
 	OWNERS_READ = 'owners:read',
@@ -52,11 +54,12 @@ export enum Permission {
 	EXPENSES_UPDATE = 'expenses:update',
 	EXPENSES_DELETE = 'expenses:delete',
 
-	// Invoices (Anciennement Payments)
+	// Invoices 
 	INVOICES_READ = 'invoices:read',
 	INVOICES_CREATE = 'invoices:create',
 	INVOICES_UPDATE = 'invoices:update',
 	INVOICES_DELETE = 'invoices:delete',
+	INVOICES_CANCEL = 'invoices:cancel',
 
 	// Reports
 	REPORTS_VIEW = 'reports:view',
@@ -68,6 +71,10 @@ export enum Permission {
  * Role-based permission mapping
  */
 const rolePermissions: Record<UserRole, Permission[]> = {
+	[UserRole.S_ADMIN]: [
+		// Super Admin have all permissions
+		...Object.values(Permission),
+	],
 	[UserRole.ADMIN]: [
 		// Admins have all permissions
 		...Object.values(Permission),
@@ -86,7 +93,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
 
 		Permission.CONTRACTS_READ,
 		Permission.CONTRACTS_CREATE,
+		Permission.CONTRACTS_UPDATE,
 		Permission.CONTRACTS_APPROVE,
+		Permission.CONTRACTS_TERMINATE,
 		Permission.CONTRACTS_DELETE,
 
 		Permission.OWNERS_READ, // Read only sur les owners
@@ -102,6 +111,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
 		Permission.INVOICES_READ,
 		Permission.INVOICES_CREATE,
 		Permission.INVOICES_UPDATE,
+		Permission.INVOICES_CANCEL,
 
 		Permission.REPORTS_VIEW,
 	],

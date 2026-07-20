@@ -21,13 +21,13 @@ interface AuthState {
 const useAuthStore = create<AuthState>((set, get) => ({
 	user: null,
 	isAuthenticated: false,
-	isLoading: true, // Commence en chargement pour le check initial
+	isLoading: true, 
 
 	setUser: (user) => set({ user: user, isAuthenticated: !!user, isLoading: false }),
 	setLoading: (loading) => set({ isLoading: loading }),
 
 	isAdmin: () => get().user?.role === 'ADMIN',
-	canManageUsers: () => get().user?.role === 'ADMIN', // Only admins can manage users
+	canManageUsers: () => get().user?.role === 'ADMIN', 
 
 	getDashboardPath: () => getRoleRedirectPath(get().user),
 	getRoleName: () => getRoleName(get().user?.role || ''),

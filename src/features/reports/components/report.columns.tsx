@@ -24,7 +24,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Eye, Edit3, Trash2, ArrowUpDown } from "lucide-react";
+import { MoreVertical, Eye, Edit3, Trash2, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 import { useDeletePayment } from '../hooks/usePayments.hooks';
 import { format } from 'date-fns';
@@ -48,7 +48,7 @@ function PaymentActionsCell({ paymentId }: { paymentId: number }) {
 	return (
 		<AlertDialog>
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+				<DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
 					{/* Un paiement n'a pas toujours une page "Voir" dédiée, mais peut-être un modal de détail */}

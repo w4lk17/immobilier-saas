@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormField, FormMessage, FormItem, FormControl, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
@@ -10,65 +9,67 @@ import { useForm } from "react-hook-form";
 
 export function ForgotPasswordForm() {
 
-  const form = useForm<{ email: string }>({ });
+  const form = useForm<{ email: string }>({
+    defaultValues: { email: "" },
+  });
 
-  async function onSubmit() {} //TODO:
+  async function onSubmit() {
+
+  } 
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden shadow-lg ">
-        <CardContent className="p-0">
-          <Form {...form}>
-            <form
-              className="flex flex-col gap-8 p-6 md:p-8"
-              onSubmit={form.handleSubmit(onSubmit)}
-            >
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold tracking-tight">Mot de passe oublié&nbsp;?</h1>
-                <p className="text-balance text-sm text-muted-foreground">
-                  Saisissez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-                </p>
-              </div>
+    <div className="space-y-6">
+      <div className="space-y-2 text-center lg:text-left">
+        <h1 className="text-2xl font-semibold tracking-tight">Mot de passe oublie ?</h1>
+        <p className="text-sm text-muted-foreground">
+          Saisissez votre adresse email pour recevoir un lien de réinitialisation.
+        </p>
+      </div>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="m@example.com" {...field} type="email" autoComplete="email" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <Form {...form}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="m@example.com" {...field} type="email" autoComplete="email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <Button
-                type="submit" className="w-full"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Envoi en cours...
-                  </>
-                ) : (
-                  "Envoyer le lien de réinitialisation"
-                )}
-              </Button>
-              <div className="text-center text-sm">
-                <Link
-                  href="/login"
-                  className="hover:underline underline-offset-4 inline-flex items-center text-sm text-muted-foreground hover:text-primary"
-                >
-                  Retour à la connexion
-                </Link>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Envoi en cours...
+              </>
+            ) : (
+              "Envoyer le lien de réinitialisation"
+            )}
+          </Button>
+        </form>
+      </Form>
+
+      <p className="text-center text-sm text-muted-foreground lg:text-left">
+        <Link
+          href="/login"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
+          Retour a la connexion
+        </Link>
+      </p>
     </div>
   )
 }

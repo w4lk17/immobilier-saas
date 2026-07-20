@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { FileText, PlusCircle } from "lucide-react";
 
-import { ContractWithRelations, FrontendContract } from "@/types";
+import { ContractWithRelations, Contract } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
 import { contractColumns } from './contract.columns';
@@ -18,7 +18,7 @@ export function ContractList({ contracts }: ContractListProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedContract, setSelectedContract] = useState<ContractWithRelations | null>(null);
 
-	const handleViewDetails = (contract: FrontendContract) => {
+	const handleViewDetails = (contract: ContractWithRelations) => {
 		setSelectedContract(contract);
 		setIsModalOpen(true);
 	};
@@ -27,8 +27,8 @@ export function ContractList({ contracts }: ContractListProps) {
 		<DataTableEmptyState
 			icon={FileText}
 			title="Aucun contrat trouvé"
-			description="Commencez par ajouter un nouveau contrat."
-			actionHref="/contracts/new"
+			description="Vous n’avez pas encore de contrat."
+			actionHref="/admin/contracts/new"
 			actionLabel="Ajouter un contrat"
 			actionIcon={PlusCircle}
 		/>
@@ -40,10 +40,10 @@ export function ContractList({ contracts }: ContractListProps) {
 				columns={contractColumns}
 				data={contracts || []}
 				meta={{ viewDetails: handleViewDetails }}
-				searchPlaceholder='Rechercher par locataire ou propriété'
+				searchPlaceholder='Rechercher par locataire '
 				searchColumn='tenantName'
-				newButtonHref='/contracts/new'
-				newButtonTitle='Nouveau'
+				newButtonHref='/admin/contracts/new'
+				newButtonTitle='Nouveau contrat'
 				enableExport={true}
 				exportFileName='contrats'
 				emptyStateContent={emptyState} />

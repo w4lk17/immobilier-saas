@@ -2,6 +2,7 @@
 // Miroir des enums définis dans le fichier schema.prisma du backend.
 
 export enum UserRole {
+	S_ADMIN = 'S_ADMIN',
 	ADMIN = 'ADMIN',
 	MANAGER = 'MANAGER',
 	OWNER = 'OWNER',
@@ -10,10 +11,10 @@ export enum UserRole {
 }
 
 export enum PropertyType {
-	APARTMENT = 'APARTMENT',
+	// APARTMENT = 'APARTMENT',
 	BUILDING = 'BUILDING',
-	BUNGALOW = 'BUNGALOW',
-	DUPLEX = 'DUPLEX',
+	// BUNGALOW = 'BUNGALOW',
+	// DUPLEX = 'DUPLEX',
 	HOUSE = 'HOUSE',
 	LAND = 'LAND',
 	VILLA = 'VILLA',
@@ -30,6 +31,7 @@ export enum PropertyStatus {
 export enum RentalType {
 	APARTMENT = 'APARTMENT',
 	STUDIO = 'STUDIO',
+	SINGLE_ROOM = 'SINGLE_ROOM',
 	STORE = 'STORE',
 	VILLA = 'VILLA',
 }
@@ -45,8 +47,7 @@ export enum RentalStatus {
 export enum LeaseType {
 	RESIDENTIAL_LEASE = 'RESIDENTIAL_LEASE',
 	COMMERCIAL_LEASE = 'COMMERCIAL_LEASE',
-	PROFESSIONAL_LEASE = 'PROFESSIONAL_LEASE',
-	FURNISHED_LEASE = 'FURNISHED_LEASE',
+	OTHER = 'OTHER',
 }
 
 export enum ContractStatus {
@@ -56,10 +57,18 @@ export enum ContractStatus {
 	EXPIRED = 'EXPIRED',
 }
 
+export enum SubscriptionStatus{
+	TRIAL = 'TRIAL',
+  ACTIVE = 'ACTIVE',
+  PAST_DUE = 'PAST_DUE',
+  CANCELED = 'CANCELED'
+}
+
 export enum InvoiceType {
 	RENT = 'RENT',
 	CHARGE = 'CHARGE',
 	DEPOSIT = 'DEPOSIT',
+	ADVANCE = 'ADVANCE',
 	PENALTY = 'PENALTY',
 }
 
@@ -98,7 +107,7 @@ export enum ExpenseStatus {
 	CANCELLED = 'CANCELLED',
 }
 
-/** Type de contrat pour les EMPLOYÉS (RH) */
+
 export enum EmploymentType {
 	CDI = 'CDI',
 	CDD = 'CDD',

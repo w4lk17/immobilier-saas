@@ -21,59 +21,92 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { useTenantDashboard } from "@/features/dashboard/hooks/useDashboard.hooks";
 
-// Mock data
-const tenantStats = {
-	monthlyRent: 18000,
-	amountPaid: 162000,
-	daysRemaining: 5,
+const fallbackTenantStats = {
+	monthlyRent: 0,
+	amountPaid: 0,
+	daysRemaining: 0,
 	paymentStatus: "pending",
 };
 
-const currentHousing = {
+const fallbackCurrentHousing = {
 	title: "Appartement FST",
 	address: "Rue de l'Université, Fès, Maroc",
+	surface:0,
 	features: {
-		bedrooms: 2,
-		bathrooms: 1,
-		area: 80,
-		floor: 2,
+		bedrooms: 0,
+		bathrooms: 0,
+		area: 0,
+		floor: 0,
 	},
 	owner: {
 		name: "M. Ahmed Alami",
 		phone: "+212 5 35 00 00 00",
 	},
+	leaseStatus: "Pending",
 	leaseStart: "2025-01-01",
-	leaseEnd: "2026-12-31",
+	leaseEnd: "",
 };
 
-const recentPayments = [
-	{ id: 1, month: "Janvier 2026", amount: 18000, date: "2026-01-05", status: "paid" },
-	{ id: 2, month: "Décembre 2025", amount: 18000, date: "2025-12-05", status: "paid" },
-	{ id: 3, month: "Novembre 2025", amount: 18000, date: "2025-11-05", status: "paid" },
+const fallbackRecentPayments = [
+	{ id: 1, month: "Janvier 2026", amount: 18000, date: "2026-02-05", status: "paid" },
+	{ id: 2, month: "Décembre 2025", amount: 18000, date: "2026-01-05", status: "paid" },
+	{ id: 3, month: "Novembre 2025", amount: 18000, date: "2025-12-05", status: "paid" },
 ];
+const fallbackUpcomingPayment = {
 
-const upcomingPayment = {
 	month: "Février 2026",
-	amount: 18000,
-	dueDate: "2026-02-28",
-	daysRemaining: 5,
 };
-
-const maintenanceRequests = {
-	total: 1,
-	pending: 1,
+const fallbackMaintenanceRequests = {
+	total: 0,
+	pending: 0,
 	inProgress: 0,
-	completed: 1,
+	completed: 0,
 };
 
-const documents = {
-	contract: 1,
-	receipts: 5,
+const fallbackDocuments = {
+	contract: 0,
+	receipts: 0,
 	insurance: 0,
 };
 
 export default function TenantDashboardPage() {
+	const { data: dashboard } = useTenantDashboard();
+	const nextRentInvoice = dashboard?.nextRentInvoice ?? dashboard?.nextInvoice ?? null;
+	const tenantStats = {
+		...fallbackTenantStats,
+		monthlyRent: dashboard?.monthlyRent ?? fallbackTenantStats.monthlyRent,
+		daysRemaining: dashboard?.daysRemaining ?? fallbackTenantStats.daysRemaining,
+		paymentStatus: dashboard?.paymentStatus ?? fallbackTenantStats.paymentStatus,
+	};
+	const currentHousing = dashboard?.currentHousing
+		? {
+			...fallbackCurrentHousing,
+			...dashboard.currentHousing,
+			owner: dashboard.currentHousing.owner ?? fallbackCurrentHousing.owner,
+		}
+		: fallbackCurrentHousing;
+	const recentPayments = dashboard
+		? (dashboard.recentPayments || []).map((invoice: any) => ({
+			id: invoice.id,
+			month: new Date(invoice.dueDate).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+			amount: invoice.paidAmount || invoice.amountDue,
+			date: invoice.paidDate || invoice.updatedAt || invoice.createdAt,
+			status: invoice.status?.toLowerCase?.() || "paid",
+		}))
+		: fallbackRecentPayments;
+	const upcomingPayment = nextRentInvoice
+		? {
+			month: new Date(nextRentInvoice.dueDate).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+			amount: nextRentInvoice.amountDue,
+			dueDate: nextRentInvoice.dueDate,
+			daysRemaining: dashboard?.daysRemaining ?? 0,
+		}
+		: null;
+	const maintenanceRequests = dashboard?.maintenanceSummary ?? fallbackMaintenanceRequests;
+	const documents = dashboard?.documentSummary ?? fallbackDocuments;
+
 	return (
 		<div className="space-y-6 p-4">
 			{/* Header */}
@@ -93,26 +126,23 @@ export default function TenantDashboardPage() {
 			</div>
 
 			{/* Stats Overview Cards */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{/* Monthly Rent */}
-				<Card className="overflow-hidden">
+				<Card className="overflow-hidden gap-2">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Loyer du Mois</CardTitle>
+						<CardTitle className="text-sm font-medium">Loyer Mensuel</CardTitle>
 						<Wallet className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{tenantStats.monthlyRent.toLocaleString('fr-FR')} F CFA</div>
 						<p className="text-xs text-muted-foreground mt-1">
-							À payer ce mois-ci
+							Montant du loyer mensuel 
 						</p>
-						<div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-							<div className="h-full bg-yellow-500 rounded-full" style={{ width: "20%" }}></div>
-						</div>
 					</CardContent>
 				</Card>
 
 				{/* Total Paid */}
-				<Card className="overflow-hidden">
+				{/* <Card className="overflow-hidden">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Payé</CardTitle>
 						<Check className="h-4 w-4 text-muted-foreground" />
@@ -127,20 +157,31 @@ export default function TenantDashboardPage() {
 							cette année
 						</p>
 					</CardContent>
-				</Card>
+				</Card> */}
 
 				{/* Days Remaining */}
-				<Card className="overflow-hidden">
+				<Card className="overflow-hidden gap-1">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Jours Restants</CardTitle>
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{tenantStats.daysRemaining}</div>
-						<p className="text-xs text-muted-foreground">
-							Avant la date limite
+						<div className="text-2xl font-bold">
+							{tenantStats.daysRemaining < 0
+								? "Échéance dépassée"
+								: tenantStats.daysRemaining}
+						</div>
+						<p className="text-xs text-muted-foreground mt-1">
+							{tenantStats.daysRemaining < 0
+								? "Le délai de paiement est dépassé"
+								: "Avant la date limite"}
 						</p>
-						{tenantStats.daysRemaining <= 5 ? (
+						{tenantStats.daysRemaining < 0 ? (
+							<Badge variant="outline" className="mt-2 border-red-500 text-red-600">
+								<Clock className="h-3 w-3 mr-1" />
+								En retard
+							</Badge>
+						) : tenantStats.daysRemaining <= 5 ? (
 							<Badge variant="outline" className="mt-2 border-yellow-500 text-yellow-600">
 								<Clock className="h-3 w-3 mr-1" />
 								Urgent
@@ -155,21 +196,85 @@ export default function TenantDashboardPage() {
 				</Card>
 
 				{/* Contract Status */}
-				<Card className="overflow-hidden">
+				<Card className="overflow-hidden gap-1">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Contrat</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Contrat
+						</CardTitle>
 						<FileText className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">Actif</div>
-						<p className="text-xs text-muted-foreground mt-1">
-							Jusqu'au {new Date(currentHousing.leaseEnd).toLocaleDateString('fr-FR')}
-						</p>
-						<Button variant="ghost" size="sm" className="mt-2 w-full justify-start px-0 h-6" asChild>
-							<Link href="/tenant-portal/my-contracts">
-								Voir le contrat →
-							</Link>
-						</Button>
+						{currentHousing.leaseStatus === "ACTIVE" && (
+							<>
+								<div className="text-2xl font-bold text-green-600">Actif</div>
+								{currentHousing.leaseEnd ? (
+									<p className="text-xs mt-1 text-green-700">
+										Jusqu'au {new Date(currentHousing.leaseEnd).toLocaleDateString('fr-FR')}
+									</p>
+								) : (
+									<p className="text-xs mt-1 text-green-700">
+										Pas de date de fin
+									</p>
+								)}
+								<Button
+									variant="ghost"
+									size="sm"
+									className="mt-2 w-full justify-start px-0 h-6"
+									asChild
+								>
+									<Link href="/tenant-portal/my-contracts">
+										Voir le contrat →
+									</Link>
+								</Button>
+							</>
+						)}
+						{currentHousing.leaseStatus === "TERMINATED" && (
+							<>
+								<div className="text-2xl font-bold text-red-600">Terminé</div>
+								<p className="text-xs mt-1 text-red-700">
+									Contrat terminé
+								</p>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="mt-2 w-full justify-start px-0 h-6"
+									asChild
+								>
+									<Link href="/tenant-portal/my-contracts">
+										Voir le contrat →
+									</Link>
+								</Button>
+							</>
+						)}
+						{currentHousing.leaseStatus === "EXPIRED" && (
+							<>
+								<div className="text-2xl font-bold text-yellow-600">Expiré</div>
+								<p className="text-xs mt-1 text-yellow-700">
+									Contrat expiré
+								</p>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="mt-2 w-full justify-start px-0 h-6"
+									asChild
+								>
+									<Link href="/tenant-portal/my-contracts">
+										Voir le contrat →
+									</Link>
+								</Button>
+							</>
+						)}
+						{!currentHousing.leaseStatus ||
+							(currentHousing.leaseStatus !== "ACTIVE" &&
+								currentHousing.leaseStatus !== "TERMINATED" &&
+								currentHousing.leaseStatus !== "EXPIRED") && (
+							<div className="flex flex-col items-center py-2">
+								<div className="text-2xl font-bold text-gray-400">Aucun contrat</div>
+								<p className="text-xs mt-1 text-muted-foreground text-center">
+									Vous n'avez pas encore de contrat de bail. Veuillez contacter votre propriétaire pour plus d'informations.
+								</p>
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -214,13 +319,13 @@ export default function TenantDashboardPage() {
 									<div className="text-xs text-muted-foreground">Salle de bain</div>
 								</div>
 								<div className="text-center p-3 bg-gray-50 rounded-lg">
-									<div className="text-2xl font-bold text-blue-600">{currentHousing.features.area}</div>
+									<div className="text-2xl font-bold text-blue-600">{currentHousing.surface}</div>
 									<div className="text-xs text-muted-foreground">m²</div>
 								</div>
-								<div className="text-center p-3 bg-gray-50 rounded-lg">
+								{/* <div className="text-center p-3 bg-gray-50 rounded-lg">
 									<div className="text-2xl font-bold text-blue-600">{currentHousing.features.floor}</div>
 									<div className="text-xs text-muted-foreground">Étage</div>
-								</div>
+								</div> */}
 							</div>
 
 							<Separator />
@@ -257,30 +362,30 @@ export default function TenantDashboardPage() {
 								Payer le loyer
 							</Link>
 						</Button>
-						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
+						{/* <Button variant="outline" size="sm" className="w-full justify-start" asChild>
 							<Link href="/tenant-portal/maintenance">
 								<ClipboardCheck className="mr-2 h-4 w-4" />
 								Nouvelle demande
 							</Link>
-						</Button>
+						</Button> */}
 						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
 							<Link href="/tenant-portal/my-contracts">
 								<FileText className="mr-2 h-4 w-4" />
 								Voir mon contrat
 							</Link>
 						</Button>
-						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
+						{/* <Button variant="outline" size="sm" className="w-full justify-start" asChild>
 							<Link href="/tenant-portal/documents">
 								<Download className="mr-2 h-4 w-4" />
 								Mes documents
 							</Link>
-						</Button>
-						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
+						</Button> */}
+						{/* <Button variant="outline" size="sm" className="w-full justify-start" asChild>
 							<Link href="/tenant-portal/messages">
 								<AlertCircle className="mr-2 h-4 w-4" />
 								Contacter le propriétaire
 							</Link>
-						</Button>
+						</Button> */}
 					</CardContent>
 				</Card>
 			</div>
@@ -293,7 +398,7 @@ export default function TenantDashboardPage() {
 						<div className="flex items-center justify-between">
 							<div>
 								<CardTitle>Prochain Paiement</CardTitle>
-								<CardDescription>{upcomingPayment.month}</CardDescription>
+								<CardDescription>{upcomingPayment?.month ?? "Aucun loyer en attente"}</CardDescription>
 							</div>
 							<div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full">
 								<Clock className="h-6 w-6 text-yellow-600" />
@@ -302,13 +407,15 @@ export default function TenantDashboardPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold mb-2">
-							{upcomingPayment.amount.toLocaleString('fr-FR')} F CFA
+							{(upcomingPayment?.amount ?? 0).toLocaleString('fr-FR')} F CFA
 						</div>
 						<p className="text-sm text-muted-foreground mb-4">
-							Date limite: {new Date(upcomingPayment.dueDate).toLocaleDateString('fr-FR')}
+							{upcomingPayment
+								? `Date limite: ${new Date(upcomingPayment.dueDate).toLocaleDateString('fr-FR')}`
+								: "Vous n'avez aucune facture de loyer en attente."}
 						</p>
 
-						<div className="mb-4">
+						{upcomingPayment && <div className="mb-4">
 							<div className="flex items-center justify-between text-sm mb-2">
 								<span>Temps restant</span>
 								<span className="font-semibold">{upcomingPayment.daysRemaining} jours</span>
@@ -319,13 +426,24 @@ export default function TenantDashboardPage() {
 									style={{ width: `${((30 - upcomingPayment.daysRemaining) / 30) * 100}%` }}
 								></div>
 							</div>
-						</div>
+						</div>}
 
-						<Button className="w-full" asChild>
-							<Link href="/tenant-portal/my-payments">
-								<Wallet className="mr-2 h-4 w-4" />
-								Payer maintenant
-							</Link>
+						<Button 
+							className="w-full"
+							asChild={!!upcomingPayment}
+							disabled={!upcomingPayment}
+						>
+							{upcomingPayment ? (
+								<Link href="/tenant-portal/my-payments">
+									<Wallet className="mr-2 h-4 w-4" />
+									Payer maintenant
+								</Link>
+							) : (
+								<span className="flex items-center justify-center">
+									<Wallet className="mr-2 h-4 w-4" />
+									Aucun paiement à effectuer
+								</span>
+							)}
 						</Button>
 					</CardContent>
 				</Card>
@@ -342,7 +460,7 @@ export default function TenantDashboardPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
-							{recentPayments.map((payment) => (
+							{recentPayments.length > 0 ? recentPayments.map((payment) => (
 								<div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
 									<div className="flex items-center gap-3">
 										<div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
@@ -364,7 +482,11 @@ export default function TenantDashboardPage() {
 										</Badge>
 									</div>
 								</div>
-							))}
+							)) : (
+								<p className="text-sm text-muted-foreground text-center py-4">
+									Aucun paiement de loyer récent.
+								</p>
+							)}
 						</div>
 						<Button variant="outline" size="sm" className="w-full mt-4" asChild>
 							<Link href="/tenant-portal/my-payments">
@@ -378,7 +500,7 @@ export default function TenantDashboardPage() {
 			{/* Summary Cards */}
 			<div className="grid gap-4 md:grid-cols-3">
 				{/* Maintenance Summary */}
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<CardTitle className="text-base">Demandes de Maintenance</CardTitle>
 					</CardHeader>
@@ -409,10 +531,10 @@ export default function TenantDashboardPage() {
 							</Link>
 						</Button>
 					</CardContent>
-				</Card>
+				</Card> */}
 
 				{/* Documents Summary */}
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<CardTitle className="text-base">Mes Documents</CardTitle>
 					</CardHeader>
@@ -425,11 +547,7 @@ export default function TenantDashboardPage() {
 							<div className="flex items-center justify-between">
 								<span className="text-sm">Quittances</span>
 								<Badge variant="secondary">{documents.receipts}</Badge>
-							</div>
-							<div className="flex items-center justify-between">
-								<span className="text-sm">Assurance</span>
-								<Badge variant="secondary">{documents.insurance}</Badge>
-							</div>
+							</div>							
 						</div>
 						<Button variant="ghost" size="sm" className="mt-3 w-full justify-start px-0 h-6" asChild>
 							<Link href="/tenant-portal/documents">
@@ -437,10 +555,10 @@ export default function TenantDashboardPage() {
 							</Link>
 						</Button>
 					</CardContent>
-				</Card>
+				</Card> */}
 
 				{/* Messages Summary */}
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<CardTitle className="text-base">Messages</CardTitle>
 					</CardHeader>
@@ -460,7 +578,7 @@ export default function TenantDashboardPage() {
 							</Link>
 						</Button>
 					</CardContent>
-				</Card>
+				</Card> */}
 			</div>
 		</div>
 	);

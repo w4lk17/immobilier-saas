@@ -12,7 +12,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -25,21 +24,32 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ContractWithRelations, FrontendUserSnippet } from "@/types";
-import { Badge } from "@/components/ui/badge";
+import { ContractWithRelations } from "@/types";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit3, Trash2, EyeClosed, BookXIcon } from "lucide-react";
-import { useDeleteContract } from '../hooks/useContracts.hooks';
-import { formatCurrency } from "@/lib/utils";
+import { MoreVertical, Eye, Edit3, Trash2, BookXIcon, } from "lucide-react";
+import { useDeleteContract, useTerminateContract } from '../hooks/useContracts.hooks';
+import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 import { getStatusBadge } from "@/lib/statusHelpers";
+import { ContractStatus, LeaseType } from "@/types/enums";
+import { hasPermission, Permission } from "@/lib/permissions";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { contractStatusLabels, leaseTypeLabels } from "../lib/contractLabels";
 
-// Composant interne pour les actions pour utiliser les hooks
+
 function ContractActions({ row, table }: { row: Row<ContractWithRelations>, table: any }) {
 	const contract = row.original;
 	const { mutate: deleteContract, isPending } = useDeleteContract();
+	const { mutate: terminateContract, isPending: isTerminating } = useTerminateContract();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+	const { user } = useAuth();
+
+	const canRead = user && hasPermission(user.role, Permission.CONTRACTS_READ);
+	const canEdit = user && hasPermission(user.role, Permission.CONTRACTS_UPDATE);
+	const canDelete = user && hasPermission(user.role, Permission.CONTRACTS_DELETE);
+	const canTerminate = user && hasPermission(user.role, Permission.CONTRACTS_TERMINATE);
 
 	const handleDelete = () => {
 		deleteContract(contract.id);
@@ -48,19 +58,14 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 	}
 
 	const handleStop = () => {
-		// TODO: implement contract termination
+		terminateContract(contract.id);
 		setIsDropdownOpen(false); // close dropdown after deletion
 		setIsAlertOpen(false);
 	}
 
 	const openViewModal = () => {
-		// null check
-		if (table?.options?.meta?.viewDetails) {
-			table.options.meta.viewDetails(contract);
-			setIsDropdownOpen(false);
-		} else {
-			console.warn('viewDetails function not found in table meta');
-		}
+		table?.options?.meta?.viewDetails?.(contract);
+		setIsDropdownOpen(false);
 	};
 
 	return (
@@ -72,7 +77,7 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -80,6 +85,7 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 					onInteractOutside={() => setIsDropdownOpen(false)}
 				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
+					{/* "Voir" est toujours disponible */}
 					<DropdownMenuItem
 						onClick={(e) => {
 							e.preventDefault();
@@ -89,7 +95,21 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 					>
 						<Eye className="mr-2 h-4 w-4" /> Détails
 					</DropdownMenuItem>
-					{contract.status === 'ACTIVE' || contract.status === 'DRAFT' ? (
+
+					{/* "Modifier" : PENDING ou EXPIRED */}
+					{(contract.status === ContractStatus.PENDING || contract.status === ContractStatus.EXPIRED) && canEdit && (
+						<DropdownMenuItem asChild>
+							<Link
+								href={`/admin/contracts/${contract.id}/edit`}
+								className="flex items-center w-full cursor-pointer"
+							>
+								<Edit3 className="mr-2 h-4 w-4" /> Modifier
+							</Link>
+						</DropdownMenuItem>
+					)}
+
+					{/* "Terminer" : ACTIVE ou EXPIRED, + permission */}
+					{(contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED) && canTerminate && (
 						<DropdownMenuItem
 							className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
 							onClick={() => {
@@ -99,26 +119,19 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 						>
 							<BookXIcon className="mr-2 h-4 w-4" /> Terminer
 						</DropdownMenuItem>
-					) : (
-							<>
-								<DropdownMenuItem asChild>
-								<Link href={`/contracts/edit/${contract.id}`}
-									className="flex items-center w-full cursor-pointer"
-								>
-									<Edit3 className="mr-2 h-4 w-4" /> Modifier
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
-								onClick={() => {
-									setIsAlertOpen(true);
-									setIsDropdownOpen(false);
-								}}
-							>
-								<Trash2 className="mr-2 h-4 w-4" /> Supprimer
-							</DropdownMenuItem>
-							
-						</>
+					)}
+
+					{/* "Supprimer" : PENDING */}
+					{(contract.status === ContractStatus.PENDING) && canDelete && (
+						<DropdownMenuItem
+							className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+							onClick={() => {
+								setIsAlertOpen(true);
+								setIsDropdownOpen(false);
+							}}
+						>
+							<Trash2 className="mr-2 h-4 w-4" /> Supprimer
+						</DropdownMenuItem>
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
@@ -127,28 +140,39 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>
-							{contract.status === 'ACTIVE' ? "Arret Contrat" : "Suppression du contrat"}
+							{(contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED)
+								? "Arrêt du contrat"
+								: "Suppression du contrat"}
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							{contract.status === 'ACTIVE' ? (
-								<>Confirmer l'arret du {contract.property?.type} <span className="text-sm font-bold">({contract.id})</span>.</>
+							{(contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED) ? (
+								<>Confirmer l&apos;arrêt du contrat <span className="text-sm font-bold">({contract.reference})</span>.</>
 							) : (
-								<>Confirmer la suppression du contrat <span className="text-sm font-bold">({contract.id})</span>.</>
+								<>Confirmer la suppression du contrat <span className="text-sm font-bold">({contract.reference})</span>.</>
 							)}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<span className="text-destructive text-sm italic">
-						{contract.status === 'ACTIVE'
+						{(contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED)
 							? "Cette action est irréversible et mettra fin définitivement à ce contrat."
 							: "Cette action est irréversible et supprimera définitivement ce contrat et ses paiements associés."}
 					</span>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Annuler</AlertDialogCancel>
-						<AlertDialogAction onClick={contract.status === 'ACTIVE' ? handleStop : handleDelete}
+						<AlertDialogAction
+							onClick={
+								(contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED)
+									? handleStop
+									: handleDelete
+							}
 							className={buttonVariants({ variant: "destructive" })}
 							disabled={isPending}
 						>
-							{isPending ? (contract.status === 'ACTIVE' ? "Arrestation..." : "Suppression...") : "Confirmer"}
+							{isPending
+								? (contract.status === ContractStatus.ACTIVE || contract.status === ContractStatus.EXPIRED
+									? "Arrêt en cours..."
+									: "Suppression...")
+								: "Confirmer"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -160,31 +184,45 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 
 export const contractColumns: ColumnDef<ContractWithRelations>[] = [
 	{
-		accessorKey: "property.address",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Propriété" />,
-		cell: ({ row }) => row.original.property?.address || 'N/A',
+		accessorKey: "reference",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
+		cell: ({ row }) => row.getValue("reference") || '-',
 		enableSorting: false,
 	},
 	{
 		id: "tenantName",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Locataire" />,
-		accessorFn: row => `${row.tenant?.user?.firstName || ''} ${row.tenant?.user?.lastName || ''}`.trim() || 'N/A',
+		accessorFn: row => `${row.tenant?.user?.firstName || ''} ${row.tenant?.user?.lastName || ''}`.trim() || '-',
 		cell: ({ row }) => {
-			const tenantUser = row.original.tenant?.user as FrontendUserSnippet | undefined;
+			const tenantUser = row.original.tenant?.user;
 			return `${tenantUser?.firstName || ''} ${tenantUser?.lastName || ''}`.trim() || '-';
 		}
 	},
-	// TODO: add column "Locative" 
-	// TODO: add column "Type contrat" 
+	{
+		id: "local",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Locative" />,
+		accessorFn: row => row.rental?.name,
+		cell: ({ row }) => row.original.rental?.name || '-',
+		enableSorting: false,
+	},
+	{
+		accessorKey: "leaseType",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Type de bail" />,
+		cell: ({ row }) => {
+			const type = row.getValue("leaseType") as LeaseType;
+			return <Badge variant="outline">{leaseTypeLabels[type] || type}</Badge>;
+		},
+		enableSorting: false,
+	},
 	{
 		accessorKey: "startDate",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Date Début" />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Date de Début" />,
 		cell: ({ row }) => format(new Date(row.getValue("startDate")), 'dd MMM yyyy', { locale: fr }),
 		enableSorting: false,
 	},
 	{
 		accessorKey: "endDate",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Date Fin" />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Date de Fin" />,
 		cell: ({ row }) => {
 			const endDate = row.getValue("endDate") as string | Date | null;
 			return endDate ? format(new Date(endDate), 'dd MMM yyyy', { locale: fr }) : '-';
@@ -192,33 +230,26 @@ export const contractColumns: ColumnDef<ContractWithRelations>[] = [
 		enableSorting: false,
 	},
 	{
-		accessorKey: "updatedAt",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Traité le" />,
-		cell: ({ row }) => format(new Date(row.getValue("updatedAt")), 'dd MMM yyyy', { locale: fr }),
-		enableSorting: false,
-	},
-	{
-		accessorKey: "rentAmount",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Loyer" />,
-		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("rentAmount"));
-			return <div className="text-right font-medium">{formatCurrency(amount)}</div>;
-		},
-		enableSorting: false,
-	},
-	{
 		accessorKey: "status",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
-			const status = row.getValue("status") as string;
-			return getStatusBadge(status, 'contract');
+			
+			const status = row.getValue("status") as ContractStatus;
+			const label = contractStatusLabels[status] || status;
+
+			let variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" = "secondary";
+			if (status === ContractStatus.ACTIVE) variant = "success";
+			else if (status === ContractStatus.PENDING) variant = "warning";
+			else if (status === ContractStatus.TERMINATED) variant = "default";
+			else if (status === ContractStatus.EXPIRED) variant = "outline";
+
+			return <Badge variant={variant}>{label}</Badge>
 		},
 		enableSorting: false,
 	},
 	// TODO: add column "Prochain paiement." 
 	{
 		id: "actions",
-		// header: () => <div className="text-right">Actions</div>,
 		cell: ({ row, table }) => <ContractActions row={row} table={table} />,
 		enableSorting: false,
 	},

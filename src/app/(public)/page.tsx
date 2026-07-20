@@ -7,18 +7,10 @@ import {
   Users,
   FileText,
   Receipt,
-  Wrench,
   BarChart3,
-  Shield,
   Check,
   ArrowRight,
   X,
-  Star,
-  Quote,
-  Zap,
-  Building2,
-  Clock,
-  Layers,
   Wallet,
   Smartphone
 } from 'lucide-react';
@@ -134,13 +126,15 @@ function FeatureCard({ icon: Icon, title, description, delay = 0 }: {
 //   );
 // }
 
-function PricingCard({ name, price, description, features, isPopular, cta, delay = 0 }: {
+
+function PricingCard({ name, price, description, features, isPopular, cta, planSlug, delay = 0 }: {
   name: string;
   price: string;
   description: string;
   features: { text: string; included: boolean }[]; // Changement ici : tableau d'objets
   isPopular?: boolean;
   cta: string;
+  planSlug: string;
   delay?: number;
 }) {
   const { ref, isVisible } = useScrollReveal();
@@ -194,7 +188,7 @@ function PricingCard({ name, price, description, features, isPopular, cta, delay
             }`}
           asChild
         >
-          <Link href="/register">{cta}</Link>
+          <Link href={`/register?plan=${planSlug}`}>{cta}</Link>
         </Button>
       </div>
     </div>
@@ -310,7 +304,7 @@ export default function LandingPage() {
               {/* Step 2 */}
               <div className="flex flex-col items-center text-center group">
                 <div className="w-16 h-16 rounded-full bg-background border-2 border-primary flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-bold text-primary">3</span>
+                  <span className="text-2xl font-bold text-primary">2</span>
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">Ajoutez locataire</h3>
                 <p className="text-muted-foreground text-sm">
@@ -321,7 +315,7 @@ export default function LandingPage() {
               {/* Step 3 */}
               <div className="flex flex-col items-center text-center group">
                 <div className="w-16 h-16 rounded-full bg-background border-2 border-primary flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-bold text-primary">2</span>
+                  <span className="text-2xl font-bold text-primary">3</span>
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">Ajoutez vos contrats</h3>
                 <p className="text-muted-foreground text-sm">
@@ -385,14 +379,15 @@ export default function LandingPage() {
             />
             <FeatureCard
               icon={FileText}
-              title="Contrats & Baux"
-              description="Gérez vos contrats de location, leurs renouvellements et conservez toutes vos pièces justificatives au même endroit."
+              title="Baux & Quittances"
+              description="Gérez quittances de paiement,vos contrats de location, leurs renouvellements et conservez toutes vos pièces justificatives au même endroit."
               delay={400}
             />
             <FeatureCard
               icon={BarChart3}
               title="Rapports Financiers"
-              description="Suivez la rentabilité de vos biens. Exportez vos états de revenus."
+              description="Générez des rapports détaillés sur l’activité et la gestion de vos biens. Exportez en un clic tous vos documents importants."
+
               delay={500}
             />
           </div>
@@ -488,17 +483,19 @@ export default function LandingPage() {
               description="Pour les propriétaires indépendants"
               features={[
                 { text: "2 contrats de location", included: true },
-                { text: "2 utilisateurs", included: true },
+                { text: "2 locataires", included: true },
                 // { text: "Facturation manuelle", included: true },
                 { text: "Espace locataire", included: true },
                 { text: "Support par email", included: true },
                 { text: "Facturation automatique", included: true },
-                { text: "Relances automatiques", included: true },
-                { text: "Rapports financiers", included: true },
+                { text: "Quittance automatique", included: false },
+                { text: "Relances automatiques", included: false },
+                { text: "Rapports financiers", included: false },
                 // { text: "Marque blanche", included: false },
               ]}
               cta="Commencer"
               delay={0}
+              planSlug="basic"
             />
 
             {/* Plan 2: Standard */}
@@ -509,17 +506,19 @@ export default function LandingPage() {
               isPopular
               features={[
                 { text: "10 contrats de location", included: true },
-                { text: "10 utilisateurs", included: true },
+                { text: "10 locataires", included: true },
                 // { text: "Facturation manuelle", included: true },
                 { text: "Espace locataire", included: true },
                 { text: "Support prioritaire", included: true },
                 { text: "Facturation automatique", included: true },
+                { text: "Quittance automatique", included: true },
                 { text: "Relances automatiques", included: true },
-                { text: "Rapports financiers", included: true },
+                { text: "Rapports financiers", included: false },
                 // { text: "Marque blanche", included: false },
               ]}
               cta="Choisir ce plan"
               delay={100}
+              planSlug="standard"
             />
 
             {/* Plan 3: Pro */}
@@ -529,17 +528,19 @@ export default function LandingPage() {
               description="Pour les portefeuilles établis"
               features={[
                 { text: "25 contrats de location", included: true },
-                { text: "25 utilisateurs", included: true },
+                { text: "25 locataires", included: true },
                 // { text: "Facturation manuelle", included: true },
                 { text: "Espace locataire", included: true },
-                { text: "Support prioritaire", included: true },
+                { text: "Support personnel", included: true },           
                 { text: "Facturation automatique", included: true },
+                { text: "Quittance automatique", included: true },
                 { text: "Relances automatiques", included: true },
                 { text: "Rapports financiers", included: true },
                 // { text: "Marque blanche", included: true },
               ]}
               cta="Choisir ce plan"
               delay={200}
+              planSlug="pro"
             />
 
             {/* Plan 4: Premium */}
@@ -560,6 +561,7 @@ export default function LandingPage() {
               ]}
               cta="Contacter"
               delay={300}
+              planSlug="premium"
             /> */}
           </div>
 

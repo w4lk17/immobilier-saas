@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import { useDeleteManager } from '../hooks/useManagers.hooks';
 import { useState } from "react";
@@ -62,7 +62,7 @@ function ManagerActions({ row, table }: { row: Row<Manager>, table: any }) {
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -154,17 +154,17 @@ export const managerColumns: ColumnDef<Manager>[] = [
 	// 	accessorFn:row =>row.position,
 	// 	enableSorting: false,
 	// },
-	
-		{
-			id: "phoneNumber",
-			header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
-			accessorFn: row => row.user?.phoneNumber || '-',
-			cell: ({ row }) => {
-				const user = row.original.user;
-				return <span>{user?.phoneNumber || '-'}</span>;
-			},
-			enableSorting: false,
+
+	{
+		id: "phoneNumber",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
+		accessorFn: row => row.user?.phoneNumber || '-',
+		cell: ({ row }) => {
+			const user = row.original.user;
+			return <span>{user?.phoneNumber || '-'}</span>;
 		},
+		enableSorting: false,
+	},
 	{
 		accessorKey: "status",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,

@@ -19,6 +19,14 @@ const mockDocuments = [
 	},
 	{
 		id: 2,
+		name: "Facture Janvier 2026",
+		type: "invoice",
+		date: "2026-01-01",
+		size: "245 KB",
+		format: "PDF",
+	},
+	{
+		id: 3,
 		name: "Quittance Janvier 2026",
 		type: "receipt",
 		date: "2026-01-31",
@@ -26,7 +34,7 @@ const mockDocuments = [
 		format: "PDF",
 	},
 	{
-		id: 3,
+		id: 4,
 		name: "Quittance Décembre 2025",
 		type: "receipt",
 		date: "2025-12-31",

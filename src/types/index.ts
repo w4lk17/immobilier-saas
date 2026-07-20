@@ -11,9 +11,43 @@ import {
 	RentalStatus,
 	PaymentProvider,
 	PaymentTransactionStatus,
+	SubscriptionStatus,
 	InvoiceType,
 	InvoiceStatus,
 } from './enums';
+
+
+// ==========================================
+// SAAS CORE TYPES
+// ==========================================
+
+export interface Plan {
+	id: number;
+	name: string;
+	slug: string;
+	price: number;
+	maxContracts: number;
+	maxUsers: number;
+	hasAutoInvoice: boolean;
+	hasSms: boolean;
+}
+
+export interface Organization {
+	id: number;
+	name: string;
+	email: string;
+	phone: string | null;
+	isEmailVerified: boolean;
+	isPhoneVerified: boolean;
+	subscriptionStatus: SubscriptionStatus;
+	trialEndsAt: Date | string | null;
+	subscriptionEndsAt: Date | string | null;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+
+	plan?: Plan;
+	users?: User[];
+}
 
 // ==========================================
 // BASE PROFILE TYPES
@@ -43,13 +77,14 @@ export interface Tenant {
 }
 
 // ==========================================
-// MAIN USER TYPE (Optimized Schema)
+// MAIN USER TYPE
 // ==========================================
 
 export interface User {
 	id: number;
 	email: string;
 	role: UserRole;
+	organizationId: number;
 	firstName: string | null;
 	lastName: string | null;
 	phoneNumber: string | null;
@@ -72,6 +107,7 @@ export interface User {
 	updatedAt: Date | string;
 
 	// Relations optionnelles (renvoyées par /users/me par exemple)
+	organization?: Organization;
 	ownerProfile?: Owner | null;
 	managerProfile?: Manager | null;
 	tenantProfile?: Tenant | null;
@@ -80,6 +116,7 @@ export interface User {
 // Type spécifique pour l'utilisateur courant (retour de GET /users/me)
 export interface CurrentUser extends User {
 	// On s'assure que les profils sont présents même si null
+	organization: Organization;
 	ownerProfile: Owner | null;
 	managerProfile: Manager | null;
 	tenantProfile: Tenant | null;
@@ -91,13 +128,23 @@ export interface CurrentUser extends User {
 
 export interface Property {
 	id: number;
+	organizationId: number;
 	ownerId: number;
 	managerId: number | null;
 	address: string;
 	description: string | null;
 	type: PropertyType;
-	propertyValue: number;
+	propertyValue: number | null;
 	status: PropertyStatus;
+
+	isForSale: boolean;
+	nLot: number | null;
+	lot: number | null;
+	landTitle: string | null;
+	surface: number | null;
+	name: string | null;
+	city: string;
+	neighborhood: string;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 
@@ -116,6 +163,8 @@ export interface Rental {
 	roomCount: number;
 	rentalValue: number;
 	charges: number;
+	surface: number | null;
+	isFurnished: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 
@@ -127,6 +176,8 @@ export interface Rental {
 
 export interface Contract {
 	id: number;
+	organizationId: number;
+	reference: string;
 	ownerId: number;
 	propertyId: number;
 	rentalId: number;
@@ -139,11 +190,16 @@ export interface Contract {
 	dayAddToPaymentDay: number;
 	paymentStartAfter: number;
 	rentAmount: number;
+	chargesAmount: number;
 	depositAmount: number;
+	advanceAmount: number;
 	leaseType: LeaseType;
 	status: ContractStatus;
+	pdfUrl: string;
 	createdAt: Date | string;
 	updatedAt: Date | string;
+	designation?: string | null;
+	address?: string | null;
 
 	// Relations
 	owner?: Owner;
@@ -156,6 +212,7 @@ export interface Contract {
 
 export interface Invoice {
 	id: number;
+	organizationId: number;
 	invoiceNumber: string;
 	contractId: number;
 	tenantId: number;
@@ -216,6 +273,7 @@ export interface Expense {
 export type OwnerWithUser = Owner & { user: User };
 export type ManagerWithUser = Manager & { user: User };
 export type TenantWithUser = Tenant & { user: User };
+export type FrontendTenant = User & { tenantProfile?: Tenant | null };
 
 // --- Types With Relations (For detailed pages) ---
 
@@ -269,7 +327,7 @@ export interface TenantWithRelations extends TenantWithUser {
 	invoices: Invoice[];
 }
 
-// Employé avec ses assignations (Pour le dashboard Manager)
+// Manager avec ses assignations (Pour le dashboard Manager)
 export interface ManagerWithRelations extends ManagerWithUser {
 	managedProperties: Property[];
 	managedContracts: Contract[];
@@ -300,4 +358,3 @@ export interface RequestUser {
 	isActive: boolean;
 }
 
-export { UserRole, EmploymentType };

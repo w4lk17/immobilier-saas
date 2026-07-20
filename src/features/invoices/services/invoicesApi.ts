@@ -1,47 +1,47 @@
 
 import api from '@/lib/api';
 import { PaymentFormData, PaymentUpdateFormData } from '../schemas/paymentSchemas';
-import { FrontendPayment, PaymentWithRelations } from '@/types';
+import { FrontendPayment, InvoiceWithRelations } from '@/types';
 
-const paymentsService = {
+const invoicesService = {
 	// Basic list (minimal data)
 	async getAll(): Promise<FrontendPayment[]> {
-		const response = await api.get<FrontendPayment[]>('/payments');
+		const response = await api.get<FrontendPayment[]>('/invoices');
 		return response.data;
 	},
 
 	// List with relations (for tables/displays)
-	async getAllWithRelations(): Promise<PaymentWithRelations[]> {
-		const response = await api.get<PaymentWithRelations[]>('/payments?include=contract,tenant');
+	async getAllWithRelations(): Promise<InvoiceWithRelations[]> {
+		const response = await api.get<InvoiceWithRelations[]>('/invoices?include=contract,tenant');
 		return response.data;
 	},
 
 	// Single record (basic)
 	async getById(id: number): Promise<FrontendPayment> {
-		const response = await api.get<FrontendPayment>(`/payments/${id}`);
+		const response = await api.get<FrontendPayment>(`/invoices/${id}`);
 		return response.data;
 	},
 
 	// Single record (full relations for detail view)
-	async getByIdWithRelations(id: number): Promise<PaymentWithRelations> {
-		const response = await api.get<PaymentWithRelations>(`/payments/${id}?include=contract,tenant`);
+	async getByIdWithRelations(id: number): Promise<InvoiceWithRelations> {
+		const response = await api.get<InvoiceWithRelations>(`/invoices/${id}?include=contract,tenant`);
 		return response.data;
 	},
 
 	// CRUD operations
-	async create(payload: PaymentFormData): Promise<PaymentWithRelations> {
-		const response = await api.post<PaymentWithRelations>('/payments', payload);
+	async create(payload: PaymentFormData): Promise<InvoiceWithRelations> {
+		const response = await api.post<InvoiceWithRelations>('/invoices', payload);
 		return response.data;
 	},
 
-	async update(id: number, payload: PaymentUpdateFormData): Promise<PaymentWithRelations> {
-		const response = await api.patch<PaymentWithRelations>(`/payments/${id}`, payload);
+	async update(id: number, payload: PaymentUpdateFormData): Promise<InvoiceWithRelations> {
+		const response = await api.patch<InvoiceWithRelations>(`/invoices/${id}`, payload);
 		return response.data;
 	},
 
 	async delete(id: number): Promise<void> {
-		await api.delete(`/payments/${id}`);
+		await api.delete(`/invoices/${id}`);
 	},
 };
 
-export default paymentsService;
+export default invoicesService;

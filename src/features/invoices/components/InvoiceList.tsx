@@ -5,7 +5,7 @@ import { ReceiptTextIcon, PlusCircle } from "lucide-react";
 import { InvoiceWithRelations } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
-import { invoiceColumns } from './invoice.columns';
+import { invoiceColumns } from "./invoice.columns";
 
 interface InvoiceListProps {
 	invoices: InvoiceWithRelations[];
@@ -17,7 +17,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
 			icon={ReceiptTextIcon}
 			title="Aucune facture trouvée"
 			description="Commencez par enregistrer une nouvelle facture."
-			actionHref="/manager/invoices/new"
+			actionHref="/admin/invoices/new"
 			actionLabel="Enregistrer une facture"
 			actionIcon={PlusCircle}
 		/>

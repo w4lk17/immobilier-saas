@@ -11,6 +11,7 @@ import {
 	FileText,
 	Hourglass,
 	House,
+	HouseIcon,
 	LayoutDashboard,
 	Mail,
 	ReceiptTextIcon,
@@ -30,9 +31,10 @@ import {
 import { NavUser } from "./nav-user"
 import { AppName } from "./app-name"
 import { NavMain } from "./nav-main"
+import { getRoleName } from "@/lib/authUtils"
 
 // Define navigation items for each role
-const adminNavItems = [
+const sAdminNavItems = [
 	{
 		title: "Tableau de bord",
 		url: "/admin",
@@ -47,6 +49,16 @@ const adminNavItems = [
 		title: "Gestionnaires",
 		url: "/admin/managers",
 		icon: UserRoundCog,
+	},
+	{
+		title: "Locataires",
+		url: "/admin/tenants",
+		icon: Contact,
+	},
+	{
+		title: "Contrats",
+		url: "/admin/contracts",
+		icon: FileText,
 	},
 	// {
 	// 	title: "Paramètres",
@@ -63,6 +75,40 @@ const adminNavItems = [
 	// 	url: "/manager/reports",
 	// 	icon: FileChartColumn,
 	// },
+];
+
+const adminNavItems = [
+	{
+		title: "Tableau de bord",
+		url: "/admin",
+		icon: LayoutDashboard,
+	},
+	{
+		title: "Propriétés",
+		url: "/admin/properties",
+		icon: Building2,
+	},
+	{
+		title: "Locaux",
+		url: "/admin/rentals",
+		icon: HouseIcon,
+	},
+	{
+		title: "Locataires",
+		url: "/admin/tenants",
+		icon: Contact,
+	},
+	{
+		title: "Contrats",
+		url: "/admin/contracts",
+		icon: FileText,
+	},
+	{
+		title: "Factures",
+		url: "/admin/invoices",
+		icon: ReceiptTextIcon,
+	},
+
 ];
 
 const managerNavItems = [
@@ -115,30 +161,30 @@ const tenantNavItems = [
 		icon: LayoutDashboard,
 	},
 	{
-		title: "Mes Contrats",
+		title: "Contrats",
 		url: "/tenant-portal/my-contracts",
 		icon: FileText,
 	},
 	{
-		title: "Mes Factures",
+		title: "Factures",
 		url: "/tenant-portal/my-invoices",
 		icon: ReceiptTextIcon,
 	},
-	{
-		title: "Maintenance",
-		url: "/tenant-portal/maintenance",
-		icon: House,
-	},
-	{
-		title: "Messages",
-		url: "/tenant-portal/messages",
-		icon: Mail,
-	},
-	{
-		title: "Documents",
-		url: "/tenant-portal/documents",
-		icon: FileBox,
-	},
+	// {
+	// 	title: "Maintenance",
+	// 	url: "/tenant-portal/maintenance",
+	// 	icon: House,
+	// },
+	// {
+	// 	title: "Messages",
+	// 	url: "/tenant-portal/messages",
+	// 	icon: Mail,
+	// },
+	// {
+	// 	title: "Documents",
+	// 	url: "/tenant-portal/documents",
+	// 	icon: FileBox,
+	// },
 ];
 
 const ownerNavItems = [
@@ -175,8 +221,10 @@ const ownerNavItems = [
 ];
 
 // Get navigation items based on roleVariant/role
-function getNavItems(roleVariant?: "admin" | "manager" | "tenant" | "owner") {
+function getNavItems(roleVariant?: "s_admin" | "admin" | "manager" | "tenant" | "owner") {
 	switch (roleVariant) {
+		case "s_admin":
+			return sAdminNavItems;
 		case "admin":
 			return adminNavItems;
 		case "tenant":
@@ -190,7 +238,7 @@ function getNavItems(roleVariant?: "admin" | "manager" | "tenant" | "owner") {
 }
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-	roleVariant?: "admin" | "manager" | "tenant" | "owner";
+	roleVariant?: "s_admin" | "admin" | "manager" | "tenant" | "owner";
 }
 
 export function AppSidebar({
@@ -200,13 +248,15 @@ export function AppSidebar({
 	const { user } = useAuth();
 
 	// If variant is not explicitly provided, detect from user role
-	const detectedVariant: "admin" | "manager" | "tenant" | "owner" = React.useMemo(() => {
-		if (roleVariant !== "manager") return roleVariant as "admin" | "manager" | "tenant" | "owner";
+	const detectedVariant: "s_admin" | "admin" | "manager" | "tenant" | "owner" = React.useMemo(() => {
+		if (roleVariant !== "manager") return roleVariant as "s_admin" | "admin" | "manager" | "tenant" | "owner";
 
 		// Auto-detect based on user role when roleVariant is "manager" (default)
 		if (!user?.role) return "manager";
 
 		switch (user.role) {
+			case "S_ADMIN":
+				return "s_admin";
 			case "ADMIN":
 				return "admin";
 			case "TENANT":
@@ -227,7 +277,8 @@ export function AppSidebar({
 				<AppName teams={{
 					name: "Hofeti",
 					logo: Command,
-					plan: user?.role || "Free",
+					espace: `Espace ${user?.role === "ADMIN" ? "Propriétaire" : getRoleName(user?.role ?? "MANAGER")}`,
+
 				}} />
 			</SidebarHeader>
 			<SidebarContent>

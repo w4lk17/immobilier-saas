@@ -35,24 +35,6 @@ export function PropertyDetailsModal({ property, isOpen, onOpenChange }: Propert
 	};
 
 	const handleExportPDF = () => {
-		// TODO: Implémenter la logique d'export PDF
-		// Exemple basique avec jsPDF (nécessite installation)
-		// const doc = new jsPDF();
-		// doc.setFontSize(18);
-		// doc.text(`Profil Bien: ${property.user?.firstName} ${property.user?.lastName}`, 14, 22);
-		// doc.setFontSize(12);
-		// autoTable(doc, {
-		//   startY: 30,
-		//   head: [['Champ', 'Valeur']],
-		//   body: [
-		//     ['Nom Complet', `${property.user?.firstName || ''} ${property.user?.lastName || ''}`],
-		//     ['Email', property.user?.email || 'N/A'],
-		//     ['Position', property.position],
-		//     ['Téléphone', property.phoneNumber || 'N/A'],
-		//     ['Date d\'embauche', format(new Date(property.hireDate), 'dd MMMM yyyy', { locale: fr })],
-		//   ],
-		// });
-		// doc.save(`profil_tenant_${property.id}.pdf`);
 		alert("Fonctionnalité d'export PDF à implémenter !");
 	};
 
@@ -83,7 +65,7 @@ export function PropertyDetailsModal({ property, isOpen, onOpenChange }: Propert
 					<div className="flex items-center">
 						<Phone className="mr-3 h-4 w-4 text-muted-foreground" />
 						<span className="font-medium">Téléphone Propriétaire :</span>
-						<span className="ml-2 text-muted-foreground">{property.owner?.phoneNumber || 'N/A'}</span>
+						<span className="ml-2 text-muted-foreground">{property.owner?.user?.phoneNumber || 'N/A'}</span>
 					</div>
 					<div className="flex items-center">
 						<UserCog className="mr-3 h-4 w-4 text-muted-foreground" />
@@ -106,16 +88,12 @@ export function PropertyDetailsModal({ property, isOpen, onOpenChange }: Propert
 						<CalendarDays className="mr-3 h-4 w-4 text-muted-foreground" />
 						<span className="font-medium">Bien créé le :</span>
 						<span className="ml-2 text-muted-foreground">
-							{/* @ts-ignore // Supposant que createdAt/updatedAt existe sur PropertyWithRelations, sinon ajouter */}
 							{property.createdAt ? format(new Date(property.createdAt), 'dd MMM yy, HH:mm', { locale: fr }) : 'N/A'}
 						</span>
 					</div>
 				</div>
 
-				<DialogFooter className="pt-6 sm:justify-between">
-					<Button variant="outline" onClick={handleExportPDF}>
-						<Download className="mr-2 h-4 w-4" /> Exporter en PDF
-					</Button>
+				<DialogFooter className="pt-6 justify-start">
 					<DialogClose asChild>
 						<Button type="button" variant="secondary">
 							Fermer

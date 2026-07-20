@@ -14,24 +14,26 @@ import {
 	XCircle,
 	Clock,
 	AlertTriangle,
+	User,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { useAdminDashboard } from "@/features/dashboard/hooks/useDashboard.hooks";
 
-// Mock data - will be replaced with real API data
-const stats = {
-	totalUsers: 248,
-	totalManagers: 42,
-	totalProperties: 156,
-	totalContracts: 89,
-	totalRevenue: 125000,
-	activeUsers: 189,
+const fallbackStats = {
+	totalLocataires: 0,
+	totalManagers: 0,
+	totalProperties: 0,
+	totalContracts: 0,
+	totalRevenue: 0,
+	activeContracts: 0,
+	activeLocataires: 0,
 	systemHealth: "Operational",
 };
 
-const recentActivity = [
+const fallbackRecentActivity = [
 	{ id: 1, action: "Nouvel utilisateur créé", user: "Admin", time: "Il y a 5 min", type: "success" },
 	{ id: 2, action: "Contrat signé", user: "Manager Dupont", time: "Il y a 15 min", type: "success" },
 	{ id: 3, action: "Paiement en retard", user: "Système", time: "Il y a 1 heure", type: "warning" },
@@ -47,14 +49,32 @@ const systemMetrics = [
 ];
 
 export default function AdminDashboardPage() {
+	const { data: dashboard } = useAdminDashboard();
+	const stats = {
+		...fallbackStats,
+		totalLocataires: dashboard?.totalTenants ?? fallbackStats.totalLocataires,
+		totalManagers: dashboard?.totalManagers ?? fallbackStats.totalManagers,
+		totalProperties: dashboard?.totalProperties ?? fallbackStats.totalProperties,
+		totalContracts: dashboard?.totalContracts ?? fallbackStats.totalContracts,
+		totalRevenue: dashboard?.monthlyRevenue ?? fallbackStats.totalRevenue,
+		activeLocataires: dashboard?.activeTenants ?? fallbackStats.activeLocataires,
+		activeContracts: dashboard?.activeContracts ?? fallbackStats.activeContracts
+	};
+	const recentActivity = dashboard?.recentActivity?.length
+		? dashboard.recentActivity.map((activity) => ({
+			...activity,
+			time: new Date(activity.occurredAt).toLocaleString("fr-FR"),
+		}))
+		: fallbackRecentActivity;
+
 	return (
 		<div className="space-y-6 p-4">
 			{/* Header */}
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Tableau de Bord Admin</h1>
+					<h1 className="text-3xl font-bold tracking-tight">Tableau de Bord</h1>
 					<p className="text-muted-foreground">
-						Vue d&apos;ensemble de l&apos;ensemble du système
+						Vue d&apos;ensemble
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -71,55 +91,34 @@ export default function AdminDashboardPage() {
 
 			{/* Stats Overview Cards */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{/* Total Users */}
-				<Card className="overflow-hidden">
+				{/* Total Locataires */}
+				<Card className="overflow-hidden gap-2">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
+						<CardTitle className="text-sm font-medium">Locataires</CardTitle>
 						<Users className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats.totalUsers}</div>
-						<p className="text-xs text-muted-foreground">
+						<div className="text-2xl font-bold">
+							{stats.totalLocataires}
+						</div>
+						{/* <p className="text-xs text-muted-foreground">
 							<span className="text-green-600 font-medium flex items-center gap-1">
-								<ArrowUpRight className="h-3 w-3" />
-								+12%
+								<ArrowUpRight className="h-3 w-3" />								
+								+2
 							</span>{" "}
 							ce mois
-						</p>
+						</p> */}
 						<div className="mt-3 flex items-center gap-2 text-xs">
-							<span className="text-green-600">{stats.activeUsers} actifs</span>
+							<span className="text-green-600">{stats.activeLocataires} actifs</span>
 							<span className="text-muted-foreground">•</span>
-							<span className="text-muted-foreground">{stats.totalUsers - stats.activeUsers} inactifs</span>
+							<span className="text-muted-foreground">{stats.totalLocataires - stats.activeLocataires} inactifs</span>
 						</div>
 					</CardContent>
 				</Card>
 
-				{/* Total Gestionnaire */}
-				<Card className="overflow-hidden">
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Employés</CardTitle>
-						<UserRoundCog className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{stats.totalManagers}</div>
-						<p className="text-xs text-muted-foreground">
-							<span className="text-green-600 font-medium flex items-center gap-1">
-								<ArrowUpRight className="h-3 w-3" />
-								+3
-							</span>{" "}
-							cette semaine
-						</p>
-						<Button variant="ghost" size="sm" className="mt-2 w-full justify-start px-0 h-6" asChild>
-							<Link href="/admin-panel/managers">
-								Gérer les employés →
-							</Link>
-						</Button>
-					</CardContent>
-				</Card>
-
 				{/* Total Properties */}
-				<Card className="overflow-hidden">
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				{/* <Card className="overflow-hidden">
+					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle className="text-sm font-medium">Biens</CardTitle>
 						<Building2 className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
@@ -138,30 +137,67 @@ export default function AdminDashboardPage() {
 							<span className="text-orange-600">14 vacants</span>
 						</div>
 					</CardContent>
-				</Card>
+				</Card> */}
 
 				{/* Total Contracts */}
-				<Card className="overflow-hidden">
+				<Card className="overflow-hidden gap-2 ">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Contrats</CardTitle>
 						<FileText className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats.totalContracts}</div>
-						<p className="text-xs text-muted-foreground">
-							<span className="text-green-600 font-medium flex items-center gap-1">
-								<ArrowUpRight className="h-3 w-3" />
-								+5
-							</span>{" "}
-							cette semaine
-						</p>
+						<div className="text-2xl font-bold">
+							{stats.totalContracts}
+						</div>
 						<div className="mt-3 flex items-center gap-2 text-xs">
-							<span className="text-green-600">82 actifs</span>
+							<span className="text-green-600">{stats.activeContracts} actifs</span>
 							<span className="text-muted-foreground">•</span>
-							<span className="text-gray-600">7 inactifs</span>
+							<span className="text-gray-600">{stats.totalContracts - stats.activeContracts} inactifs</span>
 						</div>
 					</CardContent>
 				</Card>
+
+				{/* Total impayer des loyers*/}
+				<Card className="overflow-hidden gap-3">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<div>
+							<CardTitle className="text-sm font-medium">Total des impayés</CardTitle>			
+							{/* <CardDescription>Février 2026</CardDescription> */}
+						</div>
+						<Wallet className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							0 F CFA
+							{/* {stats.totalRevenue.toLocaleString('fr-FR')} F CFA */}
+						</div>
+						{/* <Button variant="ghost" size="sm" className="mt-2 w-full justify-start px-0 h-6" asChild>
+							<Link href="/admin-panel/managers">
+								Gérer les employés →
+							</Link>
+						</Button> */}
+					</CardContent>
+				</Card>
+
+				{/* Total Revenue total*/}
+				<Card className="overflow-hidden gap-3">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div>
+								<CardTitle className="text-sm font-medium">Revenu total</CardTitle>	
+			
+								{/* <CardDescription>Février 2026</CardDescription> */}
+							</div>
+							<Wallet className="h-4 w-4 text-muted-foreground" />
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							{stats.totalRevenue.toLocaleString('fr-FR')} F CFA
+						</div>
+					</CardContent>
+				</Card>
+
 			</div>
 
 			{/* Revenue & Quick Actions Row */}
@@ -171,27 +207,48 @@ export default function AdminDashboardPage() {
 					<CardHeader>
 						<div className="flex items-center justify-between">
 							<div>
-								<CardTitle>Revenus du Mois</CardTitle>
-								<CardDescription>Février 2026</CardDescription>
+								<CardTitle>Notifications Importantes</CardTitle>
+								<CardDescription>Ce qui nécessite votre attention</CardDescription>
 							</div>
-							<Wallet className="h-8 w-8 text-green-600" />
+							<AlertTriangle className="h-8 w-8 text-yellow-600" />
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold">
-							{stats.totalRevenue.toLocaleString('fr-FR')} F CFA
+						<div className="space-y-4">
+							{/* Loyer impayé */}
+							<div className="flex items-center gap-3 p-3 rounded-md bg-yellow-50 border-l-4 border-yellow-500">
+								<XCircle className="h-6 w-6 text-yellow-600" />
+								<div className="flex-1">
+									<div className="font-medium">Loyers impayés</div>
+									<div className="text-xs text-muted-foreground">3 locataires - Total: 0 F CFA</div>
+								</div>
+								<Button variant="link" size="sm" className="text-yellow-700" asChild>
+									<Link href="/admin/arrears">Voir</Link>
+								</Button>
+							</div>
+							{/* Contrats à renouveler */}
+							<div className="flex items-center gap-3 p-3 rounded-md bg-orange-50 border-l-4 border-orange-500">
+								<Clock className="h-6 w-6 text-orange-600" />
+								<div className="flex-1">
+									<div className="font-medium">Contrats à renouveler</div>
+									<div className="text-xs text-muted-foreground">2 contrats expirent dans 30 jours</div>
+								</div>
+								<Button variant="link" size="sm" className="text-orange-700" asChild>
+									<Link href="/admin/contracts?filter=renewal">Gérer</Link>
+								</Button>
+							</div>
+							{/* Incidents signalés */}
+							<div className="flex items-center gap-3 p-3 rounded-md bg-red-50 border-l-4 border-red-500">
+								<AlertTriangle className="h-6 w-6 text-red-600" />
+								<div className="flex-1">
+									<div className="font-medium">Incidents récents</div>
+									<div className="text-xs text-muted-foreground">1 incident signalé ce mois-ci</div>
+								</div>
+								<Button variant="link" size="sm" className="text-red-700" asChild>
+									<Link href="/admin/incidents">Consulter</Link>
+								</Button>
+							</div>
 						</div>
-						<p className="text-xs text-muted-foreground mt-1">
-							<span className="text-green-600 font-medium flex items-center gap-1">
-								<ArrowUpRight className="h-3 w-3" />
-								+18.2%
-							</span>{" "}
-							par rapport au mois dernier
-						</p>
-						<div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
-							<div className="h-full bg-green-600 rounded-full" style={{ width: "78%" }}></div>
-						</div>
-						<p className="text-xs text-muted-foreground mt-2">78% de l&apos;objectif mensuel</p>
 					</CardContent>
 				</Card>
 
@@ -203,25 +260,25 @@ export default function AdminDashboardPage() {
 					</CardHeader>
 					<CardContent className="space-y-2">
 						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
-							<Link href="/admin/users/new">
-								<Users className="mr-2 h-4 w-4" />
-								Ajouter un utilisateur
+							<Link href="/admin/tenants/new">
+								<User className="mr-2 h-4 w-4" />
+								Ajouter un locataire
 							</Link>
 						</Button>
 						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
-							<Link href="/admin/managers/new">
-								<UserRoundCog className="mr-2 h-4 w-4" />
-								Ajouter un employé
+							<Link href="/admin/contracts/new">
+								<FileText className="mr-2 h-4 w-4" />
+								Ajouter un contrat
 							</Link>
 						</Button>
 						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
-							<Link href="/dashboard/reports">
+							<Link href="#">
 								<TrendingUp className="mr-2 h-4 w-4" />
 								Voir les rapports
 							</Link>
 						</Button>
 						<Button variant="outline" size="sm" className="w-full justify-start" asChild>
-							<Link href="/admin/settings">
+							<Link href="#">
 								<Shield className="mr-2 h-4 w-4" />
 								Paramètres système
 							</Link>
@@ -233,7 +290,7 @@ export default function AdminDashboardPage() {
 			{/* System Health & Recent Activity */}
 			<div className="grid gap-4 md:grid-cols-2">
 				{/* System Metrics */}
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<CardTitle>État du Système</CardTitle>
 						<CardDescription>Métriques de performance en temps réel</CardDescription>
@@ -261,8 +318,49 @@ export default function AdminDashboardPage() {
 							))}
 						</div>
 					</CardContent>
-				</Card>
+				</Card> */}
 
+				{/* Recent Payment */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Paiements récents</CardTitle>
+						<CardDescription>Derniers paiements enregistrés dans le système</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{dashboard?.recentPayments?.length > 0 ? (
+							<div className="space-y-4">
+								{dashboard.recentPayments.map((payment) => (
+									<div key={payment.id} className="flex items-start gap-3 border-b pb-2 last:border-b-0 last:pb-0">
+										<div className="mt-0.5 rounded-full bg-green-100 text-green-600 p-1">
+											<CheckCircle className="h-4 w-4" />
+										</div>
+										<div className="flex-1">
+											<p className="text-sm font-medium leading-none">
+												Paiement reçu de {payment.tenantName ?? "Locataire"} 
+												<span className="ml-1 font-normal text-xs text-muted-foreground">
+													{payment.contractAddress && `pour ${payment.contractAddress}`}
+												</span>
+											</p>
+											<p className="text-xs text-muted-foreground">
+												Montant&nbsp;: <span className="font-semibold">{payment.amount}&nbsp;XOF</span>
+											</p>
+										</div>
+										<div className="flex items-center gap-1 text-xs text-muted-foreground">
+											<Clock className="h-3 w-3" />
+											{payment.date ? new Date(payment.date).toLocaleString('fr-FR') : ''}
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+								<Wallet className="h-8 w-8 mb-2 opacity-60" />
+								<p className="text-sm">Aucun paiement récent trouvé.</p>
+							</div>
+						)}
+	
+					</CardContent>
+				</Card>
 				{/* Recent Activity */}
 				<Card>
 					<CardHeader>
@@ -299,7 +397,7 @@ export default function AdminDashboardPage() {
 			</div>
 
 			{/* Alerts & Notifications */}
-			<Card>
+			{/* <Card>
 				<CardHeader>
 					<CardTitle>Alertes & Notifications</CardTitle>
 					<CardDescription>Actions requises et informations importantes</CardDescription>
@@ -327,17 +425,9 @@ export default function AdminDashboardPage() {
 								<Link href="/admin-panel/users">Voir</Link>
 							</Button>
 						</div>
-
-						<div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
-							<CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-							<div className="flex-1">
-								<p className="text-sm font-medium text-green-800">Système à jour</p>
-								<p className="text-xs text-green-700">Tous les services fonctionnent normalement</p>
-							</div>
-						</div>
 					</div>
 				</CardContent>
-			</Card>
+			</Card> */}
 		</div>
 	);
 }

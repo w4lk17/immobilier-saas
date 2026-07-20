@@ -5,7 +5,6 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { useState } from "react";
 import Link from "next/link";
 
-import { FrontendTenant, FrontendUserSnippet } from "@/types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -25,10 +24,14 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2, LucideReceiptText, Eye } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, LucideReceiptText, Eye } from "lucide-react";
 import { useDeleteTenant } from '../hooks/useTenants.hooks';
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
-
+// import { TenantActions } from "./tenant-actions";
+import { FrontendTenant } from "@/types";
+import { formatPhone } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { getStatusBadge, getStatusTextColor } from "@/lib/statusHelpers";
 function TenantActions({ row, table }: { row: Row<FrontendTenant>, table: any }) {
 	const tenant = row.original;
 	const { mutate: deleteTenant, isPending } = useDeleteTenant();
@@ -42,13 +45,9 @@ function TenantActions({ row, table }: { row: Row<FrontendTenant>, table: any })
 	}
 
 	const openViewModal = () => {
-		// null check
-		if (table?.options?.meta?.viewDetails) {
-			table.options.meta.viewDetails(tenant);
-			setIsDropdownOpen(false);
-		} else {
-			console.warn('viewDetails function not found in table meta');
-		}
+		table?.options?.meta?.viewDetails?.(tenant);
+		setIsDropdownOpen(false);
+
 	};
 
 	return (
@@ -60,41 +59,32 @@ function TenantActions({ row, table }: { row: Row<FrontendTenant>, table: any })
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align="end"
+				<DropdownMenuContent align="end"
 					onInteractOutside={() => setIsDropdownOpen(false)}
 				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={(e) => {
-							e.preventDefault();
-							openViewModal();
-						}}
-						className="flex items-center w-full cursor-pointer"
-					>
+					<DropdownMenuItem onClick={openViewModal} className="flex w-full items-center cursor-pointer">
 						<Eye className="mr-2 h-4 w-4" /> Détails
 					</DropdownMenuItem>
+					
 					<DropdownMenuItem asChild>
-						<Link href={`/tenants/edit/${tenant.id}`}
-							className="flex items-center w-full cursor-pointer"
-						>
+						<Link href={`/admin/tenants/${tenant.id}/edit`} className="flex w-full items-center cursor-pointer"	>
 							<Edit3 className="mr-2 h-4 w-4" /> Modifier
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
-						<Link href={`/tenants/${tenant.id}/payments`}
-							className="flex items-center w-full cursor-pointer"
-							onClick={() => setIsDropdownOpen(false)}
-						>
+						<Link href={`/admin/tenants/${tenant.id}/payments`} className="flex w-full items-center cursor-pointer"		
+						onClick={() => setIsDropdownOpen(false)}>
 							<LucideReceiptText className="mr-2 h-4 w-4" /> Paiements
 						</Link>
 					</DropdownMenuItem>
+
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+						className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
 						onClick={() => {
 							setIsAlertOpen(true);
 							setIsDropdownOpen(false);
@@ -126,35 +116,70 @@ function TenantActions({ row, table }: { row: Row<FrontendTenant>, table: any })
 	);
 }
 
-export const tenantColumns: ColumnDef<FrontendTenant>[] = [
+type TenantRow = FrontendTenant;
+
+export const tenantColumns: ColumnDef<TenantRow>[] = [
 	{
 		id: "name",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
-		accessorFn: row => `${row.user?.firstName || ''} ${row.user?.lastName || ''}`.trim() || 'N/A',
+		accessorFn: row => `${row.firstName || ''} ${row.lastName || ''}`.trim() || 'N/A',
 		cell: ({ row }) => {
-			const user = row.original.user as FrontendUserSnippet | undefined;
-			return <div className="font-medium">{`${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'N/A'}</div>;
+			const name = `${row.original.firstName || ''} ${row.original.lastName || ''}`.trim() || 'N/A';
+			return <div className="font-medium">{name}</div>;
 		}
 	},
-	// TODO: add column "Locative occupee"
 	{
 		id: "email",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-		accessorFn: row => row.user?.email || 'N/A',
+		accessorFn: row => row.email,
 		enableSorting: false,
 	},
-	// TODO: add column "type" de locataire(particulier-professionel)
 	{
 		accessorKey: "phoneNumber",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
-		cell: ({ row }) => row.getValue("phoneNumber") || '-',
+		cell: ({ row }) => formatPhone(row.getValue("phoneNumber")) || '-',
 		enableSorting: false,
 	},
-	// TODO: Ajoutez d'autres colonnes (nombre de contrats actifs, ,status (actif-inactif), date ajout)
+	// {
+	// 	id: "status",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
+	// cell: ({ row, table }) => {
+	// 	const user = row.original;
+	// 	const toggleStatus = table.options.meta?.toggleStatus;
+	// 	const isUpdatingStatus = table.options.meta?.isUpdatingStatus;
+
+	// 	return (
+	// 		<div className="flex items-center gap-2">
+	// 			<Switch
+	// 				checked={user.isActive}
+	// 				onCheckedChange={() => toggleStatus?.(user.id, user.isActive)}
+	// 				disabled={isUpdatingStatus}
+	// 				aria-label="Changer le statut"
+	// 			/>
+	// 			<span className="text-xs text-muted-foreground">
+	// 				{user.isActive ? "Actif" : "Inactif"}
+	// 			</span>
+	// 		</div>
+	// 	);
+	// },
+	// enableSorting: false,
+  // },
+	{
+		id: "status",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
+		cell: ({ row }) => {
+			const user = row.original;
+			return (
+				<span className="text-xs text-muted-foreground">
+					{user.isActive ? "Actif" : "Inactif"}
+				</span>
+			);
+		},
+		enableSorting: false,
+	},
+	
 	{
 		id: "actions",
-		// header: () => <div className="text-right">Actions</div>,
 		cell: ({ row, table }) => <TenantActions row={row} table={table} />,
-		enableSorting: false,
 	},
 ];

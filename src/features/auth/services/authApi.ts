@@ -5,17 +5,27 @@ import { CurrentUser } from '@/types';
 
 
 const authService = {
-	// Login : L'API login ne retourne rien dans le body si succès (tokens dans cookies)
+	// Login : L'API login set les cookies, puis on récupère le profil
 	async login(credentials: LoginCredentials): Promise<CurrentUser> {
 		await api.post('/auth/login', credentials);
-		// Une fois connecté, on récupère le profil complet
 		return this.getProfile();
 	},
 
-	async register(credentials: RegisterCredentials): Promise<CurrentUser> {
-		await api.post('/auth/register', credentials);
-		return this.getProfile();
+	async register(credentials: RegisterCredentials): Promise<{ message: string }> {
+		const response = await api.post('/auth/register', credentials);
+		return response.data.message;
 	},
+
+	async verifyEmail(token: string): Promise<void> {
+		await api.get(`/auth/verify-email?token=${token}`);
+	},
+
+	async forgotPassword(email: string): Promise<{ message: string }> {
+		const response = await api.post('/auth/forgotPassword', email);
+		return response.data.message;
+	},
+
+	//TODO: resetPassword service
 
 	// Logout : Invalide le refresh token côté serveur
 	async logout(): Promise<void> {

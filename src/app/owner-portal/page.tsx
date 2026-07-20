@@ -18,9 +18,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useOwnerDashboard } from "@/features/dashboard/hooks/useDashboard.hooks";
 
-// Mock data
-const ownerStats = {
+const fallbackOwnerStats = {
 	monthlyRevenue: 90000,
 	annualRevenue: 1080000,
 	occupancyRate: 95,
@@ -30,7 +30,7 @@ const ownerStats = {
 	roi: 8.5,
 };
 
-const myProperties = [
+const fallbackProperties = [
 	{
 		id: 1,
 		name: "Appartement FST",
@@ -78,18 +78,70 @@ const myProperties = [
 	},
 ];
 
-const recentPayments = [
+const fallbackRecentPayments = [
 	{ id: 1, property: "Appartement FST", tenant: "Mohammed Benali", amount: 18000, date: "2026-02-05", status: "paid" },
 	{ id: 2, property: "Villa Medina", tenant: "Sara Alami", amount: 25000, date: "2026-02-03", status: "paid" },
 	{ id: 3, property: "Studio Ville Nouvelle", tenant: "Youssef Idrissi", amount: 15000, date: "2026-02-01", status: "pending" },
 ];
 
-const upcomingExpenses = [
+const fallbackUpcomingExpenses = [
 	{ id: 1, property: "Appartement FST", type: "Maintenance plomberie", amount: 2500, date: "2026-02-28" },
 	{ id: 2, property: "Villa Medina", type: "Nettoyage vitres", amount: 800, date: "2026-03-01" },
 ];
 
 export default function OwnerDashboardPage() {
+	const { data: dashboard } = useOwnerDashboard();
+	const ownerStats = {
+		...fallbackOwnerStats,
+		monthlyRevenue: dashboard?.monthlyRevenue ?? fallbackOwnerStats.monthlyRevenue,
+		annualRevenue: dashboard?.annualRevenue ?? fallbackOwnerStats.annualRevenue,
+		occupancyRate: dashboard?.occupancyRate ?? fallbackOwnerStats.occupancyRate,
+		totalProperties: dashboard?.totalProperties ?? fallbackOwnerStats.totalProperties,
+		activeTenants: dashboard?.activeTenants ?? fallbackOwnerStats.activeTenants,
+		activeContracts: dashboard?.activeContracts ?? fallbackOwnerStats.activeContracts,
+	};
+	const myProperties = dashboard?.propertySummary?.length
+		? dashboard.propertySummary.map((property: any) => {
+			const activeContract = property.contracts?.[0];
+			const monthlyIncome = property.rentals?.reduce(
+				(total: number, rental: any) => total + (rental.rentalValue || 0),
+				0,
+			) || 0;
+			return {
+				id: property.id,
+				name: property.address,
+				address: property.address,
+				monthlyIncome,
+				status: activeContract ? "occupied" : property.status?.toLowerCase?.() || "vacant",
+				tenant: activeContract?.tenant?.user
+					? `${activeContract.tenant.user.firstName} ${activeContract.tenant.user.lastName}`
+					: null,
+				contractEnd: activeContract?.endDate ?? null,
+			};
+		})
+		: fallbackProperties;
+	const recentPayments = dashboard?.recentPayments?.length
+		? dashboard.recentPayments.map((invoice: any) => ({
+			id: invoice.id,
+			property: invoice.contract?.property?.address || invoice.contract?.designation || "Contrat",
+			tenant: invoice.tenant?.user
+				? `${invoice.tenant.user.firstName} ${invoice.tenant.user.lastName}`
+				: "Locataire",
+			amount: invoice.paidAmount || invoice.amountDue,
+			date: invoice.paidDate || invoice.updatedAt || invoice.createdAt,
+			status: invoice.status?.toLowerCase?.() || "paid",
+		}))
+		: fallbackRecentPayments;
+	const upcomingExpenses = dashboard?.recentExpenses?.length
+		? dashboard.recentExpenses.map((expense: any) => ({
+			id: expense.id,
+			property: expense.property?.address || "Bien",
+			type: expense.description || expense.type,
+			amount: expense.amount,
+			date: expense.date,
+		}))
+		: fallbackUpcomingExpenses;
+
 	return (
 		<div className="space-y-6 p-4">
 			{/* Header */}

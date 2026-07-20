@@ -20,9 +20,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { useManagerDashboard } from "@/features/dashboard/hooks/useDashboard.hooks";
 
-// Mock data - will be replaced with real API data
-const stats = {
+const fallbackStats = {
 	totalProperties: 24,
 	totalContracts: 18,
 	totalTenants: 22,
@@ -33,7 +33,7 @@ const stats = {
 	pendingPayments: 4,
 };
 
-const recentActivity = [
+const fallbackRecentActivity = [
 	{ id: 1, action: "Nouveau contrat signé", user: "Manager Dupont", time: "Il y a 5 min", type: "success" },
 	{ id: 2, action: "Paiement reçu", user: "Locataire Martin", time: "Il y a 15 min", type: "success" },
 	{ id: 3, action: "Demande de maintenance", user: "Locataire Bernard", time: "Il y a 1 heure", type: "warning" },
@@ -49,6 +49,40 @@ const quickActions = [
 ];
 
 export default function ManagerDashboardPage() {
+	const { data: dashboard } = useManagerDashboard();
+	const stats = {
+		...fallbackStats,
+		totalProperties: dashboard?.totalProperties ?? fallbackStats.totalProperties,
+		totalContracts: dashboard?.totalContracts ?? fallbackStats.totalContracts,
+		totalTenants: dashboard?.totalTenants ?? fallbackStats.totalTenants,
+		totalRevenue: dashboard?.monthlyRevenue ?? fallbackStats.totalRevenue,
+		totalExpenses: dashboard?.monthlyExpenses ?? fallbackStats.totalExpenses,
+		activeContracts: dashboard?.activeContracts ?? fallbackStats.activeContracts,
+		pendingPayments: dashboard?.pendingInvoices ?? fallbackStats.pendingPayments,
+	};
+	const recentActivity = dashboard
+		? [
+			...(dashboard.recentInvoices || []).map((invoice: any) => ({
+				id: `invoice-${invoice.id}`,
+				action: `Facture ${invoice.status?.toLowerCase?.() || ""}`,
+				user: invoice.tenant?.user
+					? `${invoice.tenant.user.firstName} ${invoice.tenant.user.lastName}`
+					: "Locataire",
+				time: new Date(invoice.createdAt).toLocaleString("fr-FR"),
+				type: invoice.status === "PAID" ? "success" : "warning",
+			})),
+			...(dashboard.recentExpenses || []).map((expense: any) => ({
+				id: `expense-${expense.id}`,
+				action: "Dépense enregistrée",
+				user: expense.recordedBy
+					? `${expense.recordedBy.firstName} ${expense.recordedBy.lastName}`
+					: "Gestionnaire",
+				time: new Date(expense.date).toLocaleDateString("fr-FR"),
+				type: "info",
+			})),
+		].slice(0, 5)
+		: fallbackRecentActivity;
+
 	return (
 		<div className="space-y-6 p-4">
 			{/* Header */}

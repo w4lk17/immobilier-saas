@@ -24,9 +24,10 @@ import {
 	CreateManagerFormData,
 	UpdateManagerFormData,
 } from '../schemas/managerSchemas';
-import { ManagerWithUser, EmploymentType } from '@/types';
+import { ManagerWithUser } from '@/types';
 import { DatePicker } from '@/components/shared/DatePicker';
 import { formatDate } from '@/lib/dateUtils';
+import { EmploymentType } from '@/types/enums';
 
 // --- Configuration des Étapes ---
 const STEPS = [

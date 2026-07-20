@@ -15,19 +15,22 @@ export function toDate(dateValue?: string | Date | null): Date | null {
 
 /**
  * Format ISO string or Date to readable date format
+ * e.g. ""
  */
 export function formatDate(dateValue?: string | Date | null, formatStr: string = 'PP'): string {
-	if (!dateValue) return '';
+	if (!dateValue) return '-';
 	try {
 		const date = toDate(dateValue);
-		return date ? format(date, formatStr, { locale: fr }) : '';
+		return date ? format(date, formatStr, { locale: fr }) : '-';
 	} catch {
 		return '';
 	}
 }
 
+
 /**
- * Format ISO string or Date to time only format
+ * Format ISO string or Date to time only format 
+ * e.g. "10:00"
  */
 export function formatTime(dateValue?: string | Date | null): string {
 	if (!dateValue) return '';
@@ -40,20 +43,36 @@ export function formatTime(dateValue?: string | Date | null): string {
 }
 
 /**
- * Format ISO string or Date to date and time
+ * Format ISO string or Date to date and time format 
+ * (e.g. "21 avr. 2026, 15:05")
  */
 export function formatDateTime(dateValue?: string | Date | null): string {
-	if (!dateValue) return '';
+	if (!dateValue) return '-';
 	try {
 		const date = toDate(dateValue);
-		return date ? format(date, 'PPp', { locale: fr }) : '';
+		return date ? format(date, 'PPp', { locale: fr }) : '-';
 	} catch {
 		return '';
 	}
 }
 
 /**
- * Get relative time representation (e.g., '2 hours ago')
+ * Format ISO string or Date to date and time format 
+ * e.g. "12/10/2026"
+ */
+export function formatOptionalDate(dateValue?: string | Date | null): string {
+	if (!dateValue) return '-';
+	try {
+		const date = toDate(dateValue);
+		return date ? format(date, 'dd/MM/yyyy') : '-';
+	} catch {
+		return '';
+	}
+}
+
+/**
+ * Get relative time representation 
+ * e.g. "2 hours ago"
  */
 export function getRelativeTime(dateValue?: string | Date | null): string {
 	if (!dateValue) return '';
@@ -68,7 +87,8 @@ export function getRelativeTime(dateValue?: string | Date | null): string {
 }
 
 /**
- * Check if date is in the past
+ * Check if date is in the past 
+ * e.g. "2026-05-04" is in the past
  */
 export function isPast(dateValue?: string | Date | null): boolean {
 	if (!dateValue) return false;
@@ -95,6 +115,7 @@ export function isFuture(dateValue?: string | Date | null): boolean {
 
 /**
  * Check if two dates are the same day
+ * e.g. "2026-05-04" and "2026-05-04" are the same day
  */
 export function isSameDayUtil(
 	date1?: string | Date | null,
@@ -108,4 +129,10 @@ export function isSameDayUtil(
 	} catch {
 		return false;
 	}
+}
+
+export const formatDateForForm = (date: Date | string | null | undefined) => {
+	if (!date) return null;
+	if (typeof date === "string") return date;
+	return date.toISOString();
 }

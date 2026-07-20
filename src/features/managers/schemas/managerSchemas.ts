@@ -1,6 +1,7 @@
 
+import { EmploymentType } from '@/types/enums';
 import { z } from 'zod';
-import { EmploymentType } from '@/types'; // Assure-toi que l'enum est dispo
+
 
 // Regex validation mot de passe
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;

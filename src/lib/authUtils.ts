@@ -9,6 +9,8 @@ export function getRoleRedirectPath(user: CurrentUser | null): string {
 	}
 
 	switch (user.role) {
+		case "S_ADMIN":
+			return "/admin";
 		case "ADMIN":
 			return "/admin";
 		case "MANAGER":
@@ -34,6 +36,8 @@ export function canAccessRoute(userRole: string, allowedRoles: string[]): boolea
  */
 export function getRoleName(role: string): string {
 	switch (role) {
+		case "S_ADMIN":
+			return "Super Admin";
 		case "ADMIN":
 			return "Administrateur";
 		case "MANAGER":

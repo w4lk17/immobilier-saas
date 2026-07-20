@@ -37,14 +37,14 @@ export function DataTableEmptyState({
 							</p>
 						)}
 					</div>
-					{actionHref && actionLabel && (
+					{/* {actionHref && actionLabel && (
 						<Button asChild className="mt-2">
 							<Link href={actionHref}>
 								{ActionIcon && <ActionIcon className="mr-2 h-4 w-4" />}
 								{actionLabel}
 							</Link>
 						</Button>
-					)}
+					)} */}
 				</CardContent>
 			</Card>
 		</div>

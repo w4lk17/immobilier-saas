@@ -1,24 +1,24 @@
 
 import api from '@/lib/api';
 import { PropertyFormData, PropertyUpdateFormData } from '../schemas/propertySchemas';
-import { FrontendProperty, PropertyWithRelations } from '@/types';
+import { Property, PropertyWithRelations } from '@/types';
 
 const propertiesService = {
 	// Basic list (minimal data)
-	async getAll(): Promise<FrontendProperty[]> {
-		const response = await api.get<FrontendProperty[]>('/properties');
+	async getAll(): Promise<Property[]> {
+		const response = await api.get<Property[]>('/properties');
 		return response.data;
 	},
 
 	// List with relations (for tables/displays)
 	async getAllWithRelations(): Promise<PropertyWithRelations[]> {
-		const response = await api.get<PropertyWithRelations[]>('/properties?include=owner,manager');
+		const response = await api.get<PropertyWithRelations[]>('/properties?include=owner,manager,rentals');
 		return response.data;
 	},
 
 	// Single record (basic)
-	async getById(id: number): Promise<FrontendProperty> {
-		const response = await api.get<FrontendProperty>(`/properties/${id}`);
+	async getById(id: number): Promise<Property> {
+		const response = await api.get<Property>(`/properties/${id}`);
 		return response.data;
 	},
 

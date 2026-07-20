@@ -35,9 +35,11 @@ export function UserDetailsModal({ user, isOpen, onOpenChange }: UserDetailsModa
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
-					<DialogTitle>Détails utilisateur</DialogTitle>
+					<DialogTitle>Profil de utilisateur</DialogTitle>
 					<DialogDescription>
-						Informations du profil {user.firstName && user.lastName ? `de ${user.firstName} ${user.lastName}` : ""}
+						{user.firstName && user.lastName
+							? `Fiche d'informations pour ${user.lastName} ${user.firstName}`
+							: "Fiche d'informations de l'utilisateur"}
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-4 py-4">

@@ -3,13 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import propertiesService from '../services/propertiesApi';
 import { PropertyFormData, PropertyUpdateFormData } from '../schemas/propertySchemas';
 import { toast } from "sonner";
-import { FrontendProperty, PropertyWithRelations } from '@/types';
+import { Property, PropertyWithRelations } from '@/types';
 
 export const PROPERTIES_QUERY_KEY = ['properties'];
 
 // List queries
 export function useProperties() {
-	return useQuery<FrontendProperty[], Error>({
+	return useQuery<Property[], Error>({
 		queryKey: PROPERTIES_QUERY_KEY,
 		queryFn: propertiesService.getAll,
 		staleTime: 1000 * 60 * 5,
@@ -26,7 +26,7 @@ export function usePropertiesWithRelations() {
 
 // Detail queries
 export function useProperty(propertyId: number | null | undefined) {
-	return useQuery<FrontendProperty, Error>({
+	return useQuery<Property, Error>({
 		queryKey: [...PROPERTIES_QUERY_KEY, propertyId],
 		queryFn: () => {
 			if (!propertyId) throw new Error("ID de propriété invalide");

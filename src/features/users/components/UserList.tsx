@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState } from 'react';
-import { Users, PlusCircle } from "lucide-react";
+import { Users } from "lucide-react";
 import { User } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
 import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
@@ -35,7 +34,7 @@ export function UserList({ users }: UserListProps) {
 		<DataTableEmptyState
 			icon={Users}
 			title="Aucun utilisateur trouvé"
-			description="Les utilisateurs apparaîtront ici dès qu'ils seront créés via les profils Employés, Propriétaires ou Locataires."
+			description="Les utilisateurs apparaîtront ici dès qu'ils seront créés."
       />
 	);
 

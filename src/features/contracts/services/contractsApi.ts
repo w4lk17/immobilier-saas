@@ -42,6 +42,11 @@ const contractsService = {
 	async delete(id: number): Promise<void> {
 		await api.delete(`/contracts/${id}`);
 	},
+
+	async terminate(id: number) {
+		const response = await api.patch<ContractWithRelations>(`/contracts/${id}/terminate`);
+		return response.data ;
+	},
 };
 
 export default contractsService;

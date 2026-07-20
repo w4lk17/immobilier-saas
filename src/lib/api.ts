@@ -1,6 +1,5 @@
 import useAuthStore from '@/store/authStore';
 import axios from 'axios';
-import { toast } from 'sonner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333/api';
 

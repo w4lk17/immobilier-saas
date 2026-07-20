@@ -61,7 +61,7 @@ export function DataTablePagination<TData>({
 			</div>
 
 			{/* Desktop: Full pagination controls */}
-			<div className="hidden sm:flex items-center justify-between gap-6 flex-1 w-full">
+			<div className="hidden sm:flex items-center justify-end gap-6 flex-1 w-full">
 				{/* Page size selector */}
 				<div className="flex items-center gap-2">
 					<p className="text-sm font-medium whitespace-nowrap">

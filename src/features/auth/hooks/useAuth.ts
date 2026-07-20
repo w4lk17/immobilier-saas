@@ -43,16 +43,13 @@ export function useAuth() {
 			const loggedInUser = await authService.login(credentials);
 			setUser(loggedInUser);
 			toast.success('Connexion réussie !');
-
-			// Redirect to role-specific dashboard
 			const redirectPath = getRoleRedirectPath(loggedInUser);
 			router.push(redirectPath);
 		} catch (error: any) {
 			console.error('Login failed:', error);
 			setUser(null);
 			const errorMessage = error.response?.data?.message || "Échec de la connexion.";
-			toast.error(errorMessage);
-			throw error; // Re-throw for form handling
+			toast.error("Échec de la connexion.");
 		} finally {
 			setLoading(false);
 		}
@@ -61,23 +58,49 @@ export function useAuth() {
 	const register = useCallback(async (credentials: RegisterCredentials) => {
 		setLoading(true);
 		try {
-			const registeredUser = await authService.register(credentials);
-			setUser(registeredUser);
-			toast.success('Inscription réussie !');
+			await authService.register(credentials);
+			toast.success('Inscription réussie ! Vérifiez vos emails pour activer votre compte.');
+			router.push('/login?verificationSent=true');
 
-			// Redirect to role-specific dashboard
-			const redirectPath = getRoleRedirectPath(registeredUser);
-			router.push(redirectPath);
 		} catch (error: any) {
 			console.error('Registration failed:', error);
-			setUser(null);
+			// setUser(null) pas nécessaire ici, on était pas connecté
 			const errorMessage = error.response?.data?.message || "Échec de l'inscription.";
 			toast.error(errorMessage);
-			throw error; // Re-throw for form handling
+			throw error;
 		} finally {
 			setLoading(false);
 		}
-	}, [setUser, setLoading, router]);
+	}, [setLoading, router]); 
+
+	const verifyEmail = useCallback(async (token: string) => {
+		try {
+			await authService.verifyEmail(token);
+			toast.success('Email vérifié ! Vous pouvez vous connecter.');
+		} catch (error: any) {
+			console.error('Email verification failed:', error);
+			const errorMessage = error.response?.data?.message || "Lien invalide ou expiré.";
+			toast.error(errorMessage);
+			throw error;
+		}
+	}, []);
+
+	const forgotPassword = useCallback(async (email: string) => {
+		setLoading(true);
+		try {
+			await authService.forgotPassword(email);
+			toast.success("Un lien de réinitialisation a été envoyé à votre adresse email.");
+		} catch (error: any) {
+			console.error("Forgot password error:", error);
+			const errorMessage = error.response?.data?.message || "Impossible d'envoyer l'email de réinitialisation.";
+			toast.error(errorMessage);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	}, [setLoading]);
+
+	// TODO: resetPassword useCallback
 
 	const logout = useCallback(async () => {
 		try {
@@ -98,6 +121,7 @@ export function useAuth() {
 		isLoading,
 		login,
 		register,
+		verifyEmail,
 		logout,
 		restoreProfile,
 	};

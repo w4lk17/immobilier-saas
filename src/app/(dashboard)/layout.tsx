@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 	const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
 
 	return (
-		<RoleGuard allowedRoles={[UserRole.MANAGER, UserRole.OWNER, UserRole.ADMIN]}>
+		<RoleGuard allowedRoles={[UserRole.MANAGER, UserRole.OWNER, UserRole.ADMIN,UserRole.TENANT]}>
 			<SidebarProvider defaultOpen={defaultOpen}>
 				<AppSidebar roleVariant="manager" />
 				<SidebarInset>

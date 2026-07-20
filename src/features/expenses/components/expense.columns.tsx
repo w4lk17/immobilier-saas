@@ -27,7 +27,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Eye } from "lucide-react";
 import { useDeleteExpense } from '../hooks/useExpenses.hooks';
 import { formatCurrency } from "@/lib/utils";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
@@ -65,7 +65,7 @@ function ExpenseActions({ row, table }: { row: Row<ExpenseWithRelations>, table:
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent

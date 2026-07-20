@@ -15,7 +15,7 @@ const mockMessages = [
 		id: 1,
 		from: "Propriétaire",
 		subject: "Bienvenue dans votre nouveau logement",
-		content: "Bonjour, nous sommes ravis de vous accueillir. N'hésitez pas à nous contacter pour任何 question.",
+		content: "Bonjour, nous sommes ravis de vous accueillir. N'hésitez pas à nous contacter pour d'autres questions.",
 		date: "2026-02-01",
 		read: false,
 	},

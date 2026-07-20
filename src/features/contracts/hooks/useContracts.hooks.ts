@@ -98,3 +98,20 @@ export function useDeleteContract() {
 		},
 	});
 }
+
+export function useTerminateContract() {
+	const queryClient = useQueryClient();
+	return useMutation<ContractWithRelations, Error, number>({
+		mutationFn: (id) => contractsService.terminate(id),
+		onSuccess: (updatedContract, variables) => {
+			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: ['properties'] });
+			queryClient.invalidateQueries({ queryKey: ['payments'] });
+			queryClient.setQueryData([...CONTRACTS_QUERY_KEY, variables], updatedContract);
+			toast.success(`Contrat terminé avec succès !`);
+		},
+		onError: (error: any) => {
+			toast.error(error.response?.data?.message || "Erreur lors de la terminaison du contrat.");
+		},
+	});
+}

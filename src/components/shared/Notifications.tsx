@@ -21,11 +21,11 @@ export function Notification() {
 					className="relative h-8 w-8 px-0"
 				>
 					<Bell />
-					<Badge
+					{/* <Badge
 						className="absolute -right-1 -top-1 h-4 min-w-4 rounded-full px-0.5 font-mono tabular-nums text-xs"
 					>
-						2
-					</Badge>
+						0 
+					</Badge> */}
 					<span className="sr-only">Notifications</span>
 				</Button>
 			</DropdownMenuTrigger>

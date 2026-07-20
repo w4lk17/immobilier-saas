@@ -16,7 +16,7 @@ export function getStatusBadge(
 		case 'contract':
 			return getContractStatusBadge(normalizedStatus);
 		case 'invoice':
-			return getPaymentStatusBadge(normalizedStatus);
+			return getInvoiceStatusBadge(normalizedStatus);
 		case 'property':
 			return getPropertyStatusBadge(normalizedStatus);
 		case 'expense':
@@ -43,7 +43,7 @@ function getContractStatusBadge(status: string) {
 	return <Badge variant={variant}> {status} </Badge>;
 }
 
-function getPaymentStatusBadge(status: string) {
+function getInvoiceStatusBadge(status: string) {
 	const variants: Record<string, BadgeVariant> = {
 		PAID: "success",
 		SUCCESS: "success",
@@ -124,6 +124,7 @@ export function getStatusTextColor(status: string, type: 'contract' | 'invoice' 
 		EXPIRED: "text-red-600",
 		PARTIALLY_PAID: "text-blue-600",
 	};
+	
 
 	return colors[normalizedStatus] || colors.DEFAULT;
 }

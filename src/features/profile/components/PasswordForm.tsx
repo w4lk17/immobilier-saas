@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PasswordInput } from '@/components/shared/password-input';
 
 interface PasswordFormProps {
   onSubmit: (data: ChangePasswordFormData) => Promise<void>;
@@ -57,7 +58,7 @@ export function PasswordForm({ onSubmit, isLoading }: PasswordFormProps) {
                 <FormItem>
                   <FormLabel>Nouveau mot de passe</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <PasswordInput placeholder="********"  {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -71,7 +72,7 @@ export function PasswordForm({ onSubmit, isLoading }: PasswordFormProps) {
                 <FormItem>
                   <FormLabel>Confirmer le mot de passe</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <PasswordInput placeholder="********"  {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

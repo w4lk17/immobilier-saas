@@ -113,7 +113,7 @@ export function DataTable<TData, TValue>({
 			<DataTableToolbar
 				table={table}
 				data={data}
-				searchColumn={searchColumn || ''}
+				searchColumns={searchColumns}
 				searchPlaceholder={searchPlaceholder}
 				newButtonHref={newButtonHref || ''}
 				newButtonTitle={newButtonTitle || ''}

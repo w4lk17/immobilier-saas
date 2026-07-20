@@ -1,8 +1,8 @@
 
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { InvoiceWithRelations, User } from "@/types";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { InvoiceWithRelations } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -10,7 +10,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -24,108 +23,278 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Eye, Edit3, Trash2, ArrowUpDown } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Eye, BookXIcon } from "lucide-react";
 import Link from "next/link";
-import { useDeletePayment } from '../hooks/useInvoices.hooks';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useDeleteInvoice } from '../hooks/useInvoices.hooks';
 import { formatCurrency } from "@/lib/utils";
 import { getStatusBadge } from "@/lib/statusHelpers";
+import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
+import { formatDate, hasPermission, Permission } from "@/lib";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useState } from "react";
+import { InvoiceStatus, InvoiceType } from "@/types/enums";
+import { InvoicePreviewDialog } from "./InvoicePreviewDialog";
+import { invoiceStatusLabels, invoiceTypeLabels } from "../lib/invoiceLabels";
 
-function PaymentActionsCell({ paymentId }: { paymentId: number }) {
-	const deletePaymentMutation = useDeletePayment();
-	const handleDelete = () => deletePaymentMutation.mutate(paymentId);
+const statusClasses: Record<InvoiceStatus, string> = {
+	[InvoiceStatus.PAID]: "border-green-500 text-green-700 bg-green-200",
+	[InvoiceStatus.PENDING]: "border-yellow-500 text-yellow-700 bg-yellow-50",
+	[InvoiceStatus.PARTIAL]: "border-orange-500 text-orange-700 bg-orange-50",
+	[InvoiceStatus.CANCELLED]: "border-orange-500 text-orange-700 bg-orange-50",
+	[InvoiceStatus.OVERDUE]: "border-red-500 text-red-700 bg-red-50",
+};
+
+function InvoiceActions({ row, table }: { row: Row<InvoiceWithRelations>, table: any }) {
+	const invoice = row.original;
+	const { mutate: deleteInvoice, isPending } = useDeleteInvoice();
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isAlertOpen, setIsAlertOpen] = useState(false);
+	const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+	const { user } = useAuth();
+
+	const canRead = user && hasPermission(user.role, Permission.INVOICES_READ);
+	const canEdit = user && hasPermission(user.role, Permission.INVOICES_UPDATE);
+	const canDelete = user && hasPermission(user.role, Permission.INVOICES_DELETE);
+	const canCancel = user && hasPermission(user.role, Permission.INVOICES_CANCEL);
+
+	const handleDelete = () => {
+		deleteInvoice(invoice.id);
+		setIsDropdownOpen(false); // close dropdown after deletion
+		setIsAlertOpen(false);
+	}
+
+	const handleCancel = () => {
+		// cancelInvoice(invoice.id);
+		setIsDropdownOpen(false); // close dropdown after deletion
+		setIsAlertOpen(false);
+	}
+
+	const openViewModal = () => {
+		table?.options?.meta?.viewDetails?.(invoice);
+		setIsDropdownOpen(false);
+	};
+
 
 	return (
-		<AlertDialog>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
+		<>
+			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						className="h-8 w-8 p-0"
+						onClick={(e) => { e.stopPropagation() }}
+					>
+						<MoreVertical className="h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					onInteractOutside={() => setIsDropdownOpen(false)}
+				>
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					{/* Un paiement n'a pas toujours une page "Voir" dédiée, mais peut-être un modal de détail */}
-					{/* <DropdownMenuItem asChild><Link href={`/payments/${paymentId}`} className="flex items-center w-full cursor-pointer"><Eye className="mr-2 h-4 w-4" /> Détails</Link></DropdownMenuItem> */}
-					<DropdownMenuItem asChild><Link href={`/payments/edit/${paymentId}`} className="flex items-center w-full cursor-pointer"><Edit3 className="mr-2 h-4 w-4" /> Modifier Statut</Link></DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<AlertDialogTrigger asChild>
-						<DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer">
+					{/* "Voir" est toujours disponible */}
+					<DropdownMenuItem
+						onClick={(e) => {
+							e.preventDefault();
+							openViewModal();
+						}}
+						className="flex items-center w-full cursor-pointer"
+					>
+						<Eye className="mr-2 h-4 w-4" /> Détails
+					</DropdownMenuItem>
+
+					{/* "Modifier" : PENDING */}
+					{(invoice.status === InvoiceStatus.PENDING) && canEdit && (
+						<DropdownMenuItem asChild>
+							<Link
+								href={`/admin/invoices/${invoice.id}/edit`}
+								className="flex items-center w-full cursor-pointer"
+							>
+								<Edit3 className="mr-2 h-4 w-4" /> Modifier
+							</Link>
+						</DropdownMenuItem>
+					)}
+
+					{/* "Annuler" : CANCEL, PAID , + permission */}
+					{(invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID) && canCancel && (
+						<DropdownMenuItem
+							className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+							onClick={() => {
+								setIsAlertOpen(true);
+								setIsDropdownOpen(false);
+							}}
+						>
+							<BookXIcon className="mr-2 h-4 w-4" /> Annuler
+						</DropdownMenuItem>
+					)}
+
+					{/* "Supprimer" : PENDING */}
+					{(invoice.status === InvoiceStatus.PENDING) && canDelete && (
+						<DropdownMenuItem
+							className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+							onClick={() => {
+								setIsAlertOpen(true);
+								setIsDropdownOpen(false);
+							}}
+						>
 							<Trash2 className="mr-2 h-4 w-4" /> Supprimer
 						</DropdownMenuItem>
-					</AlertDialogTrigger>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<AlertDialogContent>
-				<AlertDialogHeader><AlertDialogTitle>Supprimer ce paiement ?</AlertDialogTitle></AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Annuler</AlertDialogCancel>
-					<AlertDialogAction onClick={handleDelete} className={buttonVariants({ variant: "destructive" })}>Confirmer</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+			{/* DELETE/CANCELED ALERT DIALOG */}
+			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{(invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID)
+								? "Annulation de la facture"
+								: "Suppression de la facture"}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{(invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID) ? (
+								<>Confirmer l&apos;annulation de la facture <span className="text-sm font-bold">({invoice.invoiceNumber})</span>.</>
+							) : (
+								<>Confirmer la suppression de la facture <span className="text-sm font-bold">({invoice.invoiceNumber})</span>.</>
+							)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<span className="text-destructive text-sm italic">
+						{(invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID)
+							? "Cette action est irréversible et annulera définitivement cette facture."
+							: "Cette action est irréversible et supprimera définitivement cette facture et ses paiements associés."}
+					</span>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Annuler</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={
+								(invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID)
+									? handleCancel
+									: handleDelete
+							}
+							className={buttonVariants({ variant: "destructive" })}
+							disabled={isPending}
+						>
+							{isPending
+								? (invoice.status === InvoiceStatus.PENDING || invoice.status === InvoiceStatus.PAID
+									? "Arrêt en cours..."
+									: "Suppression...")
+								: "Confirmer"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }
 
-export const paymentColumns: ColumnDef<InvoiceWithRelations>[] = [
+export const invoiceColumns: ColumnDef<InvoiceWithRelations>[] = [
 	{
-		id: "contractInfo",
-		header: "Contrat (Propriété)",
-		accessorFn: row => row.contract?.property?.address || 'N/A',
+		id: "invoiceNumber",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
+		accessorFn: row => row.invoiceNumber?.trim() || 'N/A',
 		cell: ({ row }) => {
-			const contract = row.original.contract;
+			const invoiceNumber = row.original.invoiceNumber?.trim();
 			return (
-				<div>
-					<div className="font-medium">{contract?.id ? `Contrat ID: ${contract.id}` : ''}</div>
-					<div className="text-xs text-muted-foreground">{contract?.property?.address || 'Propriété non spécifiée'}</div>
+				<div className="font-medium">
+					{invoiceNumber && invoiceNumber !== '' ? invoiceNumber : <span className="text-muted-foreground italic">N/A</span>}
 				</div>
-			)
-		}
+			);
+		},
+		enableSorting: false,
 	},
 	{
 		id: "tenantName",
-		header: "Locataire",
-		accessorFn: row => `${row.tenant?.user?.firstName || ''} ${row.tenant?.user?.lastName || ''}`.trim() || 'N/A',
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Locataire" />,
+		accessorFn: row => {
+			const firstName = row.tenant?.user?.firstName?.trim() || "";
+			const lastName = row.tenant?.user?.lastName?.trim() || "";
+			const fullName = `${firstName} ${lastName}`.trim();
+			return fullName !== "" ? fullName : "N/A";
+		},
 		cell: ({ row }) => {
-			const tenantUser = row.original.tenant?.user as FrontendUserSnippet | undefined;
-			return `${tenantUser?.firstName || ''} ${tenantUser?.lastName || ''}`.trim() || 'N/A';
-		}
+			const tenantUser = row.original.tenant?.user;
+			const firstName = tenantUser?.firstName?.trim() || "";
+			const lastName = tenantUser?.lastName?.trim() || "";
+			const fullName = `${firstName} ${lastName}`.trim();
+			return fullName !== "" ? fullName : <span className="text-muted-foreground italic">N/A</span>;
+		},
+		enableSorting: false,
 	},
 	{
 		accessorKey: "amount",
-		header: "Montant",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Montant" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("amount"));
-			return <div className="text-right font-medium">{formatCurrency(amount)}</div>;
+			const raw = row.original.amountDue;
+			const amount = typeof raw === "number" ? raw : parseFloat(raw);
+			return (
+				<div className="font-medium">
+					{!isNaN(amount) ? formatCurrency(amount) : <span className="text-muted-foreground italic">N/A</span>}
+				</div>
+			);
 		},
+		enableSorting: false,
 	},
 	{
 		accessorKey: "type",
-		header: "Type",
-		cell: ({ row }) => <Badge variant="secondary">{row.getValue("type")}</Badge>,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+		cell: ({ row }) => {
+			const type = row.getValue("type") as InvoiceType;
+			return (
+				<Badge variant="outline">	{invoiceTypeLabels[type] || type} </Badge>
+			);
+		},
+		enableSorting: false,
 	},
 	{
 		accessorKey: "dueDate",
-		header: "Échéance",
-		cell: ({ row }) => format(new Date(row.getValue("dueDate")), 'dd MMM yyyy', { locale: fr }),
-	},
-	{
-		accessorKey: "paidDate",
-		header: "Payé le",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Échéance" />,
 		cell: ({ row }) => {
-			const paidDate = row.getValue("paidDate") as string | Date | null;
-			return paidDate ? format(new Date(paidDate), 'dd MMM yyyy', { locale: fr }) : '-';
-		}
+			const dueDate = row.getValue("dueDate") as string | Date | null;
+			return (
+				<div className="whitespace-nowrap">
+					{dueDate ? formatDate(dueDate) : <span className="text-muted-foreground italic">N/A</span>}
+				</div>
+			);
+		},
+		enableSorting: true,
 	},
+	// {
+	// 	accessorKey: "paidDate",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Payé le" />,
+	// 	cell: ({ row }) => {
+	// 		const paidDate = row.getValue("paidDate") as string | Date | null;
+	// 		return (
+	// 			<div className="">
+	// 				{paidDate ? formatDate(paidDate) : <span className="text-muted-foreground italic">-</span>}
+	// 			</div>
+	// 		);
+	// 	},
+	// 	enableSorting: false,
+	// },
 	{
 		accessorKey: "status",
-		header: "Statut",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
-			const status = row.getValue("status") as string;
-			return getStatusBadge(status, 'payment');
+			const status = row.getValue("status") as InvoiceStatus;
+			const label = invoiceStatusLabels[status] || status;
+
+			let variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" = "secondary";
+			if (status === InvoiceStatus.PAID) variant = "success";
+			else if (status === InvoiceStatus.PARTIAL) variant = "default";
+			else if (status === InvoiceStatus.OVERDUE) variant = "destructive";
+			else if (status === InvoiceStatus.PENDING) variant = "warning";
+			else if (status === InvoiceStatus.CANCELLED) variant = "outline";
+
+			return <Badge variant={variant}>{label}</Badge>;
 		},
+		enableSorting: false,
 	},
 	{
 		id: "actions",
-		header: () => <div className="text-right">Actions</div>,
-		cell: ({ row }) => <PaymentActionsCell paymentId={row.original.id} />,
+		// header: () => <div className="text-right">Actions</div>,
+		cell: ({ row, table }) => <InvoiceActions row={row} table={table} />,
 		enableSorting: false,
 	},
 ];
