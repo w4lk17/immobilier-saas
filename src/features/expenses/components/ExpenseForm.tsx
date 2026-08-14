@@ -15,19 +15,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FrontendExpense, FrontendProperty, FrontendUserSnippet } from '@/types'; // Importer FrontendExpense pour initialData
+import { Expense, Property, User } from '@/types'; // Importer Expense pour initialData
 
 // ComboBox pour sélectionner l'utilisateur
 import { ComboboxUsers } from '@/components/shared/ComboboxUsers';
 import { Combobox } from '@/components/shared/Combobox';
 
 interface ExpenseFormProps {
-	initialData?: FrontendExpense | null; // Pour pré-remplir en mode édition
+	initialData?: Expense | null; // Pour pré-remplir en mode édition
 	onSubmit: (data: ExpenseFormData | ExpenseUpdateFormData) => Promise<void>;
 	isLoading?: boolean;
 	submitButtonText?: string;
-	usersForSelection?: FrontendUserSnippet[]; // Pour le ComboBox
-	propertiesForSelection?: FrontendProperty[];
+	usersForSelection?: User[]; // Pour le ComboBox
+	propertiesForSelection?: Property[];
 }
 
 export function ExpenseForm({
@@ -111,8 +111,6 @@ export function ExpenseForm({
 										/>
 									</div>
 
-
-
 									<div className='grid grid-cols-1 sm:grid-cols-1 xl:grid-cols-3 gap-3'>
 										<FormField
 											control={form2.control}
@@ -120,7 +118,7 @@ export function ExpenseForm({
 											render={({ field }) => (
 												<FormItem className="flex flex-col">
 													<FormLabel>Bien immobiliers<span className='text-red-500'>*</span></FormLabel>
-													<Combobox<FrontendProperty>
+													<Combobox<Property>
 														items={propertiesForSelection}
 														value={field.value}
 														onChange={field.onChange}
@@ -141,7 +139,7 @@ export function ExpenseForm({
 											render={({ field }) => (
 												<FormItem className="flex flex-col">
 													<FormLabel>Propriétaire<span className='text-red-500'>*</span></FormLabel>
-													<Combobox<FrontendUserSnippet>
+													<Combobox<User>
 														items={usersForSelection}
 														value={field.value}
 														onChange={field.onChange}
@@ -162,7 +160,7 @@ export function ExpenseForm({
 											render={({ field }) => (
 												<FormItem className="flex flex-col">
 													<FormLabel>Locative</FormLabel>
-													<Combobox<FrontendUserSnippet>
+													<Combobox<User>
 														items={usersForSelection}
 														value={field.value}
 														onChange={field.onChange}

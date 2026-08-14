@@ -26,29 +26,13 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Eye } from "lucide-react";
 import { useDeleteExpense } from '../hooks/useExpenses.hooks';
 import { formatCurrency } from "@/lib/utils";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 import { useState } from "react";
-
-const getExpenseStatusVariant = (status?: string) => {
-	switch (status) {
-		case 'PAID': return 'success';
-		case 'PENDING': return 'warning';
-		case 'CANCELLED': return 'secondary';
-		default: return 'default';
-	}
-};
-
-// Étendre TableMeta pour inclure notre fonction
-declare module '@tanstack/react-table' {
-	interface TableMeta<TData extends unknown> {
-		viewDetails?: (rowData: TData) => void;
-	}
-}
+import { getStatusBadge } from "@/lib/statusHelpers";
 
 function ExpenseActions({ row, table }: { row: Row<ExpenseWithRelations>, table: any }) {
 	const expense = row.original;
@@ -81,7 +65,7 @@ function ExpenseActions({ row, table }: { row: Row<ExpenseWithRelations>, table:
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -178,7 +162,7 @@ export const expenseColumns: ColumnDef<ExpenseWithRelations>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
-			return <Badge variant={getExpenseStatusVariant(status) as any}>{status}</Badge>;
+			return getStatusBadge(status, 'expense');
 		},
 	},
 	{

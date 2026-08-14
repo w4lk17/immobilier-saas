@@ -2,33 +2,64 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import {
+	Loader2,
+	Building2,
+	FileText,
+	MapPin,
+	Info,
+	Upload,
+	DollarSign,
+	Ruler
+} from 'lucide-react';
 import React from 'react';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from "@/components/ui/select";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage
+} from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FrontendProperty, FrontendUserSnippet } from '@/types'; // Importer FrontendProperty pour initialData
+import { Property, User } from '@/types';
 
 // ComboBox pour sélectionner l'utilisateur
 import { ComboboxUsers } from '@/components/shared/ComboboxUsers';
-import { propertyCreateSchema, PropertyFormData, PropertyUpdateFormData, propertyUpdateSchema } from '../schemas/propertySchemas';
+import {
+	propertyCreateSchema,
+	PropertyFormData,
+	PropertyUpdateFormData,
+	propertyUpdateSchema
+} from '../schemas/propertySchemas';
 import { PropertyStatus, PropertyType } from '@/types/enums';
+import { propertyStatusLabels, propertyTypeLabels } from '../lib/propertyLabels';
 
 interface PropertyFormProps {
-	initialData?: FrontendProperty | null; // Pour pré-remplir en mode édition
+	initialData?: Property | null; // Pour pré-remplir en mode édition
 	onSubmit: (data: PropertyFormData | PropertyUpdateFormData) => Promise<void>;
 	isLoading?: boolean;
 	submitButtonText?: string;
-	usersForSelection?: FrontendUserSnippet[]; // Pour le ComboBox
+	usersForSelection?: User[]; // Pour le ComboBox
 }
 
 export function PropertyForm({
 	initialData,
 	onSubmit,
 	isLoading = false,
-	submitButtonText = initialData ? "Mettre à jour" : "Créer Bien",
+	submitButtonText = initialData ? "Mettre à jour" : "Créer le Profil Bien",
 	usersForSelection = [] // Pour le ComboBox
 }: PropertyFormProps) {
 
@@ -38,328 +69,548 @@ export function PropertyForm({
 	const form = useForm<PropertyFormData | PropertyUpdateFormData>({
 		resolver: zodResolver(isEditMode ? propertyUpdateSchema : propertyCreateSchema),
 		defaultValues: isEditMode && initialData ? {
-			// Pour la mise à jour, userId n'est généralement pas modifié via ce formulaire
-			// On se base sur propertyUpdateSchema qui rend les champs optionnels
-			// ownerId: initialData.ownerId, // Ne pas inclure pour l'update si non modifiable
+			ownerId: initialData.ownerId,
+			managerId: initialData.managerId || undefined,
 			address: initialData.address || '',
-			type: initialData.type || PropertyType ,
-			rentAmount: initialData.rentAmount,
-			charges: initialData.charges,
-			// managerId: initialData.managerId, // Ne pas inclure pour l'update si non modifiable
+			type: initialData.type || PropertyType.HOUSE,
 			status: initialData.status || PropertyStatus.AVAILABLE,
 			description: initialData.description || '',
+			propertyValue: initialData.propertyValue || undefined,
+
+			// Mock UI fields for edit mode pre-filling
+			isForSale: initialData.isForSale || false,
+			nLot: initialData.nLot || undefined,
+			lot: initialData.lot || undefined,
+			landTitle: initialData.landTitle || undefined,
+			surface: initialData.surface || undefined,
+			name: initialData.name || '',
+			city: initialData.city || '',
+			neighborhood: initialData.neighborhood || '',
 		} : {
-			ownerId: undefined, // Ou un autre type si vous utilisez un number input
+			ownerId: undefined,
+			managerId: undefined,
 			address: '',
-			type: PropertyType.APARTMENT,
-			rentAmount: undefined,
-			charges: undefined,
-			managerId: undefined, // Ou un autre type si vous utilisez un number input
-			status: '',
+			type: PropertyType.HOUSE,
+			status: PropertyStatus.AVAILABLE,
 			description: '',
+			propertyValue: undefined,
+
+			isForSale: false,
+			nLot: undefined,
+			lot: undefined,
+			landTitle: undefined,
+			surface: undefined,
+			name: '',
+			city: '',
+			neighborhood: '',
 		},
 	});
 
-	const form2 = useForm<{ test: string }>();
+	// Drag & Drop State pour le fichier
+	const [dragActive, setDragActive] = React.useState(false);
+	const [selectedFileName, setSelectedFileName] = React.useState<string | null>(null);
+	const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+	const handleDrag = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (e.type === "dragenter" || e.type === "dragover") {
+			setDragActive(true);
+		} else if (e.type === "dragleave") {
+			setDragActive(false);
+		}
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setDragActive(false);
+		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+			const file = e.dataTransfer.files[0];
+			setSelectedFileName(file.name);
+		}
+	};
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
+		if (e.target.files && e.target.files[0]) {
+			const file = e.target.files[0];
+			setSelectedFileName(file.name);
+		}
+	};
+
+	const onDropzoneClick = () => {
+		fileInputRef.current?.click();
+	};
 
 	const handleSubmit = async (data: PropertyFormData | PropertyUpdateFormData) => {
 		await onSubmit(data);
 	};
 
 	return (
-		<>
-			{/* CONTAINER */}
-			<div className='flex flex-col gap-4'>
-				{/* DEBUT FORM */}
-				<Form {...form2}>
-					<form className='flex flex-col gap-4 xl:flex-row xl:gap-6 '>
-						{/* LEFT */}
-						<div className='w-full xl:w-3/4 space-y-6'>
-							{/* INFORMATION + CONNEXION CONTAINER */}
-							<div className='bg-primary-foreground p-4 rounded-lg space-y-4'>
+		<div className="w-full max-w-6xl mx-auto">
+			<Card className="border-border/80 shadow-lg bg-card">
+				{/* <CardHeader className="border-b bg-muted/10 pb-6">
+					<CardTitle className="text-2xl font-bold tracking-tight">
+						{isEditMode ? "Modifier Bien" : "Nouveau Bien"}
+					</CardTitle>
+					<CardDescription className="text-sm text-muted-foreground mt-1">
+						{isEditMode
+							? `Modification du profil de ${initialData?.id || ''} ${initialData?.type || ''} (ID Bien: ${initialData?.id})`
+							: "Remplissez les informations pour créer un nouveau profil de Bien immobilier."}
+					</CardDescription>
+				</CardHeader> */}
 
-								{/* INFORMATION */}
-								<h1 className='text-xl font-medium tracking-tight'>Information</h1>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									{/* select input */}
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Destiné à la vente ?</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>N° Lot</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Lot</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Titre Foncier</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Surface (m²)</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Nom du bien</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										// use select input
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Type de bien</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Adresse</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-3'>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Ville</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Quartier</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Valeur du bien</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										// use select input or combobox
-										control={form2.control}
-										name="test"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Proprietaire</FormLabel>
-												<FormControl>
-													<Input placeholder="" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-							</div>
-						</div>
-						{/* RIGHT */}
-						<div className='w-full xl:w-1/4 space-y-6'>
-							{/* IMAGE FILE + ROLE ACCESS CONTAINER */}
-							<div className='bg-primary-foreground p-4 rounded-lg'>
-								<div className='flex flex-col gap-8 mb-4'>
+				<CardContent className="pt-8">
+					<Form {...form}>
+						<form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col lg:flex-row gap-8">
 
-									{/* IMAGE FILE */}
-									<div>
-										<h1 className='text-xl font-medium tracking-tight'>Identification</h1>
-										<div className='space-y-4 mt-4'>
-											{/* TODO: make an drop image file input  */}
-											<Input type='file' placeholder='Glissez ou cliquer pour ajouter' />
-										</div>
+							{/* LEFT COLUMN: Main Form Fields */}
+							<div className="flex-1 space-y-8">
+
+								{/* SECTION 1: Informations Générales */}
+								<div className="space-y-5">
+									<h3 className="text-lg font-semibold text-foreground flex items-center gap-2 border-b pb-2 border-border/60">
+										<Building2 className="h-5 w-5 text-primary" />
+										Informations Générales
+									</h3>
+
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+										{/* Nom du bien */}
+										<FormField
+											control={form.control}
+											name="name"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Référence du bien</FormLabel>								
+													<FormControl>
+														<Input placeholder="Ex: Résidence Al Qods" {...field} disabled={isLoading} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										{/* Type de bien */}
+										<FormField
+											control={form.control}
+											name="type"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Type de bien</FormLabel>
+													<Select
+														disabled={isLoading}
+														onValueChange={field.onChange}
+														value={field.value}
+													>
+														<FormControl className="w-full">
+															<SelectTrigger className="w-full">
+																<SelectValue placeholder="Sélectionnez un type..." />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{Object.entries(propertyTypeLabels).map(([key, label]) => (
+																<SelectItem key={key} value={key}>
+																	{label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										{/* Statut */}
+										<FormField
+											control={form.control}
+											name="status"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Statut</FormLabel>
+													<Select
+														disabled={isLoading}
+														onValueChange={field.onChange}
+														value={field.value}
+													>
+														<FormControl className="w-full">
+															<SelectTrigger className="w-full">
+																<SelectValue placeholder="Sélectionnez un statut..." />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{Object.entries(propertyStatusLabels).map(([key, label]) => (
+																<SelectItem key={key} value={key}>
+																	{label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										{/* Destiné à la vente ? */}
+										<FormField
+											control={form.control}
+											name="isForSale"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Destiné à la vente ?</FormLabel>
+													<Select
+														disabled={isLoading}
+														onValueChange={field.onChange}
+														value={field.value ? 'true' : 'false'}
+													>
+														<FormControl className="w-full">
+															<SelectTrigger className="w-full">
+																<SelectValue placeholder="Sélectionnez..." />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															<SelectItem value="false">Non</SelectItem>
+															<SelectItem value="true">Oui</SelectItem>
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
 									</div>
 								</div>
-								{/* Button */}
-								<Button className='mt-4'>
-									Enregistrer
-								</Button>
-							</div>
-						</div>
-						{/* END FORM */}
-					</form>
-				</Form>
-			</div>
 
+								{/* SECTION 2: Détails Fonciers & Valeur */}
+								{/* <div className="space-y-5">
+									<h3 className="text-lg font-semibold text-foreground flex items-center gap-2 border-b pb-2 border-border/60">
+										<FileText className="h-5 w-5 text-primary" />
+										Détails Fonciers & Dimensions
+									</h3> */}
 
+									{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"> */}
+										{/* Titre Foncier */}
+										{/* <FormField
+											control={form.control}
+											name="landTitle"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Titre Foncier</FormLabel>
+													<FormControl>
+														<Input 
+															type="text"
+															placeholder="Ex: TF-98745/F" 
+															{...field} 
+															value={field.value ?? ''}
+															onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)}
+															disabled={isLoading} 
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/> */}
 
-			{/* /////////////////////////// */}
-			<div>
-				<Card className="max-w-2xl ">
-					<CardHeader>
-						<CardTitle>{isEditMode ? "Modifier Bien" : "Nouveau Bien"}</CardTitle>
-						<CardDescription>
-							{isEditMode
-								? `Modification du profil de ${initialData?.id || ''} ${initialData?.type || ''} (ID Bien: ${initialData?.id})`
-								: "Remplissez les informations pour créer un nouveau profil Bien."}
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Form {...form}>
-							<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-								{!isEditMode && ( // Champ userId uniquement pour la création
+										{/* N° Lot */}
+										{/* <FormField
+											control={form.control}
+											name="nLot"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>N° Lot</FormLabel>
+													<FormControl>
+														<Input
+															type="number"
+															placeholder="Ex: 12"
+															{...field}
+															value={field.value ?? ''}
+															onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+															disabled={isLoading}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/> */}
+
+										{/* Lot */}
+										{/* <FormField
+											control={form.control}
+											name="lot"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Lot</FormLabel>
+													<FormControl>
+														<Input
+															type="number"
+															placeholder="Ex: Lot Al Amal"
+															{...field}
+															value={field.value ?? ''}
+															onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+															disabled={isLoading}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/> */}
+
+										{/* Surface (m²) */}
+										{/* <FormField
+											control={form.control}
+											name="surface"
+											render={({ field }) => (
+												<FormItem className="lg:col-span-1">
+													<FormLabel>Surface (m²)</FormLabel>
+													<FormControl>
+														<div className="relative">
+															<Input
+																type="number"
+																placeholder="0"
+																className="pr-10"
+																{...field}
+																value={field.value ?? ''}
+																onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+																disabled={isLoading}
+															/>
+															<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+																<Ruler className="h-4 w-4 text-muted-foreground" />
+															</div>
+														</div>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/> */}
+
+										{/* Valeur du bien */}
+										{/* <FormField
+											control={form.control}
+											name="propertyValue"
+											render={({ field }) => (
+												<FormItem className="lg:col-span-2">
+													<FormLabel>Valeur du bien</FormLabel>
+													<FormControl>
+														<div className="relative">
+															<Input
+																type="number"
+																placeholder="0"
+																className="pr-10"
+																{...field}
+																value={field.value ?? ''}
+																onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+																disabled={isLoading}
+															/>
+															<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+																<DollarSign className="h-4 w-4 text-muted-foreground" />
+															</div>
+														</div>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/> */}
+									{/* </div>
+								</div> */}
+
+								{/* SECTION 3: Localisation & Propriétaire */}
+								<div className="space-y-5">
+									<h3 className="text-lg font-semibold text-foreground flex items-center gap-2 border-b pb-2 border-border/60">
+										<MapPin className="h-5 w-5 text-primary" />
+										Localisation & Attribution
+									</h3>
+
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+										{/* Ville */}
+										<FormField
+											control={form.control}
+											name="city"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Ville</FormLabel>
+													<FormControl>
+														<Input placeholder="Ex: Casablanca" {...field} disabled={isLoading} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										{/* Quartier */}
+										<FormField
+											control={form.control}
+											name="neighborhood"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Quartier</FormLabel>
+													<FormControl>
+														<Input placeholder="Ex: Maarif" {...field} disabled={isLoading} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										{/* Adresse - Full width */}
+										<div className="md:col-span-2">
+											<FormField
+												control={form.control}
+												name="address"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Adresse</FormLabel>
+														<FormControl>
+															<Input placeholder="Ex: 45, Rue de la liberté" {...field} disabled={isLoading} />
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+
+										{/* Propriétaire - Affiché uniquement lors de la création ou modifiable si requis */}
+										{!isEditMode && (
+											<div className="md:col-span-2">
+												<FormField
+													control={form.control}
+													name="ownerId"
+													render={({ field }) => (
+														<FormItem className="flex flex-col">
+															<FormLabel>Propriétaire</FormLabel>
+															<FormControl >
+																<ComboboxUsers
+																	users={usersForSelection}
+																	value={field.value}
+																	onChange={field.onChange}
+																	placeholder="Sélectionnez un propriétaire..."
+																	searchPlaceholder="Rechercher par nom ou email..."
+																	emptyResultText="Aucun utilisateur correspondant."
+																	disabled={isLoading}
+																/>
+															</FormControl>
+															<FormDescription>
+																Le compte utilisateur existant à lier à ce profil Bien.
+															</FormDescription>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+										)}
+									</div>
+								</div>
+
+								{/* SECTION 4: Description */}
+								<div className="space-y-5">
+									<h3 className="text-lg font-semibold text-foreground flex items-center gap-2 border-b pb-2 border-border/60">
+										<Info className="h-5 w-5 text-primary" />
+										Description & Notes
+									</h3>
+
 									<FormField
 										control={form.control}
-										name="ownerId" // Assurez-vous que ce nom correspond au schéma
+										name="description"
 										render={({ field }) => (
-											<FormItem className="flex flex-col"> {/* Important pour l'alignement du label */}
-												<FormLabel>Propriétaire</FormLabel>
+											<FormItem>
+												<FormLabel>Description / Notes complémentaires</FormLabel>
 												<FormControl>
-													{/* TODO: Remplacer par un ComboBox/Select pour une meilleure UX */}
-													<ComboboxUsers
-														users={usersForSelection}
-														value={field.value}
-														onChange={field.onChange}
-														placeholder="Sélectionnez un propriétaire..."
-														searchPlaceholder="Rechercher par nom ou email..."
-														emptyResultText="Aucun utilisateur correspondant."
-														disabled={isLoading /* || isLoadingUsers */} // Désactiver pendant le chargement
+													<Textarea
+														placeholder="Détaillez ici les caractéristiques spécifiques du bien (nombre de pièces, commodités...)"
+														className="min-h-[120px] resize-y"
+														disabled={isLoading}
+														{...field}
+														value={field.value ?? ''}
 													/>
-													{/* <Input
-												type="number"
-												placeholder="Entrez l'ID de l'utilisateur existant"
-												{...field}
-												onChange={event => field.onChange(+event.target.value)} // Convertir en nombre
-											/> */}
 												</FormControl>
-												<FormDescription>
-													Le compte utilisateur existant (créé via la section Utilisateurs) à lier à ce profil Bien.
-												</FormDescription>
 												<FormMessage />
 											</FormItem>
 										)}
 									/>
-								)}
+								</div>
 
-								<FormField
-									control={form.control}
-									name="address"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Adresse</FormLabel>
-											<FormControl>
-												<Input placeholder="" {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
+							</div>
+
+							{/* RIGHT COLUMN: Sidebar (Image Upload & Submit Action) */}
+							<div className="w-full lg:w-80 shrink-0 space-y-6">
+
+								{/* Dropzone Container */}
+								<div className="rounded-xl border border-border/80 bg-muted/5 p-5 space-y-4 shadow-sm">
+									<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+										<Upload className="h-5 w-5 text-primary" />
+										Identification
+									</h3>
+									<p className="text-xs text-muted-foreground">
+										Ajoutez des images ou des documents d'identification du bien immobilier.
+									</p>
+
+									<div
+										onDragEnter={handleDrag}
+										onDragOver={handleDrag}
+										onDragLeave={handleDrag}
+										onDrop={handleDrop}
+										onClick={onDropzoneClick}
+										className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 transition-all duration-200 cursor-pointer min-h-[180px] ${dragActive
+											? "border-primary bg-primary/5 scale-[1.02]"
+											: "border-muted-foreground/30 hover:border-primary/50 hover:bg-accent/40"
+											}`}
+									>
+										<input
+											ref={fileInputRef}
+											type="file"
+											className="hidden"
+											onChange={handleFileChange}
+											accept="image/*"
+											disabled={isLoading}
+										/>
+										<Upload className="h-8 w-8 text-muted-foreground/80 mb-3" />
+										<p className="text-sm font-medium text-center text-foreground">
+											{selectedFileName || "Glissez ou cliquez pour ajouter une image"}
+										</p>
+										<p className="text-[10px] text-muted-foreground mt-2 text-center">
+											PNG, JPG, JPEG jusqu'à 5 Mo
+										</p>
+									</div>
+
+									{selectedFileName && (
+										<div className="flex items-center gap-2 p-2 bg-muted/40 rounded-lg text-xs text-muted-foreground border">
+											<span className="truncate flex-1 font-medium">{selectedFileName}</span>
+											<button
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+													setSelectedFileName(null);
+												}}
+												className="text-destructive hover:underline font-medium"
+											>
+												Retirer
+											</button>
+										</div>
 									)}
-								/>
+								</div>
 
-								<FormField
-									control={form.control}
-									name="type"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Numéro de téléphone (Optionnel)</FormLabel>
-											<FormControl>
-												<Input placeholder="" {...field} value={field.value ?? ''} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+								{/* Action Buttons */}
+								<div className="space-y-3">
+									<Button
+										type="submit"
+										className="w-full h-12 text-sm font-semibold shadow-md transition-all active:scale-[0.98]"
+										disabled={isLoading}
+									>
+										{isLoading ? (
+											<>
+												<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+												Enregistrement...
+											</>
+										) : (
+											submitButtonText
+										)}
+									</Button>
+								</div>
 
-								<Button type="submit" className="w-full" disabled={isLoading}>
-									{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-									{submitButtonText}
-								</Button>
-							</form>
-						</Form>
-					</CardContent>
-				</Card>
-			</div >
-		</>
+							</div>
+
+						</form>
+					</Form>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

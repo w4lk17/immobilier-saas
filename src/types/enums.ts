@@ -2,53 +2,102 @@
 // Miroir des enums définis dans le fichier schema.prisma du backend.
 
 export enum UserRole {
+	S_ADMIN = 'S_ADMIN',
 	ADMIN = 'ADMIN',
-	EMPLOYEE = 'EMPLOYEE',
+	MANAGER = 'MANAGER',
 	OWNER = 'OWNER',
 	TENANT = 'TENANT',
 	USER = 'USER',
 }
 
 export enum PropertyType {
+	// APARTMENT = 'APARTMENT',
+	BUILDING = 'BUILDING',
+	// BUNGALOW = 'BUNGALOW',
+	// DUPLEX = 'DUPLEX',
 	HOUSE = 'HOUSE',
-	APARTMENT = 'APARTMENT',
-	COMMERCIAL = 'COMMERCIAL',
 	LAND = 'LAND',
+	VILLA = 'VILLA',
+	OTHER = 'OTHER',
 }
 
 export enum PropertyStatus {
 	AVAILABLE = 'AVAILABLE',
-	RENTED = 'RENTED',
+	FOR_RENT = 'FOR_RENT',
 	MAINTENANCE = 'MAINTENANCE',
 	UNAVAILABLE = 'UNAVAILABLE',
 }
 
+export enum RentalType {
+	APARTMENT = 'APARTMENT',
+	STUDIO = 'STUDIO',
+	SINGLE_ROOM = 'SINGLE_ROOM',
+	STORE = 'STORE',
+	VILLA = 'VILLA',
+}
+
+export enum RentalStatus {
+	AVAILABLE = 'AVAILABLE',
+	BOOKED = 'BOOKED',
+	MAINTENANCE = 'MAINTENANCE',
+	OCCUPIED = 'OCCUPIED',
+}
+
+/** Nature juridique du contrat de location */
+export enum LeaseType {
+	RESIDENTIAL_LEASE = 'RESIDENTIAL_LEASE',
+	COMMERCIAL_LEASE = 'COMMERCIAL_LEASE',
+	OTHER = 'OTHER',
+}
+
 export enum ContractStatus {
-	DRAFT = 'DRAFT',
+	PENDING = 'PENDING',
 	ACTIVE = 'ACTIVE',
 	TERMINATED = 'TERMINATED',
 	EXPIRED = 'EXPIRED',
 }
 
-export enum PaymentType {
-	RENT = 'RENT',
-	DEPOSIT = 'DEPOSIT',
-	CHARGES = 'CHARGES',
+export enum SubscriptionStatus{
+	TRIAL = 'TRIAL',
+  ACTIVE = 'ACTIVE',
+  PAST_DUE = 'PAST_DUE',
+  CANCELED = 'CANCELED'
 }
 
-export enum PaymentStatus {
+export enum InvoiceType {
+	RENT = 'RENT',
+	CHARGE = 'CHARGE',
+	DEPOSIT = 'DEPOSIT',
+	ADVANCE = 'ADVANCE',
+	PENALTY = 'PENALTY',
+}
+
+export enum InvoiceStatus {
 	PENDING = 'PENDING',
 	PAID = 'PAID',
-	LATE = 'LATE',
+	PARTIAL = 'PARTIAL',
+	OVERDUE = 'OVERDUE',
 	CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentProvider {
+	STRIPE='STRIPE',
+	MOBILE_MONEY = 'MOBILE_MONEY',
+}
+
+export enum PaymentTransactionStatus {
+	PENDING = 'PENDING',
+	SUCCESS = 'SUCCESS',
+	FAILED = 'FAILED',
+	REFUNDED = 'REFUNDED',
 }
 
 export enum ExpenseType {
 	MAINTENANCE = 'MAINTENANCE',
 	REPAIR = 'REPAIR',
-	TAXES = 'TAXES',
+	TAX = 'TAX',
 	INSURANCE = 'INSURANCE',
-	UTILITIES = 'UTILITIES',
+	UTILITY = 'UTILITY',
 	OTHER = 'OTHER',
 }
 
@@ -57,3 +106,13 @@ export enum ExpenseStatus {
 	PAID = 'PAID',
 	CANCELLED = 'CANCELLED',
 }
+
+
+export enum EmploymentType {
+	CDI = 'CDI',
+	CDD = 'CDD',
+	INTERIM = 'INTERIM',
+	STAGE = 'STAGE',
+	OTHER = 'OTHER',
+}
+

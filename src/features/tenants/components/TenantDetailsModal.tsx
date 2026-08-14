@@ -1,120 +1,177 @@
 "use client";
 
-import { Mail, Phone, UserCog, CalendarDays, Download, UserIcon } from "lucide-react";
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import type { ReactNode } from "react";
+import {
+	CalendarDays,
+	MapPin,
+	ShieldCheck,
+	User,
+	Users,
+	Briefcase,
+	Download,
+} from "lucide-react";
 
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogFooter,
-	DialogClose,
 } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { formatDateTime, formatOptionalDate } from "@/lib/dateUtils";
+import { formatPhone } from "@/lib/utils";
 import { FrontendTenant } from "@/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import jsPDF from 'jspdf'; // Pour l'export PDF
-// import autoTable from 'jspdf-autotable'; // Pour les tables dans PDF
 
 interface TenantDetailsModalProps {
-	tenant: FrontendTenant| null;
+	tenant: FrontendTenant | null;
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
+}
+
+interface DetailItemProps {
+	label: string;
+	value?: string | null;
+}
+
+function DetailItem({ label, value }: DetailItemProps) {
+	return (
+		<div className="space-y-1">
+			<p className="text-sm font-medium  text-foreground">
+				{label}
+			</p>
+			<p className="text-sm leading-6 text-muted-foreground">
+				{value?.trim() || "-"}
+			</p>
+		</div>
+	);
+}
+
+interface SectionProps {
+	title: string;
+	icon: ReactNode;
+	children: ReactNode;
+}
+
+function Section({ title, icon, children }: SectionProps) {
+	return (
+		<section className="space-y-3">
+			<div className="flex items-center gap-2">
+				<div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+					{icon}
+				</div>
+				<h3 className="text-base font-semibold text-foreground">{title}</h3>
+			</div>
+			<div className="rounded-xl border bg-background p-4 sm:p-5">
+				{children}
+			</div>
+		</section>
+	);
 }
 
 export function TenantDetailsModal({ tenant, isOpen, onOpenChange }: TenantDetailsModalProps) {
 	if (!tenant) return null;
 
+	const fullName =
+		`${tenant.lastName || ""} ${tenant.firstName || ""}`.trim() || "Locataire";
+
 	const getInitials = (firstName?: string | null, lastName?: string | null) => {
-		const first = firstName?.[0] || '';
-		const last = lastName?.[0] || '';
-		return (first + last).toUpperCase() || 'TE';
+		const first = firstName?.[0] || "";
+		const last = lastName?.[0] || "";
+		return (last + first).toUpperCase() || "TE";
 	};
 
-	const handleExportPDF = () => {
-		// TODO: Implémenter la logique d'export PDF
-		// Exemple basique avec jsPDF (nécessite installation)
-		// const doc = new jsPDF();
-		// doc.setFontSize(18);
-		// doc.text(`Profil Locataire: ${tenant.user?.firstName} ${tenant.user?.lastName}`, 14, 22);
-		// doc.setFontSize(12);
-		// autoTable(doc, {
-		//   startY: 30,
-		//   head: [['Champ', 'Valeur']],
-		//   body: [
-		//     ['Nom Complet', `${tenant.user?.firstName || ''} ${tenant.user?.lastName || ''}`],
-		//     ['Email', tenant.user?.email || 'N/A'],
-		//     ['Position', tenant.position],
-		//     ['Téléphone', tenant.phoneNumber || 'N/A'],
-		//     ['Date d\'embauche', format(new Date(tenant.hireDate), 'dd MMMM yyyy', { locale: fr })],
-		//   ],
-		// });
-		// doc.save(`profil_tenant_${tenant.id}.pdf`);
-		alert("Fonctionnalité d'export PDF à implémenter !");
-	};
+	const phone = tenant.phoneNumber ? formatPhone(tenant.phoneNumber) : "-";
+	const emergencyContactName = `${tenant.pacLastName || "-"} ${tenant.pacFirstName || ""}`.trim();
+	const emergencyContactPhone = tenant.pacPhoneNumber ? formatPhone(tenant.pacPhoneNumber) : "-";
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
-				<DialogHeader className="pb-4">
-					<div className="flex items-center space-x-4 mb-4">
-						<Avatar className="h-16 w-16">
-							{/* <AvatarImage src={tenant.user?.avatarUrl} /> */}
-							<AvatarFallback className="text-xl">{getInitials(tenant.user?.firstName, tenant.user?.lastName)}</AvatarFallback>
+			<DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-0">
+				<DialogHeader className="px-6 pt-5 pb-4 sm:px-8">
+					<div className="flex items-start gap-4">
+						<Avatar className="h-16 w-16 border">
+							<AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
+								{getInitials(tenant.firstName, tenant.lastName)}
+							</AvatarFallback>
 						</Avatar>
-						<div>
-							<DialogTitle className="text-2xl">
-								{tenant.user?.firstName || ''} {tenant.user?.lastName || 'Locataire'}
-							</DialogTitle>
-							{/* <DialogDescription>{owners.position}</DialogDescription> */}
+						<div className="min-w-0 flex-1">
+							<div className="flex flex-wrap items-center gap-2">
+								<DialogTitle className="text-xl sm:text-2xl">{fullName}</DialogTitle>
+								<Badge variant={tenant.isActive ? "success" : "secondary"}>
+									{tenant.isActive ? "Actif" : "Inactif"}
+								</Badge>
+							</div>
+							<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+								{/* <span>ID : #{tenant.id}</span> */}
+								<span>Né(e) le : {formatOptionalDate(tenant.dateOfBirth)}</span>
+								<span>Créé le : {formatDateTime(tenant.createdAt)}</span>
+							</div>
 						</div>
 					</div>
 				</DialogHeader>
 
-				<div className="grid gap-3 py-2 text-sm">
-					<div className="flex items-center">
-						<Mail className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">Email :</span>
-						<span className="ml-2 text-muted-foreground">{tenant.user?.email || 'N/A'}</span>
-					</div>
-					<div className="flex items-center">
-						<Phone className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">Téléphone :</span>
-						<span className="ml-2 text-muted-foreground">{tenant.phoneNumber || 'N/A'}</span>
-					</div>
-					<div className="flex items-center">
-						<UserCog className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">ID Locataire :</span>
-						<span className="ml-2 text-muted-foreground">{tenant.id}</span>
-					</div>
-					<div className="flex items-center">
-						<CalendarDays className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">Date d'embauche :</span>
-						<span className="ml-2 text-muted-foreground">
-							{/* {format(new Date(tenant.id), 'dd MMMM yyyy', { locale: fr })} */}
-						</span>
-					</div>
-					<div className="flex items-center">
-						<UserIcon className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">ID Utilisateur associé :</span>
-						<span className="ml-2 text-muted-foreground">{tenant.userId}</span>
-					</div>
-					<div className="flex items-center">
-						<CalendarDays className="mr-3 h-4 w-4 text-muted-foreground" />
-						<span className="font-medium">Profil créé le :</span>
-						<span className="ml-2 text-muted-foreground">
-							{/* @ts-ignore // Supposant que createdAt/updatedAt existe sur FrontendTenant, sinon ajouter */}
-							{tenant.user?.createdAt ? format(new Date(tenant.user?.createdAt), 'dd MMM yy, HH:mm', { locale: fr }) : 'N/A'}
-						</span>
-					</div>
+				<Separator />
+
+				<div className="space-y-5 px-6 py-5 sm:px-8 sm:py-6">
+					<Section title="Coordonnées" icon={<User className="h-4 w-4" />}>
+						<div className="grid gap-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5">
+							<DetailItem label="Nom complet" value={fullName} />
+							<DetailItem label="Téléphone" value={phone} />
+							<DetailItem label="E-mail" value={tenant.email} />
+							<DetailItem label="Adresse actuelle" value={tenant.address} />
+							<DetailItem label="Ancienne adresse" value={tenant.tenantProfile?.oldAddress} />
+						</div>
+					</Section>
+
+					<Section title="Identité" icon={<ShieldCheck className="h-4 w-4" />}>
+						<div className="grid gap-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5">
+							<DetailItem
+								label="Date de naissance"
+								value={formatOptionalDate(tenant.dateOfBirth)}
+							/>
+							<DetailItem label="Type de pièce" value={tenant.identityDocumentType} />
+							<DetailItem label="Numéro de pièce" value={tenant.identityDocumentNumber} />
+						</div>
+					</Section>
+
+					<Section title="Activité professionnelle" icon={<Briefcase className="h-4 w-4" />}>
+						<div className="grid gap-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5">
+							<DetailItem label="Profession" value={tenant.occupation} />
+							<DetailItem label="Lieu de travail" value={tenant.workPlace} />
+						</div>
+					</Section>
+
+					<Section title="Contact d'urgence" icon={<Users className="h-4 w-4" />}>
+						<div className="grid gap-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5">
+							<DetailItem label="Personne à prévenir" value={emergencyContactName} />
+							<DetailItem label="Téléphone" value={emergencyContactPhone} />
+						</div>
+					</Section>
+
+					<Section title="Suivi du dossier" icon={<CalendarDays className="h-4 w-4" />}>
+						<div className="grid gap-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5">
+							<DetailItem label="Créé le" value={formatDateTime(tenant.createdAt)} />
+							<DetailItem label="Mis à jour le" value={formatDateTime(tenant.updatedAt)} />
+							<DetailItem
+								label="Statut du compte"
+								value={tenant.isActive ? "Compte actif" : "Compte inactif"}
+							/>
+						</div>
+					</Section>
 				</div>
 
-				<DialogFooter className="pt-6 sm:justify-between">
-					<Button variant="outline" onClick={handleExportPDF}>
-						<Download className="mr-2 h-4 w-4" /> Exporter en PDF
-					</Button>
+				<Separator />
+
+				<DialogFooter className="px-6 py-4 sm:px-8">
+						{/* <Button variant="outline" disabled>
+							<Download className="h-4 w-4" />
+							Export PDF bientôt
+						</Button> */}
 					<DialogClose asChild>
 						<Button type="button" variant="secondary">
 							Fermer

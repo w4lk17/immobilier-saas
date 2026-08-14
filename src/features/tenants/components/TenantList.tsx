@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-
-import { Button } from "@/components/ui/button";
-import { Contact, PlusCircle } from "lucide-react";
+import { Contact } from "lucide-react";
 import { FrontendTenant } from "@/types";
 import { DataTable } from '@/components/shared/DataTable/DataTable';
+import { DataTableEmptyState } from '@/components/shared/DataTable/DataTableEmptyState';
 import { tenantColumns } from './tenant.columns';
 import { TenantDetailsModal } from './TenantDetailsModal';
+import { useUpdateTenantStatus } from '../hooks/useTenants.hooks';
 
 interface TenantListProps {
 	tenants: FrontendTenant[];
@@ -18,23 +17,25 @@ export function TenantList({ tenants }: TenantListProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedTenant, setSelectedTenant] = useState<FrontendTenant | null>(null);
 
+	// Hook pour gérer le switch Actif/Inactif
+	const { mutate: updateStatus, isPending: isUpdatingStatus } = useUpdateTenantStatus();
+
 	const handleViewDetails = (tenant: FrontendTenant) => {
 		setSelectedTenant(tenant);
 		setIsModalOpen(true);
 	};
 
+	// Fonction passée aux colonnes pour le Switch
+	const handleToggleStatus = (userId: number, currentStatus: boolean) => {
+		updateStatus({ id: userId, isActive: !currentStatus });
+	};
 
 	const emptyState = (
-		<div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-			<Contact className="h-12 w-12 text-muted-foreground" />
-			<h3 className="text-xl font-semibold">Aucun locataire trouvé</h3>
-			<p className="text-muted-foreground">Commencez par ajouter un nouveau profil locataire.</p>
-			<Button asChild>
-				<Link href="/tenants/new">
-					<PlusCircle className="mr-2 h-4 w-4" /> Ajouter un locataire
-				</Link>
-			</Button>
-		</div>
+		<DataTableEmptyState
+			icon={Contact}
+			title="Aucun locataire trouvé"
+			description="Commencez par ajouter un nouveau locataire."
+		/>
 	);
 
 	return (
@@ -42,11 +43,17 @@ export function TenantList({ tenants }: TenantListProps) {
 			<DataTable
 				columns={tenantColumns}
 				data={tenants || []}
-				meta={{ viewDetails: handleViewDetails }}
-				searchColumn={'name'}
-				searchPlaceholder={'Rechercher'}
-				newButtonHref={'/tenants/new'}
-				newButtonTitle={'Nouveau'}
+				meta={{
+					viewDetails: handleViewDetails,
+					toggleStatus: handleToggleStatus,
+					isUpdatingStatus: isUpdatingStatus,
+				}}
+				searchPlaceholder='Rechercher par nom'
+				searchColumn='name'
+				newButtonHref='/admin/tenants/new'
+				newButtonTitle='Nouveau Locataire'
+				enableExport={true}
+				exportFileName='locataires'
 				emptyStateContent={emptyState} />
 
 			<TenantDetailsModal

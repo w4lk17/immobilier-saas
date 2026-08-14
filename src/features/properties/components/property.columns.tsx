@@ -2,11 +2,11 @@
 "use client";
 
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Edit3, Trash2 } from "lucide-react";
+import { MoreVertical, Eye, Edit3, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { FrontendProperty, PropertyWithRelations } from "@/types"; // Votre type frontend
+import { Property, PropertyWithRelations } from "@/types"; // Votre type frontend
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -29,20 +29,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useDeleteProperty } from '../hooks/useProperties.hooks'; // Hook de suppression
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
-
-// Helper pour le statut (peut être mis dans un fichier utilitaire)
-const getPropertyStatusVariant = (status: string) => {
-	switch (status) {
-		case 'AVAILABLE': return 'success';
-		case 'RENTED': return 'default';
-		case 'MAINTENANCE': return 'warning';
-		case 'UNAVAILABLE': return 'destructive';
-		default: return 'secondary';
-	}
-};
+import { getStatusBadge } from "@/lib/statusHelpers";
 
 // Composant interne pour les actions pour pouvoir utiliser le hook
-function PropertyActions({ row, table }: { row: Row<FrontendProperty>, table: any }) {
+function PropertyActions({ row, table }: { row: Row<Property>, table: any }) {
 	const property = row.original;
 	const { mutate: deleteProperty, isPending } = useDeleteProperty();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -73,7 +63,7 @@ function PropertyActions({ row, table }: { row: Row<FrontendProperty>, table: an
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -163,7 +153,7 @@ export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as string;
-			return <Badge variant={getPropertyStatusVariant(status) as any}>{status}</Badge>;
+			return getStatusBadge(status, 'property');
 		},
 	},
 	{
@@ -185,7 +175,6 @@ export const propertyColumns: ColumnDef<PropertyWithRelations>[] = [
 	},
 	{
 		id: "actions",
-		// header: () => <div className="text-right">Actions</div>,
 		cell: ({ row, table }) => <PropertyActions row={row} table={table} />,
 		enableSorting: false,
 		enableHiding: false,

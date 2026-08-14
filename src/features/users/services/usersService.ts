@@ -1,6 +1,7 @@
+// src/features/users/services/usersService.ts
 import api from '@/lib/api';
-import type { FrontendUser } from '@/types';
-import type { UserCreateFormData, UserUpdateFormData, PasswordChangeFormData } from '../schemas/userSchemas';
+import type { User } from '@/types';
+import type { UserUpdateFormData } from '../schemas/userSchemas';
 
 export interface GetUsersParams {
 	page?: number;
@@ -9,74 +10,42 @@ export interface GetUsersParams {
 	role?: string;
 }
 
-// Base URL for users endpoint
 const BASE = '/users';
 
+// Lister les utilisateurs (Admin)
 export async function getUsers(params?: GetUsersParams) {
-	try {
-		const res = await api.get(`/users`, { params });
-		// Expect API to return { data: FrontendUser[], total, page, perPage }
-		return res.data as { data: FrontendUser[]; total?: number; page?: number; perPage?: number };
-	} catch (error) {
-		throw error;
-	}
+	const res = await api.get(`${BASE}`, { params });
+	return res.data as User[];
 }
 
+// Voir un utilisateur (Admin)
 export async function getUserById(id: number) {
-	try {
-		const res = await api.get(`/users/${id}`);
-		return res.data as FrontendUser;
-	} catch (error) {
-		throw error;
-	}
+	const res = await api.get(`${BASE}/${id}`);
+	return res.data as User;
 }
 
-export async function createUser(data: UserCreateFormData) {
-	try {
-		const res = await api.post('/users', data);
-		return res.data as FrontendUser;
-	} catch (error) {
-		throw error;
-	}
-}
-
+// Modifier un utilisateur (Admin) - Ex: changer le nom, prénom
 export async function updateUser(id: number, data: UserUpdateFormData) {
-	try {
-		const res = await api.patch(`/users/${id}`, data);
-		return res.data as FrontendUser;
-	} catch (error) {
-		throw error;
-	}
+	const res = await api.patch(`${BASE}/${id}`, data);
+	return res.data as User;
 }
 
-// Soft delete (mark inactive) by default
-export async function deleteUser(id: number, hard = false) {
-	try {
-		if (hard) {
-			const res = await api.delete(`/users/${id}`);
-			return res.data;
-		}
-		const res = await api.patch(`/users/${id}`, { isActive: false });
-		return res.data as FrontendUser;
-	} catch (error) {
-		throw error;
-	}
+// Changer le statut Actif/Inactif (Admin)
+export async function updateUserStatus(id: number, isActive: boolean) {
+	const res = await api.patch(`${BASE}/${id}/status`, { isActive });
+	return res.data as User;
 }
 
-export async function changeUserPassword(id: number, payload: PasswordChangeFormData) {
-	try {
-		const res = await api.post(`/users/${id}/change-password`, payload);
-		return res.data;
-	} catch (error) {
-		throw error;
-	}
+// Supprimer définitivement (Admin)
+export async function deleteUser(id: number) {
+	const res = await api.delete(`${BASE}/${id}`);
+	return res.data;
 }
 
 export default {
 	getUsers,
 	getUserById,
-	createUser,
 	updateUser,
+	updateUserStatus,
 	deleteUser,
-	changeUserPassword,
 };

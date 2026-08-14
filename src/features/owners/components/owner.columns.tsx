@@ -4,7 +4,7 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { useState } from "react";
 import Link from "next/link";
-import { MoreHorizontal, Edit3, Trash2, Eye, Receipt, LucideReceiptText } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Eye, Receipt, LucideReceiptText } from "lucide-react";
 
 import { FrontendOwner, FrontendUserSnippet } from "@/types";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -48,7 +48,7 @@ function OwnerActions({ row, table }: { row: Row<FrontendOwner>, table: any }) {
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent

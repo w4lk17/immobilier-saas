@@ -23,17 +23,18 @@ export function DataTableViewOptions<TData>({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
+				{/* Mobile: Icon-only button, Desktop: Button with text */}
 				<Button
 					variant="outline"
 					size="sm"
-					className="ml-auto hidden h-8 lg:flex"
+					className="h-9 flex"
 				>
-					<Settings2 />
-					View
+					<Settings2 className="h-4 w-4 lg:mr-2" />
+					<span className="hidden lg:inline">Colonnes</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[150px]">
-				<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+				<DropdownMenuLabel>Afficher les colonnes</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				{table
 					.getAllColumns()

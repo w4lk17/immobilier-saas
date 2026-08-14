@@ -5,7 +5,6 @@ import { type LucideIcon } from "lucide-react"
 import {
 	SidebarGroupContent,
 	SidebarGroup,
-	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -14,6 +13,15 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+function isNavItemMatch(pathname: string, url: string) {
+	return pathname === url || pathname.startsWith(`${url}/`)
+}
+
+function getActiveNavUrl(pathname: string, items: { url: string }[]) {
+	const matches = items.filter((item) => isNavItemMatch(pathname, item.url))
+	return matches.sort((a, b) => b.url.length - a.url.length)[0]?.url
+}
+
 export function NavMain({
 	items,
 }: {
@@ -21,12 +29,11 @@ export function NavMain({
 		title: string
 		url: string
 		icon?: LucideIcon
-		isActive?: boolean
 	}[]
 	}) {
-	
-	const pathname = usePathname();
-	
+	const pathname = usePathname()
+	const activeUrl = getActiveNavUrl(pathname, items)
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupContent>
@@ -34,7 +41,7 @@ export function NavMain({
 					{items.map((item) => (
 						<SidebarMenuItem key={item.title}>
 							<Link href={item.url}>
-								<SidebarMenuButton isActive={pathname === item.url} tooltip={item.title}>
+								<SidebarMenuButton isActive={item.url === activeUrl} tooltip={item.title}>
 									{item.icon && <item.icon />}
 									<span>{item.title}</span>
 								</SidebarMenuButton>

@@ -1,35 +1,47 @@
 
 import api from '@/lib/api';
-import { OwnerFormData } from '../schemas/ownerSchemas'; // Schema à créer
-import { FrontendOwner } from '@/types'; // Utiliser le type frontend
-
-type OwnerApiResponse = FrontendOwner; // Ajuster si l'API retourne plus/moins de détails
+import { OwnerFormData, OwnerUpdateFormData } from '../schemas/ownerSchemas';
+import { FrontendOwner, FrontendOwnerWithUser, OwnerWithRelations } from '@/types';
 
 const ownersService = {
-	async getOwners(): Promise<OwnerApiResponse[]> {
-		const response = await api.get<OwnerApiResponse[]>('/owners');
+	// Basic list (minimal data)
+	async getAll(): Promise<FrontendOwner[]> {
+		const response = await api.get<FrontendOwner[]>('/owners');
 		return response.data;
 	},
 
-	async getOwnerById(id: number): Promise<OwnerApiResponse> {
-		const response = await api.get<OwnerApiResponse>(`/owners/${id}`);
+	// List with user data (for tables/displays)
+	async getAllWithUser(): Promise<FrontendOwnerWithUser[]> {
+		const response = await api.get<FrontendOwnerWithUser[]>('/owners?include=user');
 		return response.data;
 	},
 
-	async createOwner(data: OwnerFormData): Promise<OwnerApiResponse> {
-		const response = await api.post<OwnerApiResponse>('/owners', data);
+	// Single record (basic)
+	async getById(id: number): Promise<FrontendOwner> {
+		const response = await api.get<FrontendOwner>(`/owners/${id}`);
 		return response.data;
 	},
 
-	async updateOwner(id: number, data: Partial<OwnerFormData>): Promise<OwnerApiResponse> {
-		const response = await api.patch<OwnerApiResponse>(`/owners/${id}`, data);
+	// Single record (full relations for detail view)
+	async getByIdWithRelations(id: number): Promise<OwnerWithRelations> {
+		const response = await api.get<OwnerWithRelations>(`/owners/${id}?include=user,properties`);
 		return response.data;
 	},
 
-	async deleteOwner(id: number): Promise<OwnerApiResponse> {
-		const response = await api.delete<OwnerApiResponse>(`/owners/${id}`);
+	// CRUD operations
+	async create(payload: OwnerFormData): Promise<FrontendOwnerWithUser> {
+		const response = await api.post<FrontendOwnerWithUser>('/owners', payload);
 		return response.data;
-	}
+	},
+
+	async update(id: number, payload: OwnerUpdateFormData): Promise<FrontendOwnerWithUser> {
+		const response = await api.patch<FrontendOwnerWithUser>(`/owners/${id}`, payload);
+		return response.data;
+	},
+
+	async delete(id: number): Promise<void> {
+		await api.delete(`/owners/${id}`);
+	},
 };
 
 export default ownersService;

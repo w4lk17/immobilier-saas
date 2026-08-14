@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Toaster } from "@/components/ui/sonner" //  Toaster de Shadcn
+import { Toaster } from "@/components/ui/sonner"
 
 export function ToasterProvider() {
 	// Vous pouvez ajouter des options par défaut ici si nécessaire

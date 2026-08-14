@@ -1,22 +1,19 @@
-
 import { z } from 'zod';
 
-// Pour le formulaire de connexion
-export const loginSchema = z.object({
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
+export const LoginSchema = z.object({
+	email: z.string().email( 'Adresse email invalide.'),
+	password: z.string().min(1, 'Mot de passe requis'),
+});
+export const RegisterSchema = z.object({
 	email: z.string().email({ message: 'Adresse email invalide.' }),
-	password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères.' }),
+	password: z.string().min(8, 'Le mot de passe doit faire au moins 8 caractères'),
+	firstName: z.string().min(1, 'Le prénom est requis'),
+	lastName: z.string().min(1, 'Le nom est requis'),
+	companyName: z.string().min(1, 'Le nom de l\'organisation est requis'),
+	planSlug: z.string(), 
 });
 
-export type LoginCredentials = z.infer<typeof loginSchema>;
-
-// Pour le formulaire d'inscription (correspond au CreateUserDto backend)
-// Note: Le service API usersApi.register utilisera ce type
-export const registerSchema = z.object({
-	firstName: z.string().min(1, { message: 'Le prénom est requis.' }).optional(),
-	lastName: z.string().min(1, { message: 'Le nom est requis.' }).optional(),
-	email: z.string().email({ message: 'Adresse email invalide.' }),
-	password: z.string().min(6, { message: 'Le mot de passe doit contenir au moins 6 caractères.' }),
-	// Le rôle est défini par défaut côté backend, pas dans le formulaire d'inscription public
-});
-
-export type RegisterCredentials = z.infer<typeof registerSchema>;
+export type LoginCredentials = z.infer<typeof LoginSchema>;
+export type RegisterCredentials = z.infer<typeof RegisterSchema>;

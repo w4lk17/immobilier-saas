@@ -1,14 +1,33 @@
 "use client";
 
+import Link from "next/link";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ContractList } from "@/features/contracts/components/ContractList";
-import { useContracts } from "@/features/contracts/hooks/useContracts.hooks";
+import { useContractsWithRelations } from "@/features/contracts/hooks/useContracts.hooks";
 import { Download, Terminal } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Permission, hasPermission } from "@/lib/permissions";
 
 export default function ContractsPage() {
-	const { data: contracts, isLoading, isError, error } = useContracts();
+	const { data: contracts, isLoading, isError, error } = useContractsWithRelations();
+	const { user } = useAuth();
+
+	const canRead = user && hasPermission(user.role, Permission.CONTRACTS_READ);
+	const canCreate = user && hasPermission(user.role, Permission.CONTRACTS_CREATE);
+
+	if (!canRead) {
+		return (
+			<Alert variant="destructive" className="max-w-2xl mx-auto">
+				<Terminal className="h-4 w-4" />
+				<AlertTitle>Accès refusé</AlertTitle>
+				<AlertDescription>
+					Vous n'avez pas la permission d'accéder à cette page.
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	if (isLoading) {
 		return <div className="flex justify-center items-center h-64"><LoadingSpinner size={32} /></div>;
@@ -42,6 +61,13 @@ export default function ContractsPage() {
 					>
 						<Download /> Exporter
 					</Button>
+					{canCreate && (
+						<Button asChild>
+							<Link href="/contracts/new">
+								Ajouter un contrat
+							</Link>
+						</Button>
+					)}
 				</div>
 			</div>
 			<ContractList contracts={contracts || []} />

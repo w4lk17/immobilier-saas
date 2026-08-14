@@ -7,7 +7,7 @@ import {
 	DialogTitle,
 	DialogDescription,
 	DialogFooter,
-	DialogClose, // Pour un bouton de fermeture explicite si besoin
+	DialogClose, 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExpenseWithRelations } from "@/types";

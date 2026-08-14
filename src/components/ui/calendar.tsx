@@ -98,8 +98,17 @@ function Calendar({
         ),
         day: cn(
           "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+          props.showWeekNumber
+            ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-md"
+            : "[&:first-child[data-selected=true]_button]:rounded-l-md",
           defaultClassNames.day
         ),
+        //Add by me to fix the day display 
+        // day: cn(
+        //   "group/day relative aspect-square h-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+        //   "w-auto [tr:first-child_&]:w-full",
+        //   defaultClassNames.day
+        // ),
         range_start: cn(
           "rounded-l-md bg-accent",
           defaultClassNames.range_start

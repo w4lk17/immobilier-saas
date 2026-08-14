@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,10 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area"; // Pour les longues listes
-import { FrontendUserSnippet } from "@/types";
+import { User } from "@/types";
 
 interface ComboboxUsersProps {
-	users: FrontendUserSnippet[];
+	users: User[];
 	value?: number | null; // L'ID de l'utilisateur sélectionné
 	onChange: (userId: number | undefined) => void; // Callback avec l'ID ou undefined si désélectionné
 	placeholder?: string;

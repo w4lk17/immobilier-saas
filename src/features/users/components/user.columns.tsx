@@ -1,14 +1,10 @@
-
 "use client";
 
 import { ColumnDef, Row } from "@tanstack/react-table";
+import { MoreVertical, Edit3, Trash2, Eye } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 
-import { FrontendUser } from "@/types";
-import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -27,20 +23,24 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { User } from "@/types";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useDeleteUser } from '../hooks/useUsers.hooks';
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
+import { formatDate, getRelativeTime } from "@/lib/dateUtils";
+import { Switch } from "@/components/ui/switch";
+import { getRoleName } from "@/lib";
 
 const roleColors: Record<string, string> = {
 	ADMIN: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-	EMPLOYEE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+	MANAGER: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
 	OWNER: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
 	TENANT: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
 	USER: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
 };
 
-function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
+function UserActions({ row, table }: { row: Row<User>, table: any }) {
 	const user = row.original;
 	const { mutate: deleteUser, isPending } = useDeleteUser();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -50,15 +50,11 @@ function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
 		deleteUser(user.id);
 		setIsDropdownOpen(false);
 		setIsAlertOpen(false);
-	}
+	};
 
 	const openViewModal = () => {
-		if (table?.options?.meta?.viewDetails) {
-			table.options.meta.viewDetails(user);
-			setIsDropdownOpen(false);
-		} else {
-			console.warn('viewDetails function not found in table meta');
-		}
+		table?.options?.meta?.viewDetails?.(user);
+		setIsDropdownOpen(false);
 	};
 
 	return (
@@ -70,33 +66,26 @@ function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
 						className="h-8 w-8 p-0"
 						onClick={(e) => { e.stopPropagation() }}
 					>
-						<MoreHorizontal className="h-4 w-4" />
+						<MoreVertical className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align="end"
-					onInteractOutside={() => setIsDropdownOpen(false)}
-				>
+				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={(e) => {
-							e.preventDefault();
-							openViewModal();
-						}}
-						className="flex items-center w-full cursor-pointer"
-					>
+
+					<DropdownMenuItem onClick={openViewModal} className="cursor-pointer">
 						<Eye className="mr-2 h-4 w-4" /> Détails
 					</DropdownMenuItem>
+
 					<DropdownMenuItem asChild>
-						<Link href={`/users/edit/${user.id}`}
-							className="flex items-center w-full cursor-pointer"
-						>
+						<Link href={`/admin/users/${user.id}/edit`} className="cursor-pointer">
 							<Edit3 className="mr-2 h-4 w-4" /> Modifier
 						</Link>
 					</DropdownMenuItem>
+
 					<DropdownMenuSeparator />
+
 					<DropdownMenuItem
-						className="text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center w-full cursor-pointer"
+						className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
 						onClick={() => {
 							setIsAlertOpen(true);
 							setIsDropdownOpen(false);
@@ -110,12 +99,16 @@ function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
 			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Supprimer cet utilisateur ?</AlertDialogTitle>
-						<AlertDialogDescription>Cette action marquera l'utilisateur comme inactif. Ses données seront conservées à titre d'historique.</AlertDialogDescription>
+						<AlertDialogTitle>Supprimer définitivement ?</AlertDialogTitle>
+						<AlertDialogDescription>
+							Attention : Cette action est irréversible. L'utilisateur sera supprimé de la base de données.
+							Pour simplement désactiver l'accès, utilisez le switch "Actif" dans le tableau.
+						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Annuler</AlertDialogCancel>
-						<AlertDialogAction onClick={handleDelete}
+						<AlertDialogAction
+							onClick={handleDelete}
 							className={buttonVariants({ variant: "destructive" })}
 							disabled={isPending}
 						>
@@ -128,13 +121,7 @@ function UserActions({ row, table }: { row: Row<FrontendUser>, table: any }) {
 	);
 }
 
-export const userColumns: ColumnDef<FrontendUser>[] = [
-	{
-		id: "email",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-		accessorFn: row => row.email,
-		enableSorting: true,
-	},
+export const userColumns: ColumnDef<User>[] = [
 	{
 		id: "name",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
@@ -145,37 +132,62 @@ export const userColumns: ColumnDef<FrontendUser>[] = [
 		}
 	},
 	{
+		id: "email",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+		accessorFn: row => row.email,
+		enableSorting: false,
+	},
+	{
 		accessorKey: "role",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Rôle" />,
 		cell: ({ row }) => {
 			const role = row.getValue("role") as string;
 			return (
 				<Badge className={`${roleColors[role] || roleColors.USER}`}>
-					{role}
+					{getRoleName(role)}
 				</Badge>
 			);
 		},
+		enableSorting: false,
 	},
 	{
 		id: "createdAt",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Créé le" />,
-		accessorFn: row => new Date(row.createdAt),
+		accessorFn: row => row.createdAt ?? null,
 		cell: ({ row }) => {
-			const date = new Date(row.original.createdAt);
-			return <div className="text-sm text-muted-foreground">{formatDistanceToNow(date, { addSuffix: true, locale: fr })}</div>;
+			const dateValue = row.original.createdAt;
+			const relative = formatDate(dateValue);
+			return (
+				<div className="text-sm text-muted-foreground">
+					{relative || "Inconnu"}
+				</div>
+			);
 		},
+		enableSorting: false,
 	},
 	{
 		id: "status",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
-		cell: ({ row }) => {
-			const isActive = row.original.isActive;
+		cell: ({ row, table }) => {
+			const user = row.original;
+			const toggleStatus = table.options.meta?.toggleStatus;
+			const isUpdatingStatus = table.options.meta?.isUpdatingStatus;
+
 			return (
-				<Badge variant={isActive ? "default" : "secondary"}>
-					{isActive ? "Actif" : "Inactif"}
-				</Badge>
+				<div className="flex items-center gap-2">
+					<Switch
+						checked={user.isActive}
+						onCheckedChange={() => toggleStatus?.(user.id, user.isActive)}
+						disabled={isUpdatingStatus}
+						aria-label="Changer le statut"
+					/>
+					<span className="text-xs text-muted-foreground">
+						{user.isActive ? "Actif" : "Inactif"}
+					</span>
+				</div>
 			);
 		},
+		enableSorting: false,
 	},
 	{
 		id: "actions",

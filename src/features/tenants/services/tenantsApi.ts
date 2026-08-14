@@ -1,35 +1,53 @@
-
 import api from '@/lib/api';
-import { TenantFormData } from '../schemas/tenantSchemas'; // Schema à créer
-import { FrontendTenant } from '@/types'; // Utiliser le type frontend
+import { TenantFormData, TenantUpdateFormData } from '../schemas/tenantSchemas';
+import { FrontendTenant, TenantWithRelations, User } from '@/types';
 
-type TenantApiResponse = FrontendTenant; // Ajuster si l'API retourne plus/moins de détails
+
+const BASE = '/tenants';
 
 const tenantsService = {
-	async getTenants(): Promise<TenantApiResponse[]> {
-		const response = await api.get<TenantApiResponse[]>('/tenants');
-		return response.data;
+	// Liste les locataires de MON organisation
+	async getAll(): Promise<FrontendTenant[]> {
+		const res = await api.get<FrontendTenant[]>(`${BASE}`);
+		return res.data;
 	},
 
-	async getTenantById(id: number): Promise<TenantApiResponse> {
-		const response = await api.get<TenantApiResponse>(`/tenants/${id}`);
-		return response.data;
+	// Détails
+	async getById(id: number): Promise<FrontendTenant> {
+		const res = await api.get<FrontendTenant>(`${BASE}/${id}`);
+		return res.data;
 	},
 
-	async createTenant(data: TenantFormData): Promise<TenantApiResponse> {
-		const response = await api.post<TenantApiResponse>('/tenants', data);
-		return response.data;
+	// Création (envoie toutes les données user + tenant)
+	async create(data: TenantFormData): Promise<FrontendTenant> {
+		const res = await api.post<FrontendTenant>(`${BASE}`, data);
+		return res.data;
 	},
 
-	async updateTenant(id: number, data: Partial<TenantFormData>): Promise<TenantApiResponse> {
-		const response = await api.patch<TenantApiResponse>(`/tenants/${id}`, data);
-		return response.data;
+	// Mise à jour
+	async update(id: number, data: TenantUpdateFormData): Promise<FrontendTenant> {
+		const res = await api.patch<FrontendTenant>(`${BASE}/${id}`, data);
+		return res.data;
 	},
 
-	async deleteTenant(id: number): Promise<TenantApiResponse> {
-		const response = await api.delete<TenantApiResponse>(`/tenants/${id}`);
-		return response.data;
-	}
+	// Suppression (soft delete)
+	async delete(id: number) {
+		const res = await api.delete(`${BASE}/${id}`);
+		return res.data;
+	},
+
+	// Changer le statut Actif/Inactif (Admin)
+	async updateTenantStatus(id: number, isActive: boolean) {
+		const res = await api.patch(`${BASE}/${id}/status`, { isActive });
+		return res.data as User;
+	},
+
+	// Single record (full relations for detail view)
+	async getByIdWithRelations(id: number): Promise<TenantWithRelations> {
+		const res = await api.get<TenantWithRelations>(`${BASE}/${id}?include=user,contracts,payments`);
+		return res.data;
+	},
 };
 
 export default tenantsService;
+
