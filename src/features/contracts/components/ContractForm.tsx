@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, RotateCcw } from "lucide-react";
@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Contract } from "@/types";
+import { Contract, PropertyWithRelations, Rental } from "@/types";
 import { ContractStatus, LeaseType, RentalStatus } from "@/types/enums";
 import {
 	contractCreateSchema,
@@ -58,14 +58,31 @@ function parsePositiveInt(value: string | null): number | null {
 	return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+function toNumberValue(value: string | number | undefined): number | undefined {
+	if (typeof value === "number") return value;
+	if (!value) return undefined;
+	const parsed = Number(value);
+	return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function getPropertyLabel(property: PropertyWithRelations) {
+	const name = property.name ? `${property.name} - ` : "";
+	return `${name}${property.city}, ${property.neighborhood}`;
+}
+
+function getRentalLabel(rental: Rental) {
+	return `${rental.name} - ${rental.rentalValue} / charges ${rental.charges}`;
+}
+
 function getContractDefaultValues(
 	mode: ContractFormProps["mode"],
 	initialData?: Contract | null
 ): Partial<ContractFormData> {
 	if (mode === "edit" && initialData) {
 		return {
-			propertyId: (initialData.propertyId ?? undefined) as number | undefined,
-			rentalId: (initialData.rentalId ?? undefined) as number | undefined,
+			ownerId: initialData.ownerId ?? undefined,
+			propertyId: initialData.propertyId ?? undefined,
+			rentalId: initialData.rentalId ?? undefined,
 			tenantId: initialData.tenant?.user?.id ?? undefined,
 			managerId: initialData.managerId ?? null,
 			rentDeposit: initialData.rentDeposit ?? undefined,
@@ -74,14 +91,17 @@ function getContractDefaultValues(
 			rentAmount: initialData.rentAmount ?? undefined,
 			startDate: initialData.startDate ? formatDateForForm(initialData.startDate) ?? "" : "",
 			endDate: initialData.endDate ? formatDateForForm(initialData.endDate) ?? null : null,
-			dayAddToPaymentDay: initialData.dayAddToPaymentDay ?? 0,
-			paymentStartAfter: initialData.paymentStartAfter ?? 1,
+			dayAddToPaymentDay: initialData.dayAddToPaymentDay ?? 5,
+			paymentStartAfter: initialData.rentAdvance ?? 1,
 			leaseType: initialData.leaseType ?? undefined,
 			status: initialData.status ?? ContractStatus.PENDING,
 			pdfUrl: initialData.pdfUrl ?? undefined,
+			depositAmount: initialData.depositAmount ?? null,
+			advanceAmount: initialData.advanceAmount ?? null,
 		};
 	}
 	return {
+		ownerId: undefined,
 		propertyId: undefined,
 		rentalId: undefined,
 		tenantId: undefined,
@@ -92,11 +112,13 @@ function getContractDefaultValues(
 		chargesAmount: undefined,
 		startDate: "",
 		endDate: null,
-		dayAddToPaymentDay: 5,
-		paymentStartAfter: undefined,
+		dayAddToPaymentDay: undefined,
+		paymentStartAfter: 3,
 		leaseType: LeaseType.RESIDENTIAL_LEASE,
 		status: ContractStatus.PENDING,
 		pdfUrl: undefined,
+		depositAmount: null,
+		advanceAmount: null,
 	};
 }
 
@@ -110,6 +132,7 @@ export function ContractForm(props: ContractFormProps) {
 	const legacyLocataireId = parsePositiveInt(searchParams.get("locataireId"));
 
 	const { data: tenantsList } = useTenants();
+	const { data: propertiesList = [], isLoading: isPropertiesLoading } = usePropertiesWithRelations();
 	const hasAppliedUrlTenant = useRef(false);
 
 	const form = useForm<ContractFormValues>({
@@ -117,6 +140,34 @@ export function ContractForm(props: ContractFormProps) {
 		mode: "onChange",
 		defaultValues: getContractDefaultValues(mode, initialData),
 	});
+
+	const selectedPropertyId = form.watch("propertyId");
+	const selectedRentalId = form.watch("rentalId");
+
+	const selectedProperty = useMemo(
+		() => propertiesList.find((property) => property.id === selectedPropertyId),
+		[propertiesList, selectedPropertyId]
+	);
+
+	const propertyRentals = useMemo(
+		() => selectedProperty?.rentals ?? [],
+		[selectedProperty]
+	);
+
+	const rentalOptions = useMemo(
+		() =>
+			propertyRentals.filter(
+				(rental) =>
+					rental.status === RentalStatus.AVAILABLE ||
+					(isEditMode && rental.id === initialData?.rentalId)
+			),
+		[propertyRentals, isEditMode, initialData]
+	);
+
+	const selectedRental = useMemo(
+		() => propertyRentals.find((rental) => rental.id === selectedRentalId),
+		[propertyRentals, selectedRentalId]
+	);
 
 	useEffect(() => {
 		if (isEditMode || hasAppliedUrlTenant.current) return;
@@ -135,13 +186,70 @@ export function ContractForm(props: ContractFormProps) {
 		}
 	}, [isEditMode, urlTenantId, tenantProfileId, legacyLocataireId, tenantsList, form]);
 
+	useEffect(() => {
+		if (!selectedPropertyId && !selectedProperty) {
+			form.setValue("ownerId", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("managerId", null, { shouldValidate: true, shouldDirty: true });
+			return;
+		}
+
+		if (selectedPropertyId && !selectedProperty && propertiesList.length === 0) return;
+
+		if (!selectedProperty) {
+			form.setValue("ownerId", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("managerId", null, { shouldValidate: true, shouldDirty: true });
+			form.setValue("rentalId", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("rentAmount", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("chargesAmount", undefined, { shouldValidate: true, shouldDirty: true });
+			return;
+		}
+
+		form.setValue("ownerId", selectedProperty.ownerId, {
+			shouldValidate: true,
+			shouldDirty: false,
+		});
+		form.setValue("managerId", selectedProperty.managerId ?? null, {
+			shouldValidate: true,
+			shouldDirty: false,
+		});
+
+		if (
+			selectedRentalId &&
+			!selectedProperty.rentals?.some((rental) => rental.id === selectedRentalId)
+		) {
+			form.setValue("rentalId", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("rentAmount", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("chargesAmount", undefined, { shouldValidate: true, shouldDirty: true });
+		}
+	}, [form, propertiesList.length, selectedProperty, selectedPropertyId, selectedRentalId]);
+
+	useEffect(() => {
+		if (!selectedRentalId) return;
+		if (propertyRentals.length === 0 && isPropertiesLoading) return;
+
+		const isSelectableRental = rentalOptions.some((rental) => rental.id === selectedRentalId);
+		if (!selectedRental || !isSelectableRental) {
+			form.setValue("rentalId", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("rentAmount", undefined, { shouldValidate: true, shouldDirty: true });
+			form.setValue("chargesAmount", undefined, { shouldValidate: true, shouldDirty: true });
+		}
+	}, [form, isPropertiesLoading, propertyRentals.length, rentalOptions, selectedRental, selectedRentalId]);
+
+	useEffect(() => {
+		const rentAdvance = form.watch("rentAdvance");
+		if (rentAdvance !== undefined) {
+			form.setValue("paymentStartAfter", rentAdvance);
+		}
+	}, [form.watch("rentAdvance")]);
+
 	const handleSubmit = async (data: ContractFormValues) => {
 		if (props.mode === "create") {
 			const createData = { ...(data as ContractFormData) };
+			console.log('test submit data', createData);
 			if (!createData.tenantId) {
 				form.setError("tenantId", {
 					type: "manual",
-					message: "Locataire invalide. Veuillez sélectionner un locataire valide.",
+					message: "Locataire invalide. Veuillez selectionner un locataire valide.",
 				});
 				return;
 			}
@@ -161,11 +269,7 @@ export function ContractForm(props: ContractFormProps) {
 			>
 				<Card className="w-full max-w-5xl mx-auto mt-8 shadow-lg border-primary/10">
 					<CardContent className="flex flex-col gap-8">
-						{/* <h2 className="text-xl font-bold">Informations du contrat</h2> */}
-
-						{/* Section Locataire */}
 						<div className="space-y-4">
-							{/* <h3 className="text-base font-semibold">Locataire</h3> */}
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<FormField
 									control={form.control}
@@ -173,9 +277,9 @@ export function ContractForm(props: ContractFormProps) {
 									rules={{
 										validate: (value) =>
 											isEditMode ||
-											typeof value === "number" && value > 0
+												typeof value === "number" && value > 0
 												? true
-												: "Veuillez sélectionner un locataire.",
+												: "Veuillez selectionner un locataire.",
 									}}
 									render={({ field }) => (
 										<FormItem className="md:col-span-2">
@@ -185,9 +289,9 @@ export function ContractForm(props: ContractFormProps) {
 													tenants={tenantsList ?? []}
 													value={field.value ?? undefined}
 													onChange={(tenantUserId) => field.onChange(tenantUserId)}
-													placeholder="Sélectionner un locataire..."
+													placeholder="Selectionner un locataire..."
 													searchPlaceholder="Rechercher un locataire..."
-													emptyResultText="Aucun locataire trouvé."
+													emptyResultText="Aucun locataire trouve."
 													disabled={isLoading || isEditMode}
 												/>
 											</FormControl>
@@ -198,9 +302,68 @@ export function ContractForm(props: ContractFormProps) {
 							</div>
 						</div>
 
-						{/* Infos principales du contrat */}
-					
-						{/* Section Type et montants */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<FormField
+								control={form.control}
+								name="propertyId"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Propriete <span className="text-destructive">*</span></FormLabel>
+										<FormControl>
+											<Combobox
+												items={propertiesList}
+												value={field.value ?? undefined}
+												onChange={(value) => field.onChange(toNumberValue(value))}
+												valueAccessor={(property) => property.id}
+												displayAccessor={getPropertyLabel}
+												placeholder="Selectionner une propriete..."
+												searchPlaceholder="Rechercher une propriete..."
+												emptyResultText="Aucune propriete trouvee."
+												disabled={isLoading || isPropertiesLoading}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="rentalId"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Local <span className="text-destructive">*</span></FormLabel>
+										<FormControl>
+											<Combobox
+												items={rentalOptions}
+												value={field.value ?? undefined}
+												onChange={(value) => {
+													const rentalId = toNumberValue(value);
+													field.onChange(rentalId);
+													const rental = rentalOptions.find((item) => item.id === rentalId);
+
+													form.setValue("rentAmount", rental?.rentalValue, {
+														shouldValidate: true,
+														shouldDirty: true,
+													});
+													form.setValue("chargesAmount", rental?.charges, {
+														shouldValidate: true,
+														shouldDirty: true,
+													});
+												}}
+												valueAccessor={(rental) => rental.id}
+												displayAccessor={getRentalLabel}
+												placeholder={selectedPropertyId ? "Selectionner un local..." : "Selectionner la propriete avant le local"}
+												searchPlaceholder="Rechercher un local..."
+												emptyResultText={selectedPropertyId ? "Aucun local disponible pour cette propriete." : "Selectionner la propriete avant le local."}
+												disabled={isLoading || isPropertiesLoading || !selectedPropertyId}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<FormField
 								control={form.control}
@@ -214,6 +377,7 @@ export function ContractForm(props: ContractFormProps) {
 										<Select
 											onValueChange={field.onChange}
 											value={field.value ?? undefined}
+											disabled={isLoading}
 										>
 											<FormControl className="w-full">
 												<SelectTrigger>
@@ -261,9 +425,9 @@ export function ContractForm(props: ContractFormProps) {
 								control={form.control}
 								name="chargesAmount"
 								render={({ field }) => (
-									<FormItem>
+									<FormItem className="md:col-span-2" >
 										<FormLabel>Charges <span className="text-destructive">*</span></FormLabel>
-										<FormControl>
+										<FormControl >
 											<Input
 												type="number"
 												min={0}
@@ -272,9 +436,7 @@ export function ContractForm(props: ContractFormProps) {
 												value={field.value ?? ""}
 												onChange={(e) =>
 													field.onChange(
-														e.target.value === ""
-															? undefined
-															: Number(e.target.value)
+														e.target.value === "" ? undefined : Number(e.target.value)
 													)
 												}
 												disabled={isLoading}
@@ -286,9 +448,8 @@ export function ContractForm(props: ContractFormProps) {
 							/>
 						</div>
 
-						{/* Section avances/cautions */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<FormField
+							{/* <FormField
 								control={form.control}
 								name="rentDeposit"
 								render={({ field }) => (
@@ -304,9 +465,7 @@ export function ContractForm(props: ContractFormProps) {
 												value={field.value ?? ""}
 												onChange={(e) =>
 													field.onChange(
-														e.target.value === ""
-															? undefined
-															: Number(e.target.value)
+														e.target.value === "" ? undefined : Number(e.target.value)
 													)
 												}
 												disabled={isLoading}
@@ -315,7 +474,7 @@ export function ContractForm(props: ContractFormProps) {
 										<FormMessage />
 									</FormItem>
 								)}
-							/>
+							/> */}
 							<FormField
 								control={form.control}
 								name="rentAdvance"
@@ -326,14 +485,13 @@ export function ContractForm(props: ContractFormProps) {
 											<Input
 												type="number"
 												max={3}
+												min={1}
 												placeholder="Ex : 1"
 												{...field}
 												value={field.value ?? ""}
 												onChange={(e) =>
 													field.onChange(
-														e.target.value === ""
-															? undefined
-															: Number(e.target.value)
+														e.target.value === "" ? undefined : Number(e.target.value)
 													)
 												}
 												disabled={isLoading}
@@ -348,7 +506,7 @@ export function ContractForm(props: ContractFormProps) {
 								name="dayAddToPaymentDay"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Jour d’échéance <span className="text-destructive">*</span></FormLabel>
+										<FormLabel> Jour d'échéance<span className="text-destructive">*</span></FormLabel>
 										<FormControl>
 											<Input
 												type="number"
@@ -358,9 +516,7 @@ export function ContractForm(props: ContractFormProps) {
 												value={field.value ?? ""}
 												onChange={(e) =>
 													field.onChange(
-														e.target.value === ""
-															? undefined
-															: Number(e.target.value)
+														e.target.value === "" ? undefined : Number(e.target.value)
 													)
 												}
 												disabled={isLoading}
@@ -370,12 +526,12 @@ export function ContractForm(props: ContractFormProps) {
 									</FormItem>
 								)}
 							/>
-							<FormField
+							{/* <FormField
 								control={form.control}
 								name="paymentStartAfter"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Débuter le paiement après (mois) <span className="text-destructive">*</span></FormLabel>
+										<FormLabel>Debuter le paiement apres (mois) <span className="text-destructive">*</span></FormLabel>
 										<FormControl>
 											<Input
 												type="number"
@@ -384,9 +540,7 @@ export function ContractForm(props: ContractFormProps) {
 												value={field.value ?? ""}
 												onChange={(e) =>
 													field.onChange(
-														e.target.value === ""
-															? undefined
-															: Number(e.target.value)
+														e.target.value === "" ? undefined : Number(e.target.value)
 													)
 												}
 												disabled={isLoading}
@@ -395,17 +549,16 @@ export function ContractForm(props: ContractFormProps) {
 										<FormMessage />
 									</FormItem>
 								)}
-							/>
+							/> */}
 						</div>
 
-						{/* Section Dates */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<FormField
 								control={form.control}
 								name="startDate"
 								render={({ field }) => (
 									<FormItem className="*:w-full">
-										<FormLabel>Date de début <span className="text-destructive">*</span></FormLabel>
+										<FormLabel>Date de debut <span className="text-destructive">*</span></FormLabel>
 										<DatePicker
 											field={{
 												...field,
@@ -436,7 +589,6 @@ export function ContractForm(props: ContractFormProps) {
 							/>
 						</div>
 
-						{/* Statut & Actions */}
 						<div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 border-t pt-6">
 							<FormField
 								control={form.control}
@@ -457,13 +609,11 @@ export function ContractForm(props: ContractFormProps) {
 												/>
 											</FormControl>
 											<Label htmlFor="activerContrat" className="text-sm font-medium">
-												{isTerminated
-													? "Contrat terminé"
-													: "Activer le contrat"}
+												{isTerminated ? "Contrat termine" : "Activer le contrat"}
 											</Label>
 											{isTerminated && (
 												<span className="ml-2 text-xs text-destructive font-semibold">
-													Statut: terminé
+													Statut: termine
 												</span>
 											)}
 											<FormMessage />
@@ -475,7 +625,7 @@ export function ContractForm(props: ContractFormProps) {
 							<div className="flex items-center gap-2">
 								<Button type="submit" disabled={isLoading}>
 									{isLoading && <Loader2 size={18} className="mr-2 animate-spin" />}
-									{submitButtonText ?? (isEditMode ? "Mettre à jour" : "Créer le contrat")}
+									{submitButtonText ?? (isEditMode ? "Mettre a jour" : "Creer le contrat")}
 								</Button>
 								<Button
 									type="button"
@@ -483,7 +633,7 @@ export function ContractForm(props: ContractFormProps) {
 									onClick={() => form.reset()}
 									disabled={isLoading}
 								>
-									<span className="sr-only">Réinitialiser le formulaire</span>
+									<span className="sr-only">Reinitialiser le formulaire</span>
 									<RotateCcw />
 								</Button>
 							</div>

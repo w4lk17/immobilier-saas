@@ -39,8 +39,8 @@ export function RentalList({ rentals }: RentalListProps) {
 				columns={rentalColumns}
 				data={rentals || []}
 				meta={{ viewDetails: handleViewDetails }}
-				searchPlaceholder="Rechercher par référence/propriété..."
-				searchColumns={["name" ]}
+				searchPlaceholder="Rechercher par propriété"
+				searchColumns={["propertyName"]}
 				newButtonHref="/admin/rentals/new"
 				newButtonTitle="Nouveau local"
 				enableExport={true}

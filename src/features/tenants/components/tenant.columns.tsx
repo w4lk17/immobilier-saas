@@ -24,7 +24,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical, Edit3, Trash2, LucideReceiptText, Eye } from "lucide-react";
+import { MoreVertical, Edit3, Trash2, LucideReceiptText, Eye,  } from "lucide-react";
 import { useDeleteTenant } from '../hooks/useTenants.hooks';
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 // import { TenantActions } from "./tenant-actions";
@@ -32,6 +32,7 @@ import { FrontendTenant } from "@/types";
 import { formatPhone } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { getStatusBadge, getStatusTextColor } from "@/lib/statusHelpers";
+import { Badge } from "@/components/ui/badge";
 function TenantActions({ row, table }: { row: Row<FrontendTenant>, table: any }) {
 	const tenant = row.original;
 	const { mutate: deleteTenant, isPending } = useDeleteTenant();
@@ -169,11 +170,9 @@ export const tenantColumns: ColumnDef<TenantRow>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
 			const user = row.original;
-			return (
-				<span className="text-xs text-muted-foreground">
-					{user.isActive ? "Actif" : "Inactif"}
-				</span>
-			);
+			const label = user.isActive ? "Actif" : "Inactif";
+			let variant: "success" | "outline" = user.isActive ? "success" : "outline";
+			return <Badge variant={variant}>{label}</Badge>;
 		},
 		enableSorting: false,
 	},

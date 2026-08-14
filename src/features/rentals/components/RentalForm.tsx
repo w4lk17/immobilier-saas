@@ -53,9 +53,9 @@ export function RentalForm({
 			type: initialData.type || RentalType.STUDIO,
 			status: initialData.status || RentalStatus.AVAILABLE,
 			roomCount: initialData.roomCount || 1,
-			surface: (initialData as any).surface || 0,
+			surface: (initialData as any).surface || undefined,
 			isFurnished: (initialData as any).isFurnished || false,
-			rentalValue: initialData.rentalValue || 0,
+			rentalValue: initialData.rentalValue || undefined,
 			charges: initialData.charges || 0,
 		} : {
 			propertyId: propertyId || (propertiesForSelection?.length === 1 ? propertiesForSelection[0].id : undefined) as any,
@@ -63,9 +63,9 @@ export function RentalForm({
 			type: RentalType.STUDIO,
 			status: RentalStatus.AVAILABLE,
 			roomCount: 1,
-			surface: 0,
+			surface: undefined,
 			isFurnished: false,
-			rentalValue: 0,
+			rentalValue: undefined,
 			charges: 0,
 		},
 	});
@@ -212,9 +212,15 @@ export function RentalForm({
 					name="surface"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Superficie (m²)</FormLabel>
+							<FormLabel>Surface (m²)</FormLabel>
 							<FormControl>
-								<Input type="number" min={0} {...field} />
+								<Input
+									type="number"
+									min={0}
+									placeholder="Ex: 70"
+									{...field}
+									value={field.value ?? ""}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -226,9 +232,11 @@ export function RentalForm({
 					name="roomCount"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Nombre de pièces</FormLabel>
+							<FormLabel>
+								Nombre de pièces<span className="text-red-500">*</span>
+							</FormLabel>
 							<FormControl>
-								<Input type="number" min={0} {...field} />
+								<Input placeholder="Nombre de pièces" type="number" min={0} {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -241,10 +249,16 @@ export function RentalForm({
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>
-								Loyer <span className="text-red-500">*</span>
+								Loyer mensuel <span className="text-red-500">*</span>
 							</FormLabel>
 							<FormControl>
-								<Input type="number" min={0} {...field} />
+								<Input
+									type="number"
+									min={0}
+									placeholder="Ex: 35000"
+									{...field}
+									value={field.value ?? ""}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -258,7 +272,7 @@ export function RentalForm({
 						<FormItem>
 							<FormLabel>Charges sur loyer</FormLabel>
 							<FormControl>
-								<Input type="number" min={0} {...field} />
+								<Input placeholder="Montant charge sur loyer" type="number" min={0} {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>

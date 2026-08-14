@@ -13,6 +13,7 @@ import { useCreateRental } from "@/features/rentals/hooks/useRentals.hooks";
 import { RentalFormData } from "@/features/rentals/schemas/rentalSchemas";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Permission, hasPermission } from "@/lib/permissions";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function NewRentalPage() {
 	const router = useRouter();
@@ -48,29 +49,28 @@ export default function NewRentalPage() {
 	}
 
 	return (
-		<div className="h-full flex-col gap-8 p-4 md:flex">
-			<div className="flex items-center justify-between gap-2 sm:flex-row sm:items-center sm:gap-0">
-				<div className="flex flex-col gap-1">
-					<h2 className="text-2xl font-bold tracking-tight">Nouveau Local </h2>
-				</div>
-				<div className="flex items-center gap-2 sm:justify-end">
+		<div className="space-y-6 p-4">
+			<PageHeader
+				title="Nouveau Local"
+				description="Remplissez ce formulaire pour ajouter un nouveau local à louer."
+				actions={
 					<Button variant="secondary" size="sm" asChild>
 						<Link href="/admin/rentals">
-							<ArrowLeftCircle className="mr-2 h-4 w-4" />
+							<ArrowLeftCircle />
 							Liste des locaux
 						</Link>
 					</Button>
-				</div>
-			</div>
+				}
+			/>
 			
-			<div className="max-w-xl bg-card p-6 rounded-lg border shadow-sm">
+			{/* <div className="max-w-xl bg-card p-6 rounded-lg border shadow-sm"> */}
 				<RentalForm
 					onSubmit={handleSubmit}
 					isLoading={createRentalMutation.isPending}
 					submitButtonText="Créer le Local"
 					propertiesForSelection={properties || []}
 				/>
-			</div>
+			{/* </div> */}
 		</div>
 	);
 }

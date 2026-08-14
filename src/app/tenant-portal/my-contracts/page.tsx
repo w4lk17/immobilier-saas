@@ -152,6 +152,9 @@ export default function TenantMyContractsPage() {
 		? sortedContracts.filter((contract) => contract.id !== mainContract.id)
 		: [];
 
+	// const activeContracts = sortedContracts.filter(c => c.status === "ACTIVE");
+	// const contractHistory = sortedContracts.filter(c => c.status !== "ACTIVE");
+
 	const openContractDetails = (contract: ContractWithRelations) => {
 		setSelectedContract(contract);
 		setIsModalOpen(true);
@@ -292,7 +295,7 @@ export default function TenantMyContractsPage() {
 						</CardContent>
 					</Card>
 
-					{contractHistory.length > 0 && (
+					{contractHistory.filter(c => c.status !== "ACTIVE").length > 0 && (
 						<section className="space-y-3">
 							<div>
 								<h2 className="text-lg font-semibold">Historique des contrats</h2>
@@ -301,43 +304,45 @@ export default function TenantMyContractsPage() {
 								</p>
 							</div>
 							<div className="grid gap-3">
-								{contractHistory.map((contract) => (
-									<Card key={contract.id}>
-										<CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
-											<div className="flex min-w-0 items-start gap-3">
-												<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
-													<Building2 className="h-5 w-5 text-muted-foreground" />
-												</div>
-												<div className="min-w-0 space-y-1">
-													<div className="flex flex-wrap items-center gap-2">
-														<p className="break-words text-sm font-semibold">
-															{getContractHousing(contract)}
-														</p>
-														<ContractStatusBadge status={contract.status} />
+								{contractHistory
+									.filter((contract) => contract.status !== "ACTIVE")
+									.map((contract) => (
+										<Card key={contract.id}>
+											<CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
+												<div className="flex min-w-0 items-start gap-3">
+													<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
+														<Building2 className="h-5 w-5 text-muted-foreground" />
 													</div>
-													<p className="break-words text-xs text-muted-foreground">
-														{formatDate(contract.startDate)} - {formatDate(contract.endDate)}
-													</p>
-													<p className="break-words text-xs text-muted-foreground">
-														{getContractAddress(contract)}
-													</p>
+													<div className="min-w-0 space-y-1">
+														<div className="flex flex-wrap items-center gap-2">
+															<p className="break-words text-sm font-semibold">
+																{getContractHousing(contract)}
+															</p>
+															<ContractStatusBadge status={contract.status} />
+														</div>
+														<p className="break-words text-xs text-muted-foreground">
+															{formatDate(contract.startDate)} - {formatDate(contract.endDate)}
+														</p>
+														<p className="break-words text-xs text-muted-foreground">
+															{getContractAddress(contract)}
+														</p>
+													</div>
 												</div>
-											</div>
-											<div className="flex flex-col gap-2 md:items-end">
-												<p className="text-sm font-semibold">
-													{formatCurrency(contract.rentAmount)}
-												</p>
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => openContractDetails(contract)}
-												>
-													<Eye className="h-4 w-4" />
-													Détails
-												</Button>
-											</div>
-										</CardContent>
-									</Card>
+												<div className="flex flex-col gap-2 md:items-end">
+													<p className="text-sm font-semibold">
+														{formatCurrency(contract.rentAmount)}
+													</p>
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => openContractDetails(contract)}
+													>
+														<Eye className="h-4 w-4" />
+														Détails
+													</Button>
+												</div>
+											</CardContent>
+										</Card>
 								))}
 							</div>
 						</section>

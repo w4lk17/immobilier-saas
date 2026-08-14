@@ -136,6 +136,7 @@ export interface Property {
 	type: PropertyType;
 	propertyValue: number | null;
 	status: PropertyStatus;
+	rentalUnits: number;
 
 	isForSale: boolean;
 	nLot: number | null;

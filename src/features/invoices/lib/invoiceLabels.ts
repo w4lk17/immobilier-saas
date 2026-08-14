@@ -9,9 +9,9 @@ export const invoiceTypeLabels: Record<InvoiceType, string> = {
 };
 
 export const invoiceStatusLabels: Record<InvoiceStatus, string> = {
-  [InvoiceStatus.CANCELLED]: "Annulée",
-  [InvoiceStatus.OVERDUE]: "En retard",
-  [InvoiceStatus.PAID]: "Payée",
-  [InvoiceStatus.PARTIAL]: "Partielle",
   [InvoiceStatus.PENDING]: "En attente",
+  [InvoiceStatus.PARTIAL]: "Partielle",
+  [InvoiceStatus.PAID]: "Payée",
+  [InvoiceStatus.OVERDUE]: "En retard",
+  [InvoiceStatus.CANCELLED]: "Annulée",
 };

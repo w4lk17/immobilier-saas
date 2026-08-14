@@ -28,7 +28,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
 			columns={invoiceColumns}
 			data={invoices || []}
 			searchPlaceholder='Rechercher par locataire ou numéro'
-			searchColumn='invoiceNumber'
+			searchColumns={['tenantName']}
 			emptyStateContent={emptyState}
 			enableExport={true}
 			exportFileName='factures'

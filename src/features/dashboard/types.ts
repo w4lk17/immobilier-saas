@@ -13,9 +13,11 @@ export type AdminDashboardData = {
 	totalProperties: number;
 	totalContracts: number;
 	activeContracts: number;
-	monthlyRevenue: number;
+	totalRevenue: number;
+	totalUnpaid: number;
 	pendingInvoices: number;
 	recentInvoices: any[];
+	recentPayments: any[];
 	recentActivity: DashboardActivity[];
 };
 
@@ -58,6 +60,8 @@ export type TenantDashboardData = {
 	currentHousing: {
 		title: string;
 		address: string;
+		surface: number;
+		roomCount:number;
 		owner?: { name: string; phone?: string | null };
 		leaseStart: string;
 		leaseEnd?: string | null;

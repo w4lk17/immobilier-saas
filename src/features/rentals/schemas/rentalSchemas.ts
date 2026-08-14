@@ -9,7 +9,7 @@ export const rentalCreateSchema = z.object({
 	roomCount: z.coerce
 		.number({ invalid_type_error: "Le nombre de pièces doit être un nombre." })
 		.int()
-		.min(0, "Le nombre de pièces ne peut pas être négatif."),
+		.min(1, "Le nombre de pièces ne peut pas être négatif."),
 	rentalValue: z.coerce
 		.number({ invalid_type_error: "Le loyer doit être un nombre." })
 		.min(0, "Le loyer ne peut pas être négatif."),
@@ -17,7 +17,7 @@ export const rentalCreateSchema = z.object({
 		.number({ invalid_type_error: "Les charges doivent être un nombre." })
 		.min(0, "Les charges ne peuvent pas être négatives."),
 	surface: z.coerce
-		.number({ invalid_type_error: "La surface doit être un nombre." }),
+		.number({ invalid_type_error: "La surface doit être un nombre." }).optional().nullable(),
 	isFurnished: z.boolean(),
 });
 

@@ -15,6 +15,7 @@ import {
 	Clock,
 	AlertTriangle,
 	User,
+	Check,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,10 @@ const fallbackStats = {
 	totalProperties: 0,
 	totalContracts: 0,
 	totalRevenue: 0,
+	totalUnpaid: 0,
 	activeContracts: 0,
 	activeLocataires: 0,
+	recentPayments: [],
 	systemHealth: "Operational",
 };
 
@@ -56,7 +59,8 @@ export default function AdminDashboardPage() {
 		totalManagers: dashboard?.totalManagers ?? fallbackStats.totalManagers,
 		totalProperties: dashboard?.totalProperties ?? fallbackStats.totalProperties,
 		totalContracts: dashboard?.totalContracts ?? fallbackStats.totalContracts,
-		totalRevenue: dashboard?.monthlyRevenue ?? fallbackStats.totalRevenue,
+		totalRevenue: dashboard?.totalRevenue ?? fallbackStats.totalRevenue,
+		totalUnpaid: dashboard?.totalUnpaid ?? fallbackStats.totalUnpaid,
 		activeLocataires: dashboard?.activeTenants ?? fallbackStats.activeLocataires,
 		activeContracts: dashboard?.activeContracts ?? fallbackStats.activeContracts
 	};
@@ -66,6 +70,18 @@ export default function AdminDashboardPage() {
 			time: new Date(activity.occurredAt).toLocaleString("fr-FR"),
 		}))
 		: fallbackRecentActivity;
+	// recent payment
+	const recentPayments = (dashboard?.recentPayments ?? [])
+		.map((invoice: any) => ({
+			id: invoice.id,
+			tenantName: invoice.tenant?.user
+				? `${invoice.tenant.user.firstName} ${invoice.tenant.user.lastName}`
+				: "Locataire",
+			contractAddress: invoice.contract?.property?.address ?? invoice.contract?.designation,
+			amount: invoice.paidAmount || invoice.amountDue,
+			date: invoice.paidDate || invoice.updatedAt || invoice.createdAt,
+			status: invoice.status?.toLowerCase?.() || "paid",
+		}));
 
 	return (
 		<div className="space-y-6 p-4">
@@ -161,21 +177,16 @@ export default function AdminDashboardPage() {
 				<Card className="overflow-hidden gap-3">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<div>
-							<CardTitle className="text-sm font-medium">Total des impayés</CardTitle>			
+							<CardTitle className="text-sm font-medium">Total des impayés</CardTitle>
 							{/* <CardDescription>Février 2026</CardDescription> */}
 						</div>
 						<Wallet className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							0 F CFA
-							{/* {stats.totalRevenue.toLocaleString('fr-FR')} F CFA */}
+							{/* 0 F CFA */}
+							{stats.totalUnpaid.toLocaleString('fr-FR')} F CFA
 						</div>
-						{/* <Button variant="ghost" size="sm" className="mt-2 w-full justify-start px-0 h-6" asChild>
-							<Link href="/admin-panel/managers">
-								Gérer les employés →
-							</Link>
-						</Button> */}
 					</CardContent>
 				</Card>
 
@@ -184,8 +195,8 @@ export default function AdminDashboardPage() {
 					<CardHeader>
 						<div className="flex items-center justify-between">
 							<div>
-								<CardTitle className="text-sm font-medium">Revenu total</CardTitle>	
-			
+								<CardTitle className="text-sm font-medium">Revenu total</CardTitle>
+
 								{/* <CardDescription>Février 2026</CardDescription> */}
 							</div>
 							<Wallet className="h-4 w-4 text-muted-foreground" />
@@ -321,44 +332,71 @@ export default function AdminDashboardPage() {
 				</Card> */}
 
 				{/* Recent Payment */}
-				<Card>
+				<Card >
 					<CardHeader>
-						<CardTitle>Paiements récents</CardTitle>
+						<CardTitle className="flex items-center justify-between">
+							<span>Paiements récents</span>
+							<Button variant="ghost" size="sm" className="text-xs px-2 py-1" asChild>
+								<Link href="#" tabIndex={-1}>
+									Voir tout
+								</Link>
+							</Button>
+						</CardTitle>
 						<CardDescription>Derniers paiements enregistrés dans le système</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{dashboard?.recentPayments?.length > 0 ? (
-							<div className="space-y-4">
-								{dashboard.recentPayments.map((payment) => (
-									<div key={payment.id} className="flex items-start gap-3 border-b pb-2 last:border-b-0 last:pb-0">
-										<div className="mt-0.5 rounded-full bg-green-100 text-green-600 p-1">
-											<CheckCircle className="h-4 w-4" />
+						{recentPayments?.length > 0 ? (
+							<div className="divide-y divide-gray-100">
+								{recentPayments.map((payment) => (
+									<div
+										key={payment.id}
+										className="flex items-center py-3 gap-3 last:pb-0"
+									>
+										<div className="flex-shrink-0">
+											<div
+												className={`flex items-center justify-center w-8 h-8 rounded-full shadow-sm
+													${payment.status === 'paid'
+														? 'bg-green-100'
+														: 'bg-yellow-100'
+													}`}
+											>
+												{payment.status === 'paid' ? (
+													<Check className="h-4 w-4 text-green-600" />
+												) : (
+													<Clock className="h-4 w-4 text-yellow-600" />
+												)}
+											</div>
 										</div>
-										<div className="flex-1">
-											<p className="text-sm font-medium leading-none">
-												Paiement reçu de {payment.tenantName ?? "Locataire"} 
-												<span className="ml-1 font-normal text-xs text-muted-foreground">
-													{payment.contractAddress && `pour ${payment.contractAddress}`}
+										<div className="flex-1 min-w-0">
+											<p className="text-sm font-medium truncate">
+												{payment.contractAddress}
+											</p>
+											<div className="flex items-center gap-2 mt-0.5">
+												<span className="text-xs text-muted-foreground truncate">
+													{payment.tenantName}
 												</span>
-											</p>
-											<p className="text-xs text-muted-foreground">
-												Montant&nbsp;: <span className="font-semibold">{payment.amount}&nbsp;XOF</span>
-											</p>
+												<span className="text-xs text-muted-foreground">•</span>
+												<span className="text-xs text-muted-foreground">
+													{new Date(payment.date).toLocaleDateString("fr-FR")}
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center gap-1 text-xs text-muted-foreground">
-											<Clock className="h-3 w-3" />
-											{payment.date ? new Date(payment.date).toLocaleString('fr-FR') : ''}
+										<div
+											className={`text-base font-semibold ml-3
+												${payment.status === 'paid' ? 'text-green-700' : 'text-yellow-700'}
+												text-right min-w-[105px]`}
+										>
+											{payment.amount.toLocaleString("fr-FR")} <span className="text-xs font-normal text-muted-foreground">F CFA</span>
 										</div>
 									</div>
 								))}
 							</div>
 						) : (
-							<div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
-								<Wallet className="h-8 w-8 mb-2 opacity-60" />
+							<div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+								<Wallet className="h-10 w-10 mb-2 opacity-50" />
 								<p className="text-sm">Aucun paiement récent trouvé.</p>
 							</div>
 						)}
-	
 					</CardContent>
 				</Card>
 				{/* Recent Activity */}

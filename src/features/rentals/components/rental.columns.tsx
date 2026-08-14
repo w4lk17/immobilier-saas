@@ -154,7 +154,8 @@ export const rentalColumns: ColumnDef<RentalWithRelations>[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("rentalValue"));
 			return (
-				<div className="font-medium text-emerald-600">
+				// <div className="font-medium text-emerald-600">
+				<div className="font-medium ">
 					{formatCurrency(amount)}
 				</div>
 			);
@@ -167,7 +168,8 @@ export const rentalColumns: ColumnDef<RentalWithRelations>[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("charges") || "0");
 			return (
-				<div className="font-medium text-slate-500">
+				// <div className="font-medium text-slate-500">
+				<div className="font-medium">
 					{formatCurrency(amount)}
 				</div>
 			);
@@ -182,10 +184,10 @@ export const rentalColumns: ColumnDef<RentalWithRelations>[] = [
 			const label = rentalStatusLabels[status] || status;
 
 			let variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" = "secondary";
-			if (status === RentalStatus.AVAILABLE) variant = "success";
-			else if (status === RentalStatus.OCCUPIED) variant = "default";
+			if (status === RentalStatus.AVAILABLE) variant = "outline";
+			else if (status === RentalStatus.OCCUPIED) variant = "success";
 			else if (status === RentalStatus.MAINTENANCE) variant = "warning";
-			else if (status === RentalStatus.BOOKED) variant = "outline";
+			else if (status === RentalStatus.BOOKED) variant = "default";
 
 			return <Badge variant={variant}>{label}</Badge>;
 		},

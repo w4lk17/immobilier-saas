@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { DoorOpen, Pencil, Trash2 } from "lucide-react";
+import { DoorOpen, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -46,6 +46,11 @@ export function PropertyActions({ property }: PropertyActionsProps) {
 	const canUpdate = user && hasPermission(user.role, Permission.PROPERTIES_UPDATE);
 	const canDelete = user && hasPermission(user.role, Permission.PROPERTIES_DELETE);
 
+	// Calcul du nombre de places disponibles pour ajouter un locatif
+	const rentalCount = property.rentals?.length ?? 0;
+	const unitCount = property.rentalUnits ?? 0;
+	const hasAvailableUnits = unitCount > rentalCount;
+
 	const handleDelete = () => {
 		deleteProperty(property.id);
 		setShowDeleteAlert(false);
@@ -60,13 +65,18 @@ export function PropertyActions({ property }: PropertyActionsProps) {
 		<>
 			{canCreateRental && (
 				<Button
-				type="button"
+					type="button"
 					variant="outline"
 					size="sm"
-					
+					disabled={!hasAvailableUnits}
+					title={
+						!hasAvailableUnits
+							? "Tous les locaux ont été ajoutés. Impossible d'ajouter plus de locatifs."
+							: undefined
+					}
 					onClick={() => setShowRentalSheet(true)}
 				>
-					<DoorOpen className="size-4" />
+					<Plus className="size-4" />
 					Locatif
 				</Button>
 			)}
@@ -82,7 +92,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
 
 			{canDelete && (
 				<Button
-				type="button"
+					type="button"
 					variant="outline"
 					size="sm"
 					className=" text-destructive hover:text-destructive"

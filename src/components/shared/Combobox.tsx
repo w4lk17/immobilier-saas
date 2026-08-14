@@ -61,11 +61,21 @@ export function Combobox<T>({
 }: ComboboxProps<T>) {
 	const [open, setOpen] = React.useState(false);
 	const [searchQuery, setSearchQuery] = React.useState("");
+	const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+	const [popoverWidth, setPopoverWidth] = React.useState<number>();
 
-	// Trouver l'item actuellement sélectionnée pour l'afficher dans le bouton
-	const selectedItem = React.useMemo(() =>
-		items.find((item) => valueAccessor(item) === value)
-		, [items, value, valueAccessor]);
+	// Mettre à jour la largeur lors de l'ouverture du popover
+	React.useEffect(() => {
+		if (open && triggerRef.current) {
+			setPopoverWidth(triggerRef.current.offsetWidth);
+		}
+	}, [open]);
+
+	// Trouver l'item actuellement sélectionné pour l'afficher dans le bouton
+	const selectedItem = React.useMemo(
+		() => items.find((item) => valueAccessor(item) === value),
+		[items, value, valueAccessor]
+	);
 
 	// Filtrer les items en fonction de la recherche de l'utilisateur
 	const filteredItems = React.useMemo(() => {
@@ -82,20 +92,28 @@ export function Combobox<T>({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					ref={triggerRef}
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
 					aria-label={placeholder}
-					className={cn("w-full justify-between", selectedItem ? "text-foreground" : "text-muted-foreground", className)}
+					className={cn(
+						"w-full justify-between",
+						selectedItem ? "text-foreground" : "text-muted-foreground",
+						className
+					)}
 					disabled={disabled}
 				>
 					{selectedItem ? displayAccessor(selectedItem) : placeholder}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			{/** Ou mettre w-[300px] pour fixer la largeur */}
-			<PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
-				<Command shouldFilter={false}>{/* Nous gérons le filtrage manuellement */}
+			{/* La largeur du PopoverContent suit celle du bouton */}
+			<PopoverContent
+				className="max-h-[--radix-popover-content-available-height] p-0"
+				style={popoverWidth ? { width: popoverWidth } : undefined}
+			>
+				<Command shouldFilter={false}>
 					<CommandInput
 						value={searchQuery}
 						onValueChange={setSearchQuery}
@@ -103,17 +121,16 @@ export function Combobox<T>({
 					/>
 					<CommandList>
 						<CommandEmpty>{emptyResultText}</CommandEmpty>
-						<ScrollArea className="max-h-60"> {/* Limiter la hauteur et permettre le scroll */}
+						<ScrollArea className="max-h-60">
 							<CommandGroup>
 								{filteredItems.map((item, index) => {
 									const itemValue = valueAccessor(item);
 									const itemDisplay = displayAccessor(item);
 									return (
 										<CommandItem
-											key={index} // Utiliser l'index ou une clé unique si disponible
-											value={itemDisplay} // Valeur pour la recherche/navigation clavier
+											key={index}
+											value={itemDisplay}
 											onSelect={() => {
-												// Si on clique sur l'item déjà sélectionné, on le désélectionne. Sinon, on le sélectionne.
 												onChange(itemValue === value ? undefined : itemValue);
 												setSearchQuery("");
 												setOpen(false);

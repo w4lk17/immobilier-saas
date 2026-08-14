@@ -51,24 +51,25 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 
 	return (
 		<Card
-			className="flex flex-col overflow-hidden gap-3 transition-shadow hover:shadow-md cursor-pointer"
+			className="flex flex-col overflow-hidden gap-0 transition-shadow hover:shadow-md cursor-pointer"
 			onClick={onViewDetails}
 		>
 			<CardHeader className="pb-3">
-				<div className="flex items-start gap-3">
-					<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-						<Building2 className="h-5 w-5 text-primary" />
-					</div>
-					<div className="min-w-0 flex-1 space-y-2">
-						<h3 className="line-clamp-2 font-semibold leading-tight" title={property.address}>
-							{property.address}
+				<div className="flex items-start justify-between">
+					<div className="min-w-0 flex-1">
+						{/* Référence sur la première ligne */}
+						<h3 className="font-semibold leading-tight line-clamp-1" title={property.name ?? undefined}>
+							{property.name ? property.name : "Propriété sans nom"}
 						</h3>
-						<div className="flex flex-wrap gap-1.5">
-							<Badge variant="outline">{getPropertyTypeLabel(property.type)}</Badge>
-							<Badge variant={getStatusVariant(property.status)}>
-								{getPropertyStatusLabel(property.status)}
-							</Badge>
-						</div>
+						{/* Adresse sur la deuxième ligne */}
+						<div className="text-muted-foreground text-sm truncate">{property.address}</div>
+					</div>
+					{/* Type à droite en badge */}
+					<div className="flex flex-col items-end gap-1 min-w-[90px] pl-3 shrink-0">
+						<Badge variant="outline">{getPropertyTypeLabel(property.type)}</Badge>
+						<Badge variant={getStatusVariant(property.status)}>
+							{getPropertyStatusLabel(property.status)}
+						</Badge>
 					</div>
 				</div>
 			</CardHeader>
@@ -77,7 +78,7 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 				{/* Nom */}
 				{property.name && (
 					<div className="flex items-center gap-2 text-muted-foreground">
-						<span className="font-medium text-foreground">Reference : </span>
+						<span className="font-medium text-foreground">Référence : </span>
 						<span>{property.name}</span>
 					</div>
 				)}
@@ -113,13 +114,31 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 					</div>
 				)}
 
-				{/* Locatifs */}
+				{/* Locaux (UX/UI amélioré) */}
 				<div className="flex items-center gap-2 text-muted-foreground">
 					<DoorOpen className="h-4 w-4 shrink-0" />
-					<span>
-						<span className="font-medium text-foreground">Locatifs : </span>
-						{rentalCount}
+					<span className="font-medium text-foreground">Locaux&nbsp;:</span>
+					<span className="flex items-center gap-1 pl-1">
+						<span className="bg-green-100 text-green-700 font-semibold rounded-full px-2 py-0.5 text-xs flex items-center">
+							{rentalCount} <span className="ml-1 hidden sm:inline">ajouté{rentalCount > 1 ? "s" : ""}</span>
+						</span>
+						<span className="text-muted-foreground text-xs opacity-60 px-0.5">/</span>
+						<span className="bg-gray-100 text-gray-700 font-semibold rounded-full px-2 py-0.5 text-xs flex items-center">
+							{property.rentalUnits}
+							<span className="ml-1 hidden sm:inline">total</span>
+						</span>
 					</span>
+					{property.rentals && property.rentals.filter(r => r.status === "AVAILABLE").length > 0 && (
+						<span className="bg-orange-100 text-orange-700 font-semibold rounded-full px-2 py-0.5 text-xs flex items-center ml-2">
+							{property.rentals.filter(r => r.status === "AVAILABLE").length}
+							<span className="ml-1 hidden sm:inline">
+								vacant
+								{property.rentals.filter(r => r.status === "AVAILABLE").length > 1 ? "s" : ""}
+							</span>
+						</span>
+					)}
+
+
 				</div>
 
 				{/* Quartier */}

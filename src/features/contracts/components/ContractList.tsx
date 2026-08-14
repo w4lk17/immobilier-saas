@@ -41,7 +41,7 @@ export function ContractList({ contracts }: ContractListProps) {
 				data={contracts || []}
 				meta={{ viewDetails: handleViewDetails }}
 				searchPlaceholder='Rechercher par locataire '
-				searchColumn='tenantName'
+				searchColumns={['tenantName']}
 				newButtonHref='/admin/contracts/new'
 				newButtonTitle='Nouveau contrat'
 				enableExport={true}

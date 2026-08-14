@@ -9,6 +9,7 @@ import { useUsers } from "@/features/users/hooks/useUsers.hooks";
 import { PropertyForm } from "@/features/properties/components/PropertyForm";
 import { PropertyFormData, PropertyUpdateFormData } from "@/features/properties/schemas/propertySchemas";
 import { useCreateProperty } from "@/features/properties/hooks/useProperties.hooks";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function NewPropertyPage() {
 	const router = useRouter();
@@ -25,31 +26,23 @@ export default function NewPropertyPage() {
 	};
 	
 	return (
-		<div className="h-full flex-col gap-8 p-4 md:flex">
-			<div className=" flex items-center justify-between gap-2 sm:flex-row sm:items-center sm:gap-0">
-				<div className="flex flex-col gap-1">
-					<h2 className="text-2xl font-bold tracking-tight">Nouveau Bien</h2>
-				</div>
-				<div className="flex items-center gap-2 sm:justify-end">
+		<div className="space-y-6 p-4">
+			<PageHeader
+				title="Nouvelle Propriété"
+				description="Remplissez ce formulaire pour ajouter une nouvelle propriété au système."
+				actions={
 					<Button variant="secondary" size="sm" asChild>
 						<Link href="/admin/properties">
 							<ArrowLeftCircle />
-							liste locataire
+							Liste des propriétés
 						</Link>
 					</Button>
-					{/* <PresetSelector presets={presets} />
-					<PresetSave />
-					<div className="hidden space-x-2 md:flex">
-						<CodeViewer />
-						<PresetShare />
-					</div>
-					<PresetActions /> */}
-				</div>
-			</div>
+				}
+			/>
 			<PropertyForm
 				onSubmit={handleSubmit}
 				isLoading={createPropertyMutation.isPending}
-				submitButtonText="Créer le Profil Bien"
+				submitButtonText="Enregistrer la propriété"
 				usersForSelection={users?.filter(u => u.role === 'USER') || []} 
 			/>
 		</div>

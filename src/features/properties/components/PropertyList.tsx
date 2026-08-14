@@ -43,7 +43,7 @@ export function PropertyList({ properties }: PropertyListProps) {
 				data={properties || []}
 				meta={{ viewDetails: handleViewDetails }}
 				searchPlaceholder='Rechercher par adresse'
-				searchColumn='address'
+				searchColumns={['address']}
 				newButtonHref='/properties/new'
 				newButtonTitle='Nouveau'
 				enableExport={true}

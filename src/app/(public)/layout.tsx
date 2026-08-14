@@ -93,7 +93,7 @@ function LandingHeader() {
 									<Link href="/login">Connexion</Link>
 								</Button>
 								<Button asChild className="font-semibold px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-									<Link href="/login">
+									<Link href="/register">
 										Commencer
 										<ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
 									</Link>

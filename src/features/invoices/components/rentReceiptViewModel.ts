@@ -1,5 +1,6 @@
 import { InvoiceWithRelations } from "@/types";
 import { InvoiceStatus } from "@/types/enums";
+import { subMonths } from "date-fns";
 
 export type RentReceiptViewModel = {
 	invoiceId: number;
@@ -91,17 +92,19 @@ export function formatReceiptCurrency(value: number): string {
 		style: "currency",
 		currency: "XOF",
 		maximumFractionDigits: 0,
-	}).format(value);
+	}).format(value).replace(/\u202F/g, ' ');
 }
 
 export function buildRentReceiptViewModel(invoice: InvoiceWithRelations): RentReceiptViewModel {
-	const tenantUser = invoice.tenant?.user;
+	const tenantUser = invoice.tenant?.user || invoice.contract?.tenant.user;
 	const ownerUser = invoice.contract?.owner?.user || invoice.contract?.property?.owner?.user;
 	const contract = invoice.contract;
 	const dueDate = toDate(invoice.dueDate);
-	const periodStart = dueDate ? startOfMonth(dueDate) : null;
-	const periodEnd = dueDate ? endOfMonth(dueDate) : null;
-	const housingAddress = contract?.address || contract?.rental?.property?.address || EMPTY;
+	// const periodStart = dueDate ? startOfMonth(dueDate) : null;
+	// const periodEnd = dueDate ? endOfMonth(dueDate) : null;
+	const periodStart = dueDate ? startOfMonth(subMonths(dueDate, 1)) : null;
+	const periodEnd = dueDate ? endOfMonth(subMonths(dueDate, 1)) : null;
+	const housingAddress = contract?.property.address || EMPTY;
 	const totalAmount = toNumber(invoice.amountDue);
 	const rentAmount = toNumber(contract?.rentAmount);
 	const chargesAmount = toNumber(contract?.chargesAmount);
@@ -119,13 +122,13 @@ export function buildRentReceiptViewModel(invoice: InvoiceWithRelations): RentRe
 			: EMPTY,
 		periodStart: formatDate(periodStart),
 		periodEnd: formatDate(periodEnd),
-		monthLabel: formatLongMonth(invoice.dueDate),
+		monthLabel: formatLongMonth(periodStart),
 		housingAddress,
 		ownerName: fullName(ownerUser?.civility, ownerUser?.lastName, ownerUser?.firstName),
 		ownerAddressLines: compactLines(ownerUser?.address),
 		tenantName: fullName(tenantUser?.civility, tenantUser?.lastName, tenantUser?.firstName),
-		tenantAddressLines: compactLines(contract?.address),
-		// tenantAddressLines: compactLines(tenantUser?.address, contract?.address),
+		tenantAddressLines: compactLines(contract?.property.address),
+		// tenantAddressLines: compactLines(tenantUser?.address, contract?.property.address),
 		rentAmount: fallbackRent,
 		chargesAmount,
 		totalAmount,

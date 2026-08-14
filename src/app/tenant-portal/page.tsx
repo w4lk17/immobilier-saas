@@ -33,7 +33,8 @@ const fallbackTenantStats = {
 const fallbackCurrentHousing = {
 	title: "Appartement FST",
 	address: "Rue de l'Université, Fès, Maroc",
-	surface:0,
+	surface: 0,
+	roomCount: 0,
 	features: {
 		bedrooms: 0,
 		bathrooms: 0,
@@ -136,7 +137,7 @@ export default function TenantDashboardPage() {
 					<CardContent>
 						<div className="text-2xl font-bold">{tenantStats.monthlyRent.toLocaleString('fr-FR')} F CFA</div>
 						<p className="text-xs text-muted-foreground mt-1">
-							Montant du loyer mensuel 
+							Montant du loyer mensuel
 						</p>
 					</CardContent>
 				</Card>
@@ -268,13 +269,13 @@ export default function TenantDashboardPage() {
 							(currentHousing.leaseStatus !== "ACTIVE" &&
 								currentHousing.leaseStatus !== "TERMINATED" &&
 								currentHousing.leaseStatus !== "EXPIRED") && (
-							<div className="flex flex-col items-center py-2">
-								<div className="text-2xl font-bold text-gray-400">Aucun contrat</div>
-								<p className="text-xs mt-1 text-muted-foreground text-center">
-									Vous n'avez pas encore de contrat de bail. Veuillez contacter votre propriétaire pour plus d'informations.
-								</p>
-							</div>
-						)}
+								<div className="flex flex-col items-center py-2">
+									<div className="text-2xl font-bold text-gray-400">Aucun contrat</div>
+									<p className="text-xs mt-1 text-muted-foreground text-center">
+										Vous n'avez pas encore de contrat de bail. Veuillez contacter votre propriétaire pour plus d'informations.
+									</p>
+								</div>
+							)}
 					</CardContent>
 				</Card>
 			</div>
@@ -311,7 +312,7 @@ export default function TenantDashboardPage() {
 
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 								<div className="text-center p-3 bg-gray-50 rounded-lg">
-									<div className="text-2xl font-bold text-blue-600">{currentHousing.features.bedrooms}</div>
+									<div className="text-2xl font-bold text-blue-600">{currentHousing.roomCount}</div>
 									<div className="text-xs text-muted-foreground">Chambres</div>
 								</div>
 								<div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -428,7 +429,7 @@ export default function TenantDashboardPage() {
 							</div>
 						</div>}
 
-						<Button 
+						<Button
 							className="w-full"
 							asChild={!!upcomingPayment}
 							disabled={!upcomingPayment}

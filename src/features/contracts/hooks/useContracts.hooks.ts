@@ -57,6 +57,7 @@ export function useCreateContract() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
+			queryClient.invalidateQueries({queryKey: ['rentals']});
 			toast.success("Contrat créé avec succès !");
 		},
 		onError: (error: any) => {
@@ -74,6 +75,7 @@ export function useUpdateContract() {
 			queryClient.setQueryData([...CONTRACTS_QUERY_KEY, variables.id], updatedContract);
 			queryClient.invalidateQueries({ queryKey: ['properties', updatedContract.propertyId] });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
+			queryClient.invalidateQueries({ queryKey: ['rentals'] });
 			toast.success("Contrat mis à jour avec succès !");
 		},
 		onError: (error: any) => {
@@ -91,6 +93,7 @@ export function useDeleteContract() {
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
 			queryClient.invalidateQueries({ queryKey: ['payments'] });
+			queryClient.invalidateQueries({ queryKey: ['rentals'] });
 			queryClient.removeQueries({ queryKey: [...CONTRACTS_QUERY_KEY, id] });
 		},
 		onError: (error: any) => {
@@ -107,6 +110,7 @@ export function useTerminateContract() {
 			queryClient.invalidateQueries({ queryKey: CONTRACTS_QUERY_KEY });
 			queryClient.invalidateQueries({ queryKey: ['properties'] });
 			queryClient.invalidateQueries({ queryKey: ['payments'] });
+			queryClient.invalidateQueries({ queryKey: ['rentals'] });
 			queryClient.setQueryData([...CONTRACTS_QUERY_KEY, variables], updatedContract);
 			toast.success(`Contrat terminé avec succès !`);
 		},

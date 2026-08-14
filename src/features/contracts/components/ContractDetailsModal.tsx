@@ -16,6 +16,7 @@ import { ContractWithRelations } from "@/types";
 import { formatOptionalDate } from "@/lib";
 import { formatPhone } from "@/lib/utils";
 import { toCardinal } from 'n2words/fr-FR'
+import { leaseTypeLabels } from "../lib/contractLabels";
 
 interface ContractDetailsModalProps {
   contract: ContractWithRelations | null;
@@ -50,11 +51,12 @@ export function ContractDetailsModal({ contract, isOpen, onOpenChange }: Contrac
     tenantBirthDate: contract.tenant?.user?.dateOfBirth
       ? formatOptionalDate(contract.tenant.user.dateOfBirth)
       : "",
-    tenantAddress: contract.address ? contract.address || contract.property?.address : "-",
+    tenantAddress: contract.property.address ? contract.property.address : "-",
     tenantPhoneNumber: contract.tenant?.user?.phoneNumber || "",
     tenantCivility: contract.tenant?.user?.civility || "",
-    designation: contract.designation || "",
-    address: contract.address || contract.property?.address || "",
+    logement: contract.rental.name || "",
+    address: contract.property.address || "",
+    typeBail: contract.leaseType,
     startDate: contract.startDate ? formatFrDate(contract.startDate) : "",
     rentAmount: contract.rentAmount !== undefined ? contract.rentAmount : "-",
     paymentDay: contract.dayAddToPaymentDay,
@@ -123,14 +125,14 @@ export function ContractDetailsModal({ contract, isOpen, onOpenChange }: Contrac
               <h2 className="mb-3 border-b pb-1 text-base font-bold uppercase">2. Désignation et destination des lieux</h2>
               <p className="mb-2">
                 Le bailleur donne en location au locataire, qui accepte, le bien désigné comme suit :
-                <strong> {data.designation || "Non renseignée"}</strong>.
+                <strong> {data.logement || "Non renseignée"}</strong>.
               </p>
               <p className="mb-2">
                 Le bien est situé à l&apos;adresse / quartier suivant(e) :
                 <strong> {data.address || "Non renseignée"}</strong>.
               </p>
               <p className="italic">
-                Les locaux loués sont destinés exclusivement à l&apos;usage d&apos;habitation .
+                Les locaux loués sont destinés exclusivement à l&apos;usage de {leaseTypeLabels[data.typeBail]}.           
               </p>
             </section>
 
@@ -178,7 +180,7 @@ export function ContractDetailsModal({ contract, isOpen, onOpenChange }: Contrac
             </section>
 
             <p className="mt-8">
-              Fait à Lomé, le ......................................... en trois (03) exemplaires originaux.
+              Fait à ..................................., le  ......... /........... / 20..................... en trois (03) exemplaires originaux.
             </p>
 
             <div className="mt-16 grid gap-10 sm:grid-cols-2">

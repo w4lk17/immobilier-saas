@@ -49,6 +49,15 @@ export function ComboboxTenants({
 }: ComboboxTenantsProps) {
 	const [open, setOpen] = React.useState(false);
 	const [searchQuery, setSearchQuery] = React.useState("");
+	const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+	const [popoverWidth, setPopoverWidth] = React.useState<number>();
+
+	// Mettre à jour la largeur lors de l'ouverture du popover
+	React.useEffect(() => {
+		if (open && triggerRef.current) {
+			setPopoverWidth(triggerRef.current.offsetWidth);
+		}
+	}, [open]);
 
 	const selectableTenants = React.useMemo(
 		() => tenants.filter((tenant) => !!tenant.tenantProfile?.id),
@@ -80,6 +89,7 @@ export function ComboboxTenants({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					ref={triggerRef}
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
@@ -97,7 +107,11 @@ export function ComboboxTenants({
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
+			{/* La largeur du PopoverContent suit celle du bouton */}
+			<PopoverContent
+				className="max-h-[--radix-popover-content-available-height] p-0"
+				style={popoverWidth ? { width: popoverWidth } : undefined}
+			>
 				<Command shouldFilter={false}>
 					<CommandInput
 						value={searchQuery}

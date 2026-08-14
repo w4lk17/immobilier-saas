@@ -1,12 +1,12 @@
 
 import api from '@/lib/api';
-import { PaymentFormData, PaymentUpdateFormData } from '../schemas/paymentSchemas';
-import { FrontendPayment, InvoiceWithRelations } from '@/types';
+import { InvoiceFormData, InvoiceUpdateFormData } from '../schemas/invoiceSchemas';
+import { Invoice, InvoiceWithRelations } from '@/types';
 
 const invoicesService = {
 	// Basic list (minimal data)
-	async getAll(): Promise<FrontendPayment[]> {
-		const response = await api.get<FrontendPayment[]>('/invoices');
+	async getAll(): Promise<Invoice[]> {
+		const response = await api.get<Invoice[]>('/invoices');
 		return response.data;
 	},
 
@@ -17,8 +17,8 @@ const invoicesService = {
 	},
 
 	// Single record (basic)
-	async getById(id: number): Promise<FrontendPayment> {
-		const response = await api.get<FrontendPayment>(`/invoices/${id}`);
+	async getById(id: number): Promise<Invoice> {
+		const response = await api.get<Invoice>(`/invoices/${id}`);
 		return response.data;
 	},
 
@@ -29,12 +29,12 @@ const invoicesService = {
 	},
 
 	// CRUD operations
-	async create(payload: PaymentFormData): Promise<InvoiceWithRelations> {
+	async create(payload: InvoiceFormData): Promise<InvoiceWithRelations> {
 		const response = await api.post<InvoiceWithRelations>('/invoices', payload);
 		return response.data;
 	},
 
-	async update(id: number, payload: PaymentUpdateFormData): Promise<InvoiceWithRelations> {
+	async update(id: number, payload: InvoiceUpdateFormData): Promise<InvoiceWithRelations> {
 		const response = await api.patch<InvoiceWithRelations>(`/invoices/${id}`, payload);
 		return response.data;
 	},

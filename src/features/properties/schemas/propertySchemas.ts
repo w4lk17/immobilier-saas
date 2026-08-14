@@ -3,16 +3,18 @@ import { z } from 'zod';
 import { PropertyType, PropertyStatus } from '@/types/enums';
 
 export const propertyCreateSchema = z.object({
-	ownerId: z.number({ invalid_type_error: "L'ID propriétaire doit être un nombre." }).int().positive("L'ID propriétaire est requis.").optional(),
+	ownerId: z.number({ invalid_type_error: "L'ID propriétaire doit être un nombre." }).int()
+		.positive("L'ID propriétaire est requis.").optional().nullable(),
 	managerId: z.number().int().positive().optional().nullable(),
 	address: z.string().min(5, { message: "L'adresse doit contenir au moins 5 caractères." }),
 	type: z.nativeEnum(PropertyType, { required_error: "Le type de propriété est requis." }),
 	description: z.string().optional().nullable(),
 	propertyValue: z.coerce.number({ invalid_type_error: "La valeur du bien doit être un nombre." }).min(0, { message: "La valeur ne peut pas être négative." }).optional().nullable(),
+	rentalUnits: z.coerce.number({ invalid_type_error: "Le nombre d'unités doit être un nombre." }).int().min(1, { message: "Le nombre d'unités doit être au moins 1." }),
 	status: z.nativeEnum(PropertyStatus).optional(),
 
 	// Mock UI fields for the redesign
-	isForSale: z.boolean().default(false).optional(),
+	// isForSale: z.boolean().default(false).optional(),
 	nLot: z.number().int().positive().optional().nullable(),
 	lot: z.number().int().positive().optional().nullable(),
 	landTitle: z.string().optional().nullable(),

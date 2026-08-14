@@ -35,6 +35,7 @@ import { ContractStatus, LeaseType } from "@/types/enums";
 import { hasPermission, Permission } from "@/lib/permissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { contractStatusLabels, leaseTypeLabels } from "../lib/contractLabels";
+import { formatCurrency } from "@/lib/utils";
 
 
 function ContractActions({ row, table }: { row: Row<ContractWithRelations>, table: any }) {
@@ -183,12 +184,12 @@ function ContractActions({ row, table }: { row: Row<ContractWithRelations>, tabl
 
 
 export const contractColumns: ColumnDef<ContractWithRelations>[] = [
-	{
-		accessorKey: "reference",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
-		cell: ({ row }) => row.getValue("reference") || '-',
-		enableSorting: false,
-	},
+	// {
+	// 	accessorKey: "reference",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
+	// 	cell: ({ row }) => row.getValue("reference") || '-',
+	// 	enableSorting: false,
+	// },
 	{
 		id: "tenantName",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Locataire" />,
@@ -203,6 +204,17 @@ export const contractColumns: ColumnDef<ContractWithRelations>[] = [
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Locative" />,
 		accessorFn: row => row.rental?.name,
 		cell: ({ row }) => row.original.rental?.name || '-',
+		enableSorting: false,
+	},
+	{
+		id: "rentAmount",
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Loyer mensuel" />,
+		cell: ({ row }) => {
+			const amount = row.original.rentAmount;
+			return amount != null
+				? formatCurrency(amount)
+				: '-';
+		},
 		enableSorting: false,
 	},
 	{
@@ -233,7 +245,7 @@ export const contractColumns: ColumnDef<ContractWithRelations>[] = [
 		accessorKey: "status",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
 		cell: ({ row }) => {
-			
+
 			const status = row.getValue("status") as ContractStatus;
 			const label = contractStatusLabels[status] || status;
 

@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import invoicesService from '../services/invoicesApi';
-import { PaymentFormData, PaymentUpdateFormData } from '../schemas/paymentSchemas';
+import { InvoiceFormData, InvoiceUpdateFormData } from '../schemas/invoiceSchemas';
 import { toast } from "sonner";
 import { Invoice, InvoiceWithRelations } from '@/types';
 
@@ -52,7 +52,7 @@ export function useInvoiceWithRelations(invoiceId: number | null | undefined) {
 // Mutation hooks
 export function useCreateInvoice() {
 	const queryClient = useQueryClient();
-	return useMutation<InvoiceWithRelations, Error, PaymentFormData>({
+	return useMutation<InvoiceWithRelations, Error, InvoiceFormData>({
 		mutationFn: (data) => invoicesService.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: INVOICES_QUERY_KEY });
@@ -66,7 +66,7 @@ export function useCreateInvoice() {
 
 export function useUpdateInvoice() {
 	const queryClient = useQueryClient();
-	return useMutation<InvoiceWithRelations, Error, { id: number; data: PaymentUpdateFormData }>({
+	return useMutation<InvoiceWithRelations, Error, { id: number; data: InvoiceUpdateFormData }>({
 		mutationFn: ({ id, data }) => invoicesService.update(id, data),
 		onSuccess: (updatedInvoice, variables) => {
 			queryClient.invalidateQueries({ queryKey: INVOICES_QUERY_KEY });

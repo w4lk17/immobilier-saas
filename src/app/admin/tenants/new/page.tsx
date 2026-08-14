@@ -25,7 +25,7 @@ export default function NewTenantPage() {
 					{
 						duration: 8000,
 						action: {
-							label: "Générer son bail →",
+							label: "Créer son bail →",
 							onClick: () => {
 								if (!data.id) {
 									toast.error("Profil locataire introuvable pour générer le bail.");
@@ -45,12 +45,12 @@ export default function NewTenantPage() {
 	return (
 		<div className="space-y-6 p-4">
 			<PageHeader
-				title="Nouveau Locataire"
-				description=""
+				title="Nouveau locataire"
+				description="Remplissez les informations du locataire pour l’ajouter à la plateforme." // et lui permettre d’accéder à son espace locataire."
 				actions={
 					<Button variant="secondary" size="sm" asChild>
 						<Link href="/admin/tenants">
-							<ArrowLeftCircle />
+							<ArrowLeftCircle className="mr-2" />
 							Liste des locataires
 						</Link>
 					</Button>

@@ -123,7 +123,7 @@ export default function OwnerDashboardPage() {
 	const recentPayments = dashboard?.recentPayments?.length
 		? dashboard.recentPayments.map((invoice: any) => ({
 			id: invoice.id,
-			property: invoice.contract?.property?.address || invoice.contract?.designation || "Contrat",
+			property: invoice.contract?.property?.address  || "Contrat",
 			tenant: invoice.tenant?.user
 				? `${invoice.tenant.user.firstName} ${invoice.tenant.user.lastName}`
 				: "Locataire",

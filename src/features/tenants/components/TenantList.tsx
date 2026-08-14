@@ -49,7 +49,7 @@ export function TenantList({ tenants }: TenantListProps) {
 					isUpdatingStatus: isUpdatingStatus,
 				}}
 				searchPlaceholder='Rechercher par nom'
-				searchColumn='name'
+				searchColumns={['name', 'email']}
 				newButtonHref='/admin/tenants/new'
 				newButtonTitle='Nouveau Locataire'
 				enableExport={true}

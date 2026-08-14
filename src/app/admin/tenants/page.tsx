@@ -51,7 +51,7 @@ export default function TenantsPage() {
 		<div className="space-y-6 p-4">
 			<PageHeader
 				title="Liste des locataires"
-				description="Gérez un locataire"
+				description="Gérez, consultez ou ajoutez des locataires à la plateforme."
 			/>
 			<TenantList tenants={tenants || []} />
 		</div>
