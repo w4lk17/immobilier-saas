@@ -34,6 +34,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/(auth)/layout.tsx",
+    "src/types/declarations.d.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

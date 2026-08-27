@@ -223,7 +223,7 @@ export default function TenantMyContractsPage() {
 									<ContractStatusBadge status={mainContract.status} />
 								</div>
 								<CardDescription className="break-words">
-									Référence {mainContract.reference || "non renseignée"}
+									Référence : {mainContract.reference || "non renseignée"}
 								</CardDescription>
 							</div>
 							<div className="flex flex-col gap-2 sm:flex-row">
@@ -257,7 +257,8 @@ export default function TenantMyContractsPage() {
 
 							<Separator />
 
-							<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+								{/* <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"> */}
+								<div className="grid gap-3 grid-cols-2 md:grid-cols-2 xl:grid-cols-3">
 								<InfoItem
 									icon={User}
 									label="Propriétaire"
@@ -295,7 +296,7 @@ export default function TenantMyContractsPage() {
 						</CardContent>
 					</Card>
 
-					{contractHistory.filter(c => c.status !== "ACTIVE").length > 0 && (
+					{contractHistory.filter(c => c.status !== ContractStatus.ACTIVE).length > 0 && (
 						<section className="space-y-3">
 							<div>
 								<h2 className="text-lg font-semibold">Historique des contrats</h2>
@@ -305,7 +306,7 @@ export default function TenantMyContractsPage() {
 							</div>
 							<div className="grid gap-3">
 								{contractHistory
-									.filter((contract) => contract.status !== "ACTIVE")
+									.filter((contract) => contract.status !== ContractStatus.ACTIVE)
 									.map((contract) => (
 										<Card key={contract.id}>
 											<CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
@@ -329,9 +330,9 @@ export default function TenantMyContractsPage() {
 													</div>
 												</div>
 												<div className="flex flex-col gap-2 md:items-end">
-													<p className="text-sm font-semibold">
+													{/* <p className="text-sm font-semibold">
 														{formatCurrency(contract.rentAmount)}
-													</p>
+													</p> */}
 													<Button
 														variant="outline"
 														size="sm"

@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import React from 'react';
@@ -11,7 +11,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();
 
 	// Explicitly list public/auth routes (landing, login, register, forgot-password)
-	const authRoutes = ['/', '/login', '/register', '/forgot-password'];
+	const authRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/verify-phone'];
 	const isAuthPage = authRoutes.includes(pathname || '');
 
 	// Show loading spinner only on protected routes during auth hydration (never on public/auth pages)

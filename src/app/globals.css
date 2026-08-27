@@ -220,6 +220,22 @@
   --sidebar-ring: oklch(0.75 0.18 70);
 }
 
+/* Supprime la bordure et le contour par défaut de l'input de react-phone-number-input */
+.custom-phone-input .PhoneInputInput {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+/* Optionnel : Ajuste l'alignement du drapeau si nécessaire */
+.custom-phone-input .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+}
+
 /* ******************************************** theme vert ************************************************* */
 
 /* @theme inline {

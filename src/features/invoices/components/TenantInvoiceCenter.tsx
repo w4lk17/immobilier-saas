@@ -112,7 +112,7 @@ function SummaryCard({
   );
 }
 
-async function downloadReceipt(receipt: RentReceiptViewModel) {
+async function downloadInvoice(receipt: RentReceiptViewModel) {
   const blob = await pdf(
     <RentReceiptPdfDocument receipt={receipt} />
   ).toBlob();
@@ -176,7 +176,7 @@ export function TenantInvoiceCenter({ invoices }: TenantInvoiceCenterProps) {
   const handleDownload = async (receipt: RentReceiptViewModel) => {
     try {
       setDownloadingId(receipt.invoiceId);
-      await downloadReceipt(receipt);
+      await downloadInvoice(receipt);
     } finally {
       setDownloadingId(null);
     }

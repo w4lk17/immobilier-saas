@@ -1,128 +1,133 @@
 import { useCallback, useEffect } from 'react';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
-import { LoginCredentials, RegisterCredentials } from '../schemas/authSchemas';
+import { LoginCredentials, RegisterCredentials, VerifyPhoneCredentials } from '../schemas/authSchemas';
 import authService from '../services/authApi';
 import { getRoleRedirectPath } from '@/lib/authUtils';
-
-// Global hydration flag to ensure hydration only runs once across all components
 let hasHydrated = false;
 
 export function useAuth() {
-	const { user, isAuthenticated, isLoading, setUser, setLoading, logout: storeLogout, restoreProfile } = useAuthStore();
-	const router = useRouter();
+  const { user, isAuthenticated, isLoading, setUser, setLoading, logout: storeLogout, restoreProfile } = useAuthStore();
+  const router = useRouter();
+  useEffect(() => {
+    if (hasHydrated) return;
+    hasHydrated = true; (async () => {
+      try {
+        setUser(await authService.getProfile());
+      } catch (error: any) {
+        if (error.response?.status !== 401)
+          console.error('Auth hydration error:', error.message);
+        setUser(null);
+      }
+      finally {
+        setLoading(false);
+      }
+    })();
+  },
+    [setUser, setLoading]);
 
-	// Hydrate auth on mount - only once globally
-	useEffect(() => {
-		// Skip if already hydrated
-		if (hasHydrated) return;
-		hasHydrated = true;
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      setLoading(true);
+      try {
+        const loggedInUser = await authService.login(credentials);
+        setUser(loggedInUser);
+        toast.success('Connexion réussie !');
+        router.push(getRoleRedirectPath(loggedInUser));
+      } catch (error: any) {
+        setUser(null);
+        const message = error.response?.data?.message || 'Échec de la connexion.';
+        toast.error(message);
+        if (error.response?.data?.code === 'PHONE_NOT_VERIFIED') {
+          sessionStorage.setItem('pendingVerificationPhone', credentials.phone);
+          router.push('/verify-phone');
+        }
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    }, [router, setLoading, setUser]
+  );
 
-		const hydrate = async () => {
-			try {
-				const profile = await authService.getProfile();
-				setUser(profile);
-			} catch (error: any) {
-				// 401 is expected when user is not logged in - don't treat as error
-				if (error.response?.status !== 401) {
-					// Only log unexpected errors
-					console.error('Auth hydration error:', error.message);
-				}
-				setUser(null);
-			} finally {
-				setLoading(false);
-			}
-		};
-		hydrate();
-	}, [setUser, setLoading]);
+  const register = useCallback(
+    async (credentials: RegisterCredentials) => {
+      setLoading(true);
+      try {
+        await authService.register(credentials);
+        sessionStorage.setItem('pendingVerificationPhone', credentials.phone);
+        toast.success('Inscription réussie ! Vérifiez votre téléphone.');
+        router.push('/verify-phone');
+      } catch (error: any) {
+        const message = error.response?.data?.message || "Échec de l'inscription.";
+        toast.error(message);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    }, [router, setLoading]
+  );
 
-	const login = useCallback(async (credentials: LoginCredentials) => {
-		setLoading(true);
-		try {
-			const loggedInUser = await authService.login(credentials);
-			setUser(loggedInUser);
-			toast.success('Connexion réussie !');
-			const redirectPath = getRoleRedirectPath(loggedInUser);
-			router.push(redirectPath);
-		} catch (error: any) {
-			console.error('Login failed:', error);
-			setUser(null);
-			const errorMessage = error.response?.data?.message || "Échec de la connexion.";
-			toast.error("Échec de la connexion.");
-		} finally {
-			setLoading(false);
-		}
-	}, [setUser, setLoading, router]);
+  const verifyPhone = useCallback(
+    async (credentials: VerifyPhoneCredentials) => {
+      const verifiedUser = await authService.verifyPhone(credentials);
+      setUser(verifiedUser);
+      sessionStorage.removeItem('pendingVerificationPhone');
+      toast.success('Numéro vérifié. Connexion réussie !');
+      router.push(getRoleRedirectPath(verifiedUser));
+    }, [router, setUser]
+  );
 
-	const register = useCallback(async (credentials: RegisterCredentials) => {
-		setLoading(true);
-		try {
-			await authService.register(credentials);
-			toast.success('Inscription réussie ! Vérifiez vos emails pour activer votre compte.');
-			router.push('/login?verificationSent=true');
+  const resendOtp = useCallback(
+    async (phone: string) => {
+      const result = await authService.resendOtp(phone);
+      toast.success(result.message);
+    }, []
+  );
 
-		} catch (error: any) {
-			console.error('Registration failed:', error);
-			// setUser(null) pas nécessaire ici, on était pas connecté
-			const errorMessage = error.response?.data?.message || "Échec de l'inscription.";
-			toast.error(errorMessage);
-			throw error;
-		} finally {
-			setLoading(false);
-		}
-	}, [setLoading, router]); 
+  const forgotPassword = useCallback(
+    async (email: string) => {
+      setLoading(true);
+      try {
+        const result = await authService.forgotPassword(email);
+        toast.success(result.message);
+      } finally {
+        setLoading(false);
+      }
+    }, [setLoading]
+  );
 
-	const verifyEmail = useCallback(async (token: string) => {
-		try {
-			await authService.verifyEmail(token);
-			toast.success('Email vérifié ! Vous pouvez vous connecter.');
-		} catch (error: any) {
-			console.error('Email verification failed:', error);
-			const errorMessage = error.response?.data?.message || "Lien invalide ou expiré.";
-			toast.error(errorMessage);
-			throw error;
-		}
-	}, []);
+  const resetPassword = useCallback(
+    async (token: string, password: string) => {
+      await authService.resetPassword(token, password);
+      toast.success('Mot de passe réinitialisé.');
+      router.push('/login');
+    }, [router]
+  );
 
-	const forgotPassword = useCallback(async (email: string) => {
-		setLoading(true);
-		try {
-			await authService.forgotPassword(email);
-			toast.success("Un lien de réinitialisation a été envoyé à votre adresse email.");
-		} catch (error: any) {
-			console.error("Forgot password error:", error);
-			const errorMessage = error.response?.data?.message || "Impossible d'envoyer l'email de réinitialisation.";
-			toast.error(errorMessage);
-			throw error;
-		} finally {
-			setLoading(false);
-		}
-	}, [setLoading]);
+  const logout = useCallback(
+    async () => {
+      try {
+        await storeLogout();
+        toast.success('Déconnexion réussie.');
+      } finally {
+        router.push('/login');
+      }
+    }, [router, storeLogout]
+  );
 
-	// TODO: resetPassword useCallback
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    register,
+    verifyPhone,
+    resendOtp,
+    forgotPassword,
+    resetPassword,
+    logout,
+    restoreProfile
 
-	const logout = useCallback(async () => {
-		try {
-			await storeLogout();
-			toast.success('Déconnexion réussie.');
-			router.push('/login');
-		} catch (error: any) {
-			console.error('Logout failed:', error);
-			setUser(null);
-			toast.error('Erreur lors de la déconnexion.');
-			router.push('/login');
-		}
-	}, [storeLogout, setUser, router]);
-
-	return {
-		user,
-		isAuthenticated,
-		isLoading,
-		login,
-		register,
-		verifyEmail,
-		logout,
-		restoreProfile,
-	};
+  };
 }

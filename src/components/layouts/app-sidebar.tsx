@@ -170,6 +170,11 @@ const tenantNavItems = [
 		url: "/tenant-portal/my-invoices",
 		icon: ReceiptTextIcon,
 	},
+	{
+		title: "Quittances",
+		url: "/tenant-portal/my-receipts",
+		icon: ReceiptTextIcon,
+	},
 	// {
 	// 	title: "Maintenance",
 	// 	url: "/tenant-portal/maintenance",

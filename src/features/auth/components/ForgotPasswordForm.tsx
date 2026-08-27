@@ -1,35 +1,53 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Form, FormField, FormMessage, FormItem, FormControl, FormLabel } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  ForgotPasswordCredentials,
+  ForgotPasswordSchema,
+} from "../schemas/authSchemas";
+import { useAuth } from "../hooks/useAuth";
 
 export function ForgotPasswordForm() {
-
-  const form = useForm<{ email: string }>({
+  const { forgotPassword } = useAuth();
+  const form = useForm<ForgotPasswordCredentials>({
+    resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: { email: "" },
   });
 
-  async function onSubmit() {
-
-  } 
-
   return (
     <div className="space-y-6">
-      <div className="space-y-2 text-center lg:text-left">
-        <h1 className="text-2xl font-semibold tracking-tight">Mot de passe oublie ?</h1>
+      <div>
+        <h1 className="text-2xl font-semibold">Mot de passe oublié ?</h1>
         <p className="text-sm text-muted-foreground">
-          Saisissez votre adresse email pour recevoir un lien de réinitialisation.
+          Recevez un lien par e-mail pour le réinitialiser.
         </p>
       </div>
-
       <Form {...form}>
         <form
           className="space-y-4"
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(async ({ email }) => {
+            try {
+              await forgotPassword(email);
+            } catch (e: any) {
+              form.setError("email", {
+                message:
+                  e.response?.data?.message ||
+                  "Impossible d'envoyer le lien.",
+              });
+            }
+          })}
         >
           <FormField
             control={form.control}
@@ -38,38 +56,23 @@ export function ForgotPasswordForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="m@example.com" {...field} type="email" autoComplete="email" />
+                  <Input type="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Envoi en cours...
-              </>
-            ) : (
-              "Envoyer le lien de réinitialisation"
-            )}
+          <Button className="w-full" disabled={form.formState.isSubmitting}>
+            Envoyer le lien
           </Button>
         </form>
       </Form>
-
-      <p className="text-center text-sm text-muted-foreground lg:text-left">
-        <Link
-          href="/login"
-          className="font-medium text-primary underline-offset-4 hover:underline"
-        >
-          Retour a la connexion
-        </Link>
-      </p>
+      <Link
+        href="/login"
+        className="text-sm text-primary hover:underline"
+      >
+        Retour à la connexion
+      </Link>
     </div>
-  )
+  );
 }

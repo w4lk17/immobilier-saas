@@ -15,6 +15,7 @@ import {
 	User,
 	Phone,
 	Download,
+	ArrowRightIcon,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ const fallbackCurrentHousing = {
 		bedrooms: 0,
 		bathrooms: 0,
 		area: 0,
-		floor: 0,
+		floor: 1,
 	},
 	owner: {
 		name: "M. Ahmed Alami",
@@ -323,10 +324,22 @@ export default function TenantDashboardPage() {
 									<div className="text-2xl font-bold text-blue-600">{currentHousing.surface}</div>
 									<div className="text-xs text-muted-foreground">m²</div>
 								</div>
-								{/* <div className="text-center p-3 bg-gray-50 rounded-lg">
-									<div className="text-2xl font-bold text-blue-600">{currentHousing.features.floor}</div>
-									<div className="text-xs text-muted-foreground">Étage</div>
-								</div> */}
+								{typeof currentHousing.features.floor === 'number' && (
+									<div className="text-center p-3 bg-gray-50 rounded-lg">
+										<div className="text-2xl font-bold text-blue-600">
+											{currentHousing.features.floor >= 1
+												? <>{currentHousing.features.floor}<sup>e</sup></>
+												: 'RDC'}
+										</div>
+										{currentHousing.features.floor >= 1 ? (
+											<>
+												<div className="text-xs text-muted-foreground">Étage</div>
+											</>
+										) : (
+											<div className="text-xs text-muted-foreground">Rez-de-chaussée</div>
+										)}
+									</div>
+								)}
 							</div>
 
 							<Separator />
@@ -341,17 +354,22 @@ export default function TenantDashboardPage() {
 										<p className="text-xs text-muted-foreground">{currentHousing.owner.name}</p>
 									</div>
 								</div>
-								<Button variant="outline" size="sm" className="gap-2">
-									<Phone className="h-4 w-4" />
-									Contacter
-								</Button>
+								<Link href={`tel:${currentHousing.owner.phone}`}>
+									<Button variant="outline" size="sm" className="gap-2" asChild>
+										<span>
+											<Phone className="h-4 w-4" />
+											Contacter
+										</span>
+									</Button>
+								</Link>
+
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 
 				{/* Quick Actions */}
-				<Card>
+				<Card className="col-span-2 lg:col-span-1">
 					<CardHeader>
 						<CardTitle>Actions Rapides</CardTitle>
 						<CardDescription>Tâches courantes</CardDescription>
@@ -401,15 +419,25 @@ export default function TenantDashboardPage() {
 								<CardTitle>Prochain Paiement</CardTitle>
 								<CardDescription>{upcomingPayment?.month ?? "Aucun loyer en attente"}</CardDescription>
 							</div>
-							<div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full">
+							<div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-full">
 								<Clock className="h-6 w-6 text-yellow-600" />
 							</div>
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold mb-2">
-							{(upcomingPayment?.amount ?? 0).toLocaleString('fr-FR')} F CFA
+						<div className="flex items-center gap-2 mb-2">
+							<div className="text-3xl font-bold">
+								{upcomingPayment
+									? `${(upcomingPayment.amount ?? 0).toLocaleString('fr-FR')} F CFA`
+									: "--"}
+							</div>
+							{upcomingPayment && (
+								<span className="ml-1 inline-flex items-center rounded px-2 py-0.5 bg-blue-100 text-xs font-medium text-blue-800 border border-blue-200">
+									Loyer + Charges
+								</span>
+							)}
 						</div>
+	
 						<p className="text-sm text-muted-foreground mb-4">
 							{upcomingPayment
 								? `Date limite: ${new Date(upcomingPayment.dueDate).toLocaleDateString('fr-FR')}`
@@ -457,6 +485,14 @@ export default function TenantDashboardPage() {
 								<CardTitle>Historique des Paiements</CardTitle>
 								<CardDescription>Derniers 3 mois</CardDescription>
 							</div>
+							<Link
+								href="/tenant-portal/my-payments"
+								className="ml-2 text-sm font-medium text-blue-700 hover:underline flex items-center"
+							>
+								Voir tout
+								<ArrowRightIcon size={14} className="ml-1 text-blue-700"/>
+								{/* <span aria-hidden="true" className="ml-1">→</span> */}
+							</Link>
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -489,11 +525,6 @@ export default function TenantDashboardPage() {
 								</p>
 							)}
 						</div>
-						<Button variant="outline" size="sm" className="w-full mt-4" asChild>
-							<Link href="/tenant-portal/my-payments">
-								Voir tout l'historique →
-							</Link>
-						</Button>
 					</CardContent>
 				</Card>
 			</div>

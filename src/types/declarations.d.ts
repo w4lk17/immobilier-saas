@@ -14,3 +14,4 @@ declare module "@tanstack/react-table" {
   }
 }
 
+declare module 'react-phone-number-input/style.css'

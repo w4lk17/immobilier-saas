@@ -18,13 +18,22 @@ function AddressBlock({ lines }: { lines: string[] }) {
 }
 
 export function RentReceiptPreview({ receipt }: RentReceiptPreviewProps) {
+	const terme = receipt.isReceiptType ? `caution et avance` : `loyer et des charges`;
+
 	const declaration = receipt.isReceipt
-		? `Je soussigné(e) ${receipt.ownerName} propriétaire du logement désigné ci-dessus, déclare avoir reçu de la part du locataire l'ensemble des sommes mentionnées au titre du loyer et des charges.`
-		: `Ce document présente les sommes dues par le locataire au titre du loyer et des charges pour la période indiquée.`;
+		? `Je soussigné(e) ${receipt.ownerName} propriétaire du logement désigné ci-dessus, déclare avoir reçu de la part du locataire l'ensemble des sommes mentionnées au titre de ${terme}.`
+		: `Ce document présente les sommes dues par le locataire au titre de ${terme} pour la période indiquée.`;
 
 	const basDePage = receipt.isReceipt
-		? `Cette quittance annule tous les reçus qui auraient pu être donnés pour acomptes versés au titre du loyer et des charges pour l'échéance correspondante.Le paiement de la présente quittance ne présume pas du paiement des termes précédents. À conserver 3 ans après échéance du bail.`
+		? `Cette quittance annule tous les reçus qui auraient pu être donnés pour acomptes versés au titre de ${terme} pour l'échéance correspondante.Le paiement de la présente quittance ne présume pas du paiement des termes précédents. À conserver 3 ans après échéance du bail.`
 		: "";
+
+	const detailNameL = receipt.isReceiptType ? `Caution` : `Loyer`
+	const detailNameC = receipt.isReceiptType ? `Avance` : `Charges`
+
+	const lAmount = receipt.isReceiptType ? receipt.depositAmount : receipt.rentAmount
+	const CAmount = receipt.isReceiptType ? receipt.advanceAmount : receipt.chargesAmount
+	const totalAmountDepAdv = receipt.isReceiptType ? receipt.totalDepAdv : receipt.totalAmount
 
 	return (
 		<div className="w-full overflow-x-auto">
@@ -38,7 +47,6 @@ export function RentReceiptPreview({ receipt }: RentReceiptPreviewProps) {
 				}}
 			>
 				<div className="flex justify-between pb-[24mm] text-[14px] leading-5">
-					{/* <div className="flex justify-between pb-[34mm] text-[14px] leading-5"> */}
 					<div className="max-w-[75mm]">
 						<div>{receipt.ownerName}</div>
 						<AddressBlock lines={receipt.ownerAddressLines} />
@@ -55,10 +63,12 @@ export function RentReceiptPreview({ receipt }: RentReceiptPreviewProps) {
 						<h2 className="text-[26px] font-bold leading-none">
 							{receipt.documentTitle}
 						</h2>
-						<div className="mt-3 text-[16px] leading-5">
-							<span className="font-bold">Période : </span>
-							{receipt.periodLabel}
-						</div>
+						{!receipt.isReceiptType && (
+							<div className="mt-3 text-[16px] leading-5">
+								<span className="font-bold">Période : </span>
+								{receipt.periodLabel}
+							</div>
+						)}
 						<div className="text-[16px] leading-5">
 							<span className="font-bold">Adresse du logement : </span>
 							{receipt.housingAddress}
@@ -89,23 +99,23 @@ export function RentReceiptPreview({ receipt }: RentReceiptPreviewProps) {
 
 						<tbody>
 							<tr className="border-b border-black">
-								<td className="border-r border-black p-3">Loyer</td>
+								<td className="border-r border-black p-3">{detailNameL}</td>
 								<td className="p-3 text-right">
-									{formatReceiptCurrency(receipt.rentAmount)}
+									{formatReceiptCurrency(lAmount)}
 								</td>
 							</tr>
 
 							<tr className="border-b border-black">
-								<td className="border-r border-black p-3">Charges</td>
+								<td className="border-r border-black p-3">{detailNameC}</td>
 								<td className="p-3 text-right">
-									{formatReceiptCurrency(receipt.chargesAmount)}
+									{formatReceiptCurrency(CAmount)}
 								</td>
 							</tr>
 
 							<tr>
 								<td className="border-r border-black p-3 font-bold">Total</td>
 								<td className="p-3 text-right font-bold">
-									{formatReceiptCurrency(receipt.totalAmount)}
+									{formatReceiptCurrency(totalAmountDepAdv)}
 								</td>
 							</tr>
 						</tbody>
@@ -135,8 +145,7 @@ export function RentReceiptPreview({ receipt }: RentReceiptPreviewProps) {
 					</div>
 				</div>
 
-				{/* <div className="mt-[38mm] text-[12px] leading-4"> */}
-				<div className="mt-[10mm] text-[12px] leading-4">
+				<div className="mt-[18mm] text-[12px] leading-4">
 					{basDePage}
 				</div>
 			</div>

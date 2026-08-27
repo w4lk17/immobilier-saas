@@ -190,20 +190,20 @@ function InvoiceActions({ row, table }: { row: Row<InvoiceWithRelations>, table:
 }
 
 export const invoiceColumns: ColumnDef<InvoiceWithRelations>[] = [
-	{
-		id: "invoiceNumber",
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
-		accessorFn: row => row.invoiceNumber?.trim() || 'N/A',
-		cell: ({ row }) => {
-			const invoiceNumber = row.original.invoiceNumber?.trim();
-			return (
-				<div className="font-medium">
-					{invoiceNumber && invoiceNumber !== '' ? invoiceNumber : <span className="text-muted-foreground italic">N/A</span>}
-				</div>
-			);
-		},
-		enableSorting: false,
-	},
+	// {
+	// 	id: "invoiceNumber",
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title="Référence" />,
+	// 	accessorFn: row => row.invoiceNumber?.trim() || 'N/A',
+	// 	cell: ({ row }) => {
+	// 		const invoiceNumber = row.original.invoiceNumber?.trim();
+	// 		return (
+	// 			<div className="font-medium">
+	// 				{invoiceNumber && invoiceNumber !== '' ? invoiceNumber : <span className="text-muted-foreground italic">N/A</span>}
+	// 			</div>
+	// 		);
+	// 	},
+	// 	enableSorting: false,
+	// },
 	{
 		id: "tenantName",
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Locataire" />,

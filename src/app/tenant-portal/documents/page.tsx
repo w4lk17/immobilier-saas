@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 // Mock documents data
 const mockDocuments = [
@@ -63,14 +64,10 @@ function getTypeBadge(type: string) {
 export default function TenantDocumentsPage() {
 	return (
 		<div className="h-full flex-1 flex-col gap-8 p-4 md:flex">
-			<div className="flex items-center justify-between gap-2">
-				<div className="flex flex-col gap-1">
-					<h2 className="text-2xl font-bold tracking-tight">Documents</h2>
-					<p className="text-muted-foreground">
-						Vos contrats, quittances et autres documents
-					</p>
-				</div>
-			</div>
+			<PageHeader
+				title="Documents"
+				description="Vos contrats, quittances et autres documents"
+			/>
 
 			{/* Search Bar */}
 			<div className="relative">

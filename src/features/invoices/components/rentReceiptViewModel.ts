@@ -1,5 +1,5 @@
 import { InvoiceWithRelations } from "@/types";
-import { InvoiceStatus } from "@/types/enums";
+import { InvoiceStatus, InvoiceType } from "@/types/enums";
 import { subMonths } from "date-fns";
 
 export type RentReceiptViewModel = {
@@ -7,6 +7,7 @@ export type RentReceiptViewModel = {
 	invoiceNumber: string;
 	documentTitle: string;
 	isReceipt: boolean;
+	isReceiptType: boolean;
 	status: InvoiceStatus;
 	periodLabel: string;
 	periodStart: string;
@@ -17,6 +18,9 @@ export type RentReceiptViewModel = {
 	ownerAddressLines: string[];
 	tenantName: string;
 	tenantAddressLines: string[];
+	advanceAmount: number;
+	depositAmount: number;
+	totalDepAdv : number;
 	rentAmount: number;
 	chargesAmount: number;
 	totalAmount: number;
@@ -108,14 +112,23 @@ export function buildRentReceiptViewModel(invoice: InvoiceWithRelations): RentRe
 	const totalAmount = toNumber(invoice.amountDue);
 	const rentAmount = toNumber(contract?.rentAmount);
 	const chargesAmount = toNumber(contract?.chargesAmount);
+	const advanceAmount = toNumber(contract?.advanceAmount);
+	const depositAmount = toNumber(contract?.depositAmount);
+	const totalDepAdv = (advanceAmount || 0) + (depositAmount || 0);
 	const fallbackRent = rentAmount > 0 || chargesAmount > 0 ? rentAmount : totalAmount;
 	const isReceipt = invoice.status === InvoiceStatus.PAID;
+	const isReceiptType = invoice.type === InvoiceType.ADVANCE || invoice.type === InvoiceType.DEPOSIT;
 
 	return {
 		invoiceId: invoice.id,
 		invoiceNumber: invoice.invoiceNumber?.trim() || EMPTY,
-		documentTitle: isReceipt ? "QUITTANCE DE LOYER" : "FACTURE DE LOYER",
+		documentTitle: isReceiptType
+			? "CAUTION & AVANCE DE LOYER"
+			: isReceipt
+				? "QUITTANCE DE LOYER"
+				: "FACTURE DE LOYER",
 		isReceipt,
+		isReceiptType,
 		status: invoice.status,
 		periodLabel: periodStart && periodEnd
 			? `du ${formatDate(periodStart)} au ${formatDate(periodEnd)}`
@@ -129,6 +142,9 @@ export function buildRentReceiptViewModel(invoice: InvoiceWithRelations): RentRe
 		tenantName: fullName(tenantUser?.civility, tenantUser?.lastName, tenantUser?.firstName),
 		tenantAddressLines: compactLines(contract?.property.address),
 		// tenantAddressLines: compactLines(tenantUser?.address, contract?.property.address),
+		advanceAmount,
+		depositAmount,
+		totalDepAdv,
 		rentAmount: fallbackRent,
 		chargesAmount,
 		totalAmount,

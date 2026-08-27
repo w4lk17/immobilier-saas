@@ -1,7 +1,6 @@
 // src/hooks/usePermissions.ts (ou features/auth/hooks/usePermissions.ts)
 import { useAuth } from './useAuth';
 import { Permission, hasPermission } from '@/lib/permissions';
-import { UserRole } from '@/types';
 import {
 	PropertyWithRelations,
 	ContractWithRelations,
@@ -10,6 +9,7 @@ import {
 	RentalWithRelations
 } from '@/types';
 import { getRoleRedirectPath, getRoleName } from '@/lib/authUtils';
+import { UserRole } from '@/types/enums';
 
 export function usePermissions() {
 	const { user } = useAuth();

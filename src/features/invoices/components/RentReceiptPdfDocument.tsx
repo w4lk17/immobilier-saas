@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	header: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		marginBottom: "34mm",
+		marginBottom: "24mm",
 	},
 	addressBlock: {
 		width: "72mm",
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	footer: {
 		fontSize: 9,
 		lineHeight: 1.25,
-		marginTop: "38mm",
+		marginTop: "18mm",
 	},
 });
 
@@ -122,13 +122,22 @@ function Lines({ lines }: { lines: string[] }) {
 }
 
 export function RentReceiptPdfDocument({ receipt }: RentReceiptPdfDocumentProps) {
+	const terme = receipt.isReceiptType ? `caution et avance` : `loyer et des charges`;
+
 	const declaration = receipt.isReceipt
-		? `Je soussigné(e) ${receipt.ownerName} propriétaire du logement désigné ci-dessus, déclare avoir reçu de la part du locataire l'ensemble des sommes mentionnées au titre du loyer et des charges.`
-		: "Ce document présente les sommes dues par le locataire au titre du loyer et des charges pour la période indiquée.";
+		? `Je soussigné(e) ${receipt.ownerName} propriétaire du logement désigné ci-dessus, déclare avoir reçu de la part du locataire l'ensemble des sommes mentionnées au titre de ${terme}.`
+		: "Ce document présente les sommes dues par le locataire au titre de ${terme} pour la période indiquée.";
 
 	const basDePage = receipt.isReceipt
-		? `Cette quittance annule tous les reçus qui auraient pu être donnés pour acomptes versés au titre du loyer et des charges pour l'échéance correspondante.Le paiement de la présente quittance ne présume pas du paiement des termes précédents. À conserver 3 ans après échéance du bail.`
+		? `Cette quittance annule tous les reçus qui auraient pu être donnés pour acomptes versés au titre de ${terme} pour l'échéance correspondante.Le paiement de la présente quittance ne présume pas du paiement des termes précédents. À conserver 3 ans après échéance du bail.`
 		: "";
+
+	const detailNameL = receipt.isReceiptType ? `Caution` : `Loyer`
+	const detailNameC = receipt.isReceiptType ? `Avance` : `Charges`
+
+	const lAmount = receipt.isReceiptType ? receipt.depositAmount : receipt.rentAmount
+	const CAmount = receipt.isReceiptType ? receipt.advanceAmount : receipt.chargesAmount
+	const totalAmountDepAdv = receipt.isReceiptType ? receipt.totalDepAdv : receipt.totalAmount
 
 	return (
 		<Document>
@@ -148,10 +157,12 @@ export function RentReceiptPdfDocument({ receipt }: RentReceiptPdfDocumentProps)
 				<View style={styles.box}>
 					<View style={styles.titleBlock}>
 						<Text style={styles.title}>{receipt.documentTitle}</Text>
-						<Text>
-							<Text style={styles.bold}>Période : </Text>
-							{receipt.periodLabel}
-						</Text>
+						{!receipt.isReceiptType && (
+							<Text>
+								<Text style={styles.bold}>Période : </Text>
+								{receipt.periodLabel}
+							</Text>
+						)}
 						<Text>
 							<Text style={styles.bold}>Adresse du logement : </Text>
 							{receipt.housingAddress}
@@ -176,21 +187,21 @@ export function RentReceiptPdfDocument({ receipt }: RentReceiptPdfDocumentProps)
 						<Text style={[styles.tableCellAmount, styles.bold]}>Montant</Text>
 					</View>
 					<View style={styles.tableRow}>
-						<Text style={styles.tableCellLabel}>Loyer</Text>
+						<Text style={styles.tableCellLabel}>{detailNameL}</Text>
 						<Text style={styles.tableCellAmount}>
-							{formatReceiptCurrency(receipt.rentAmount)}
+							{formatReceiptCurrency(lAmount)}
 						</Text>
 					</View>
 					<View style={styles.tableRow}>
-						<Text style={styles.tableCellLabel}>Charges</Text>
+						<Text style={styles.tableCellLabel}>{detailNameC}</Text>
 						<Text style={styles.tableCellAmount}>
-							{formatReceiptCurrency(receipt.chargesAmount)}
+							{formatReceiptCurrency(CAmount)}
 						</Text>
 					</View>
 					<View style={styles.tableRowLast}>
 						<Text style={[styles.tableCellLabel, styles.bold]}>Total</Text>
 						<Text style={[styles.tableCellAmount, styles.bold]}>
-							{formatReceiptCurrency(receipt.totalAmount)}
+							{formatReceiptCurrency(totalAmountDepAdv)}
 						</Text>
 					</View>
 				</View>
