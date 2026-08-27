@@ -1,11 +1,9 @@
 "use client";
 
-import { Download, Terminal } from "lucide-react";
-import Link from "next/link";
+import { Terminal } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { TenantList } from "@/features/tenants/components/TenantList";
 import { useTenants } from "@/features/tenants/hooks/useTenants.hooks";
 import { useAuth } from "@/features/auth/hooks/useAuth";

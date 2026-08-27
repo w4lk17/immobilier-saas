@@ -23,7 +23,6 @@ export const useTenants = () => {
 	});
 };
 
-
 // Voir un tenant
 export const useTenant = (id: number | null | undefined, enabled = true) => {
 	return useQuery<FrontendTenant, Error>({

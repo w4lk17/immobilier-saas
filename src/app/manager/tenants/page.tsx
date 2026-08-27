@@ -7,12 +7,12 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TenantList } from "@/features/tenants/components/TenantList";
-import { useTenantsWithUser } from "@/features/tenants/hooks/useTenants.hooks";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Permission, hasPermission } from "@/lib/permissions";
+import { useTenants } from "@/features/tenants/hooks/useTenants.hooks";
 
 export default function ManagerTenantsPage() {
-	const { data: tenants, isLoading, isError, error } = useTenantsWithUser();
+	const { data: tenants, isLoading, isError, error } = useTenants();
 	const { user } = useAuth();
 
 	const canRead = user && hasPermission(user.role, Permission.TENANTS_READ);

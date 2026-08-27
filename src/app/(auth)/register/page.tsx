@@ -1,5 +1,10 @@
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
+import { Suspense } from "react";
 
 export default function RegisterPage() {
-	return <RegisterForm />;
+	return (
+		<Suspense fallback={<div>Chargement...</div>}>
+			<RegisterForm />
+		</Suspense>
+	);
 }

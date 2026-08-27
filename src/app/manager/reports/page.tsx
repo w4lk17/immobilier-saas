@@ -1,23 +1,6 @@
 "use client";
 
-import { PaymentList } from "@/features/payments/components/PaymentList";
-import { usePayments } from "@/features/payments/hooks/usePayments.hooks";
-import { ReportListTable } from "@/features/reports/components/ReportListTable";
-
 export default function ManagerReportsPage() {
-	const { data: payments, isLoading, isError, error } = usePayments();
-
-	if (isLoading) {
-		return (
-				<div className="flex justify-center items-center">
-					Loading...
-				</div>
-		);
-	}
-
-	if (isError) {
-		return <p className="text-destructive">Erreur de chargement: {error?.message || 'Inconnue'}</p>;
-	}
 
 	return (
 		<div className="">
@@ -27,9 +10,7 @@ export default function ManagerReportsPage() {
 						<div className="flex items-center justify-between mb-2">
 							<h2 className="text-lg font-medium">Historique des paiements</h2>
 						</div>
-						<PaymentList payments={payments || []} />
 				</div>
-				<ReportListTable/>
 			</div>
 		</div>
 
