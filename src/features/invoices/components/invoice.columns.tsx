@@ -21,28 +21,18 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreVertical, Edit3, Trash2, Eye, BookXIcon } from "lucide-react";
 import Link from "next/link";
 import { useDeleteInvoice } from '../hooks/useInvoices.hooks';
 import { formatCurrency } from "@/lib/utils";
-import { getStatusBadge } from "@/lib/statusHelpers";
 import { DataTableColumnHeader } from "@/components/shared/DataTable/data-table-column-header";
 import { formatDate, hasPermission, Permission } from "@/lib";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useState } from "react";
 import { InvoiceStatus, InvoiceType } from "@/types/enums";
-import { InvoicePreviewDialog } from "./InvoicePreviewDialog";
 import { invoiceStatusLabels, invoiceTypeLabels } from "../lib/invoiceLabels";
 
-const statusClasses: Record<InvoiceStatus, string> = {
-	[InvoiceStatus.PAID]: "border-green-500 text-green-700 bg-green-200",
-	[InvoiceStatus.PENDING]: "border-yellow-500 text-yellow-700 bg-yellow-50",
-	[InvoiceStatus.PARTIAL]: "border-orange-500 text-orange-700 bg-orange-50",
-	[InvoiceStatus.CANCELLED]: "border-orange-500 text-orange-700 bg-orange-50",
-	[InvoiceStatus.OVERDUE]: "border-red-500 text-red-700 bg-red-50",
-};
 
 function InvoiceActions({ row, table }: { row: Row<InvoiceWithRelations>, table: any }) {
 	const invoice = row.original;
@@ -53,7 +43,6 @@ function InvoiceActions({ row, table }: { row: Row<InvoiceWithRelations>, table:
 
 	const { user } = useAuth();
 
-	const canRead = user && hasPermission(user.role, Permission.INVOICES_READ);
 	const canEdit = user && hasPermission(user.role, Permission.INVOICES_UPDATE);
 	const canDelete = user && hasPermission(user.role, Permission.INVOICES_DELETE);
 	const canCancel = user && hasPermission(user.role, Permission.INVOICES_CANCEL);

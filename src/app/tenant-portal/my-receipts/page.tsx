@@ -136,7 +136,7 @@ export default function TenantReceiptPage() {
 
 	const receiptTuples = useMemo(() => {
 		const paidInvoices = (invoices || []).filter(
-			(inv) => inv.status === InvoiceStatus.PAID
+			(inv) => inv.status === InvoiceStatus.PAID && inv.type === "RENT" || inv.type === "DEPOSIT"
 		);
 		return paidInvoices.map((invoice) => ({
 			receipt: buildRentReceiptViewModel(invoice),
@@ -178,25 +178,6 @@ export default function TenantReceiptPage() {
 			</Alert>
 		);
 	}
-
-	// Filtrer uniquement les factures payées = quittances
-	// const paidInvoices: InvoiceWithRelations[] =
-	// 	(invoices || []).filter(
-	// 		(inv) => inv.status === InvoiceStatus.PAID
-	// 	);
-
-	// // Transforme chaque facture en RentReceiptViewModel pour la card
-	// const receiptTuples: Array<{
-	// 	receipt: RentReceiptViewModel;
-	// 	invoice: InvoiceWithRelations;
-	// }> = useMemo(
-	// 	() =>
-	// 		paidInvoices.map((invoice) => ({
-	// 			receipt: buildRentReceiptViewModel(invoice),
-	// 			invoice,
-	// 		})),
-	// 	[paidInvoices]
-	// );
 
 	const pageCount = Math.ceil(receiptTuples.length / ITEMS_PER_PAGE);
 

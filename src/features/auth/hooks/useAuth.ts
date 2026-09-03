@@ -5,41 +5,57 @@ import useAuthStore from '@/store/authStore';
 import { LoginCredentials, RegisterCredentials, VerifyPhoneCredentials } from '../schemas/authSchemas';
 import authService from '../services/authApi';
 import { getRoleRedirectPath } from '@/lib/authUtils';
+import { isAccountDisabled, isPhoneNotVerified } from '../lib/authErrors';
+
 let hasHydrated = false;
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setUser, setLoading, logout: storeLogout, restoreProfile } = useAuthStore();
   const router = useRouter();
+
   useEffect(() => {
     if (hasHydrated) return;
     hasHydrated = true; (async () => {
       try {
         setUser(await authService.getProfile());
       } catch (error: any) {
-        if (error.response?.status !== 401)
+        if (isAccountDisabled(error)) {
+          toast.error('Votre compte a été désactivé.');
+        } else if (error.response?.status !== 401) {
           console.error('Auth hydration error:', error.message);
+        }
         setUser(null);
       }
       finally {
         setLoading(false);
       }
     })();
-  },
-    [setUser, setLoading]);
+  }, [setUser, setLoading]);
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {
       setLoading(true);
+
       try {
-        const loggedInUser = await authService.login(credentials);
+        await authService.login(credentials); // pose les cookies, pas besoin du user retourné
+
+        const loggedInUser = await authService.getProfile(); // confirme la session
         setUser(loggedInUser);
+
         toast.success('Connexion réussie !');
         router.push(getRoleRedirectPath(loggedInUser));
       } catch (error: any) {
         setUser(null);
+
+        if (isAccountDisabled(error)) {
+          toast.error('Votre compte a été désactivé. Contactez l\'administrateur.');
+          throw error; // pas de redirect vers verify-phone,
+        }
+
         const message = error.response?.data?.message || 'Échec de la connexion.';
-        toast.error(message);
-        if (error.response?.data?.code === 'PHONE_NOT_VERIFIED') {
+        toast.error(typeof message === 'string' ? message : message?.message ?? 'Échec de la connexion.');
+
+        if (isPhoneNotVerified(error)) {
           sessionStorage.setItem('pendingVerificationPhone', credentials.phone);
           router.push('/verify-phone');
         }
@@ -68,15 +84,24 @@ export function useAuth() {
     }, [router, setLoading]
   );
 
-  const verifyPhone = useCallback(
-    async (credentials: VerifyPhoneCredentials) => {
-      const verifiedUser = await authService.verifyPhone(credentials);
+  const verifyPhone = useCallback(async (credentials: VerifyPhoneCredentials) => {
+    try {
+      await authService.verifyPhone(credentials);
+      const verifiedUser = await authService.getProfile();
       setUser(verifiedUser);
       sessionStorage.removeItem('pendingVerificationPhone');
       toast.success('Numéro vérifié. Connexion réussie !');
       router.push(getRoleRedirectPath(verifiedUser));
-    }, [router, setUser]
-  );
+
+    } catch (error) {
+      if (isAccountDisabled(error)) {
+        setUser(null);
+        toast.error('Votre compte a été désactivé. Contactez l\'administrateur.');
+        router.push('/login');
+      }
+      throw error;
+    }
+  }, [router, setUser]);
 
   const resendOtp = useCallback(
     async (phone: string) => {

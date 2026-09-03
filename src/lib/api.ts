@@ -1,13 +1,12 @@
+import { isAccountDisabled } from '@/features/auth/lib/authErrors';
 import useAuthStore from '@/store/authStore';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333/api';
 
 const api = axios.create({
 	baseURL: API_URL,
-	// Important pour envoyer les cookies (HttpOnly) lors des requêtes cross-origin
-	// si votre frontend et backend sont sur des domaines/ports différents.
-	// Assurez-vous que votre backend est configuré avec CORS et 'credentials: true'.
 	withCredentials: true,
 	headers: {
 		'Content-Type': 'application/json',
@@ -48,6 +47,28 @@ api.interceptors.response.use(
 	async (error) => {
 		const originalRequest = error.config;
 		if (!originalRequest) return Promise.reject(error);
+
+		if (isAccountDisabled(error)) {
+			const logout = useAuthStore.getState().logout;
+			if (logout) await logout();
+
+			const isAuthFormAttempt =
+				originalRequest.url?.includes('/auth/login') ||
+				originalRequest.url?.includes('/auth/verify-phone');
+
+			// Pas de toast/redirect ici : useAuth gère login/verify-phone
+			if (!isAuthFormAttempt) {
+				toast.error('Votre compte a été désactivé. Contactez l\'administrateur.');
+
+				if (
+					typeof window !== 'undefined' &&
+					!window.location.pathname.startsWith('/login')
+				) {
+					window.location.href = '/login';
+				}
+			}
+			return Promise.reject(error);
+		}
 
 		// Prevent infinite loops: skip refresh for auth endpoints
 		const isAuthEndpoint = originalRequest.url?.includes('/auth/');

@@ -55,7 +55,7 @@ export default function InvoicesPage() {
 				title="Liste des factures"
 				description="Liste des factures de tous les locataires"
 			/>
-			<InvoiceList invoices={invoices || []} />
+			<InvoiceList invoices={invoices?.filter(i => i.type === "RENT" || i.type === "DEPOSIT") || []} />
 		</div>
 	);
 }

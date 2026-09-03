@@ -66,10 +66,12 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 					</div>
 					{/* Type à droite en badge */}
 					<div className="flex flex-col items-end gap-1 min-w-[90px] pl-3 shrink-0">
+						{/* badge Type */}
 						<Badge variant="outline">{getPropertyTypeLabel(property.type)}</Badge>
-						<Badge variant={getStatusVariant(property.status)}>
+						{/* badge Status */}
+						{/* <Badge variant={getStatusVariant(property.status)}>
 							{getPropertyStatusLabel(property.status)}
-						</Badge>
+						</Badge> */}
 					</div>
 				</div>
 			</CardHeader>
@@ -128,7 +130,7 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 							<span className="ml-1 hidden sm:inline">total</span>
 						</span>
 					</span>
-					{property.rentals && property.rentals.filter(r => r.status === "AVAILABLE").length > 0 && (
+					{property.rentals && (
 						<span className="bg-orange-100 text-orange-700 font-semibold rounded-full px-2 py-0.5 text-xs flex items-center ml-2">
 							{property.rentals.filter(r => r.status === "AVAILABLE").length}
 							<span className="ml-1 hidden sm:inline">
@@ -137,6 +139,7 @@ export function PropertyCard({ property, actions, onViewDetails }: PropertyCardP
 							</span>
 						</span>
 					)}
+
 
 
 				</div>

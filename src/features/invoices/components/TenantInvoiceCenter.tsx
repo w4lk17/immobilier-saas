@@ -119,7 +119,7 @@ async function downloadInvoice(receipt: RentReceiptViewModel) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `facture-${receipt.invoiceNumber}.pdf`;
+  anchor.download = `facture-${receipt.monthLabel}.pdf`;
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -356,27 +356,30 @@ export function TenantInvoiceCenter({ invoices }: TenantInvoiceCenterProps) {
                           <Eye className="size-4" />
                           Voir
                         </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(receipt)}
-                          disabled={
-                            downloadingId === receipt.invoiceId
-                          }
-                        >
-                          <Download className="size-4" />
-                          {downloadingId === receipt.invoiceId
-                            ? "Préparation..."
-                            : "Télécharger"}
-                        </Button>
                         {invoice.status !== InvoiceStatus.PAID && (
-                          <Button size="sm" asChild>
-                            <Link href="/tenant-portal/my-payments">
-                              <Wallet className="size-4" />
-                              Payer
-                            </Link>
-                          </Button>
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownload(receipt)}
+                              disabled={
+                                downloadingId === receipt.invoiceId
+                              }
+                            >
+                              <Download className="size-4" />
+                              {downloadingId === receipt.invoiceId
+                                ? "Préparation..."
+                                : "Télécharger"}
+                            </Button>
+
+                            <Button size="sm" asChild>
+                              <Link href="/tenant-portal/my-payments">
+                                <Wallet className="size-4" />
+                                Payer
+                              </Link>
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
