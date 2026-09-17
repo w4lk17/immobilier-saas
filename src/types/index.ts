@@ -320,8 +320,8 @@ export interface ExpenseWithRelations extends Expense {
 export interface OwnerWithRelations extends OwnerWithUser {
 	properties: Property[];
 	contracts: Contract[];
-}
 
+}
 // Locataire avec ses contrats/factures (Pour le dashboard Tenant)
 export interface TenantWithRelations extends TenantWithUser {
 	contracts: Contract[];

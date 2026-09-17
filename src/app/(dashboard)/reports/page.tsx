@@ -13,7 +13,7 @@ export default function ReportsPage() {
 
 				<div className="bg-primary-foreground p-4 rounded-lg">
 					<div className="flex items-center justify-between mb-2">
-						<h2 className="text-lg font-medium">Historique des paiements</h2>
+						<h2 className="text-lg font-medium">rapport financier</h2>
 					</div>
 
 				</div>

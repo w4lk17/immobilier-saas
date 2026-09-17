@@ -102,8 +102,10 @@ export function NavUser() {
 							<DropdownMenuSeparator />
 							<DropdownMenuGroup>
 								<DropdownMenuItem>
-									<Sparkles />
-									Upgrade to Pro
+									<Link href="/settings/billing" className="flex items-center gap-2 w-full">
+										<Sparkles />
+										Abonnement & Facturation
+									</Link>
 								</DropdownMenuItem>
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />

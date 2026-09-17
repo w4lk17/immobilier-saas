@@ -129,7 +129,7 @@ export function RentalDetailsModal({ rental, isOpen, onOpenChange }: RentalDetai
 								<div>
 									<span className="block text-slate-500 text-xs font-medium">Total Mensuel (Loyer + Charges)</span>
 									<span className="font-bold text-emerald-700 text-base">
-										{formatCurrency(rental.rentalValue + (rental.charges || 0))}
+										{formatCurrency(Number(rental.rentalValue) + Number(rental.charges || 0))}
 									</span>
 								</div>
 							</div>

@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { useTenantDashboard } from "@/features/dashboard/hooks/useDashboard.hooks";
+import { formatCurrency } from "@/lib/utils";
 
 const fallbackTenantStats = {
 	monthlyRent: 0,
@@ -51,10 +52,10 @@ const fallbackCurrentHousing = {
 	leaseEnd: "",
 };
 
-const fallbackRecentPayments = [
-	{ id: 1, month: "Janvier 2026", amount: 18000, date: "2026-02-05", status: "paid" },
-	{ id: 2, month: "Décembre 2025", amount: 18000, date: "2026-01-05", status: "paid" },
-	{ id: 3, month: "Novembre 2025", amount: 18000, date: "2025-12-05", status: "paid" },
+const fallbackRecentPayments = [{}
+	// { id: 1, month: "Janvier 2026", amount: 18000, date: "2026-02-05", status: "paid" },
+	// { id: 2, month: "Décembre 2025", amount: 18000, date: "2026-01-05", status: "paid" },
+	// { id: 3, month: "Novembre 2025", amount: 18000, date: "2025-12-05", status: "paid" },
 ];
 const fallbackUpcomingPayment = {
 
@@ -491,7 +492,6 @@ export default function TenantDashboardPage() {
 							>
 								Voir tout
 								<ArrowRightIcon size={14} className="ml-1 text-blue-700"/>
-								{/* <span aria-hidden="true" className="ml-1">→</span> */}
 							</Link>
 						</div>
 					</CardHeader>
@@ -512,7 +512,7 @@ export default function TenantDashboardPage() {
 									</div>
 									<div className="text-right">
 										<p className="text-sm font-semibold text-green-600">
-											{payment.amount.toLocaleString('fr-FR')} F CFA
+											{payment.amount || 0} F CFA
 										</p>
 										<Badge variant="outline" className="text-xs border-green-500 text-green-600">
 											Payé
