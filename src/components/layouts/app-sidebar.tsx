@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import {
+	Activity,
 	Building2,
 	Command,
 	Contact,
@@ -14,6 +15,7 @@ import {
 	HouseIcon,
 	LayoutDashboard,
 	Mail,
+	ReceiptText,
 	ReceiptTextIcon,
 	Settings,
 	Shield,
@@ -37,28 +39,43 @@ import { getRoleName } from "@/lib/authUtils"
 const sAdminNavItems = [
 	{
 		title: "Tableau de bord",
-		url: "/admin",
+		url: "/s-admin",
 		icon: LayoutDashboard,
 	},
 	{
+		title: "Organisations",
+		url: "/s-admin/organizations",
+		icon: Building2,
+	},
+	{
 		title: "Utilisateurs",
-		url: "/admin/users",
+		url: "/s-admin/users",
 		icon: Users,
 	},
 	{
-		title: "Gestionnaires",
-		url: "/admin/managers",
-		icon: UserRoundCog,
+		title: "Abonnements",
+		url: "/s-admin/billing",
+		icon: ReceiptText,
 	},
 	{
-		title: "Locataires",
-		url: "/admin/tenants",
-		icon: Contact,
+		title: "Activité",
+		url: "/s-admin/activity",
+		icon: Activity,
 	},
 	{
-		title: "Contrats",
-		url: "/admin/contracts",
-		icon: FileText,
+		title: "Audit & sécurité",
+		url: "/s-admin/audit",
+		icon: Shield,
+	},
+	{
+		title: "Santé système",
+		url: "/s-admin/system",
+		icon: Shield,
+	},
+	{
+		title: "Paramètres",
+		url: "/s-admin/settings",
+		icon: Settings,
 	},
 	// {
 	// 	title: "Paramètres",
@@ -69,11 +86,6 @@ const sAdminNavItems = [
 	// 	title: "Système",
 	// 	url: "/admin/system",
 	// 	icon: Shield,
-	// },
-	// {
-	// 	title: "Rapports",
-	// 	url: "/manager/reports",
-	// 	icon: FileChartColumn,
 	// },
 ];
 
@@ -260,7 +272,7 @@ export function AppSidebar({
 		if (!user?.role) return "manager";
 
 		switch (user.role) {
-			case "S_ADMIN":
+			case "SUPER_ADMIN":
 				return "s_admin";
 			case "ADMIN":
 				return "admin";

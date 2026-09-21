@@ -2,7 +2,7 @@
 // Miroir des enums définis dans le fichier schema.prisma du backend.
 
 export enum UserRole {
-	S_ADMIN = 'S_ADMIN',
+	S_ADMIN = 'SUPER_ADMIN',
 	ADMIN = 'ADMIN',
 	MANAGER = 'MANAGER',
 	OWNER = 'OWNER',
@@ -57,11 +57,11 @@ export enum ContractStatus {
 	EXPIRED = 'EXPIRED',
 }
 
-export enum SubscriptionStatus{
+export enum SubscriptionStatus {
 	TRIAL = 'TRIAL',
-  ACTIVE = 'ACTIVE',
-  PAST_DUE = 'PAST_DUE',
-  CANCELED = 'CANCELED'
+	ACTIVE = 'ACTIVE',
+	PAST_DUE = 'PAST_DUE',
+	CANCELED = 'CANCELED'
 }
 
 export enum InvoiceType {
@@ -81,7 +81,7 @@ export enum InvoiceStatus {
 }
 
 export enum PaymentProvider {
-	STRIPE='STRIPE',
+	STRIPE = 'STRIPE',
 	MOBILE_MONEY = 'MOBILE_MONEY',
 }
 
